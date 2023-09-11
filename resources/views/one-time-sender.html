@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <!-- Meta -->
+    <meta name="description" content="Responsive Bootstrap 4 Dashboard Template">
+    <meta name="author" content="BootstrapDash">
+
+    <title>Bulk Email Sender</title>
+
+    <!-- vendor css -->
+    <link href="../lib/ionicons/css/ionicons.min.css" rel="stylesheet">
+    <link href="../lib/typicons.font/typicons.css" rel="stylesheet">
+    <link href="../lib/flag-icon-css/css/flag-icon.min.css" rel="stylesheet">
+
+    <!-- azia CSS -->
+    <link rel="stylesheet" href="../css/azia.css">
+
+</head>
+
+<body>
+
+    <div class="az-header">
+        <div class="container">
+            <div class="az-header-left">
+                <a href="index.html" class="az-logo"><span></span> BES</a>
+                <a href="" id="azMenuShow" class="az-header-menu-icon d-lg-none"><span></span></a>
+            </div><!-- az-header-left -->
+            <div class="az-header-menu">
+                <div class="az-header-menu-header">
+                    <a href="index.html" class="az-logo"><span></span> BES</a>
+                    <a href="" class="close">&times;</a>
+                </div><!-- az-header-menu-header -->
+                <ul class="nav">
+                    <li class="nav-item">
+                        <a href="index.html" class="nav-link"><i class="typcn typcn-chart-area-outline"></i>
+                            Dashboard</a>
+                    </li>
+                    <li class="nav-item active">
+                        <a href="" class="nav-link with-sub"><i class="typcn typcn-document"></i> Email Sender</a>
+                        <nav class="az-menu-sub">
+                            <a href="one-time-sender.html" class="nav-link">One Time Sender</a>
+                            <a href="saved-sender.html" class="nav-link">Saved Sender</a>
+                        </nav>
+                    </li>
+                    <li class="nav-item">
+                        <a href="chart-chartjs.html" class="nav-link"><i class="typcn typcn-chart-bar-outline"></i>
+                            Configuration</a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="form-elements.html" class="nav-link"><i class="typcn typcn-user-outline"></i>
+                            Profile</a>
+                    </li>
+                </ul>
+            </div><!-- az-header-menu -->
+            <div class="az-header-right">
+                <div class="dropdown az-profile-menu">
+                    <a href="" class="az-img-user"><img src="../img/faces/face1.jpg" alt=""></a>
+                    <div class="dropdown-menu">
+                        <div class="az-dropdown-header d-sm-none">
+                            <a href="" class="az-header-arrow"><i class="icon ion-md-arrow-back"></i></a>
+                        </div>
+                        <div class="az-header-profile">
+                            <div class="az-img-user">
+                                <img src="../img/faces/face1.jpg" alt="">
+                            </div><!-- az-img-user -->
+                            <h6>Aziana Pechon</h6>
+                            <span>Premium Member</span>
+                        </div><!-- az-header-profile -->
+
+                        <a href="" class="dropdown-item"><i class="typcn typcn-user-outline"></i> My Profile</a>
+                        <a href="" class="dropdown-item"><i class="typcn typcn-edit"></i> Edit Profile</a>
+                        <a href="signin.html" class="dropdown-item"><i class="typcn typcn-power-outline"></i> Sign
+                            Out</a>
+                    </div><!-- dropdown-menu -->
+                </div>
+            </div><!-- az-header-right -->
+        </div><!-- container -->
+    </div><!-- az-header -->
+
+    <div class="az-content az-content-dashboard">
+        <div class="container">
+            <div class="az-content-body">
+                <div class="az-dashboard-one-title">
+
+                    <div>
+                        <div class="az-content-breadcrumb">
+                            <span>Email Sender</span>
+                            <span>One Time Sender</span>
+                        </div>
+                        <h2 class="az-dashboard-title">One Time Sender</h2>
+                    </div>
+                    <div class="az-content-header-right">
+                        <div class="media">
+                            <div class="media-body">
+                                <label>Time</label>
+                                <h6>Oct 10, 2018</h6>
+                            </div><!-- media-body -->
+                        </div><!-- media -->
+                        <div class="media">
+                            <div class="media-body">
+                                <label>Date</label>
+                                <h6>Oct 23, 2018</h6>
+                            </div><!-- media-body -->
+                        </div><!-- media -->
+                    </div>
+                </div><!-- az-dashboard-one-title -->
+
+                <div class="az-dashboard-nav">
+                </div>
+
+                <div class="mg-b-20">
+                    <div class="row row-sm">
+                        <div class="col-sm-12 col-md-12 col-lg-12">
+                            <div class="card card-dashboard-pageviews">
+                                <h2 class="card-header mb-4 border-bottom">
+                                    Email Sender
+                                </h2><!-- card-header -->
+                                <div class="card-body">
+                                    <form action="">
+                                        <div class="az-content-label mg-b-5">Import Excel Sheet</div>
+                                        <p class="mg-b-20 text-danger">Email field should be in the 3rd row.</p>
+                                        <div class="custom-file">
+                                            <input type="file" class="custom-file-input" accept="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" id="customFile">
+                                            <label class="custom-file-label" for="customFile">Choose excel file</label>
+                                        </div>
+                                        <div class="mt-4 form-group">
+                                            <div class="az-content-label mg-b-5">Subject</div>
+                                            <p class="mg-b-20 text-danger">Email field should be in the 3rd row.</p>
+                                            <input class="form-control" placeholder="Lorem ipsum dolor sit, amet consectetur adipisicing." type="text" spellcheck="false" data-ms-editor="true">
+                                        </div>
+                                        <div class="mt-4 form-group">
+                                            <div class="az-content-label mg-b-5">Body</div>
+                                            <p class="mg-b-20 text-danger">Email field should be in the 3rd row.</p>
+                                            <textarea class="form-control" placeholder="Lorem ipsum, dolor sit amet consectetur adipisicing elit. Porro nulla culpa temporibus eveniet aliquid facilis veritatis aliquam facere minus fugit!" spellcheck="false" data-ms-editor="true" name="" id="" cols="30" rows="10"></textarea>
+                                        </div>
+                                        <div class="mt-4 form-group">
+                                            <button class="btn btn-primary">Import & Send</button>
+                                        </div>
+                                    </form>
+                                </div><!-- card-body -->
+                            </div><!-- card -->
+                        </div><!-- col -->
+                    </div>
+                </div><!-- az-content-body -->
+            </div>
+        </div><!-- az-content -->
+
+        <div class="az-footer ht-40">
+            <div class="container ht-100p pd-t-0-f">
+                <span class="text-muted d-block text-center text-sm-left d-sm-inline-block">Copyright © <a href="#"
+                        target="_blank">Arafat Hossain Ar</a>
+                    2020</span>
+                <span class="float-none float-sm-right d-block mt-1 mt-sm-0 text-center"> Find me <a href="#"
+                        target="_blank">Facebook</a></span>
+            </div><!-- container -->
+        </div><!-- az-footer -->
+
+        <script src="../lib/jquery/jquery.min.js"></script>
+        <script src="../lib/bootstrap/js/bootstrap.bundle.min.js"></script>
+        <script src="../lib/ionicons/ionicons.js"></script>
+        <script src="../js/azia.js"></script>
+</body>
+
+</html>
