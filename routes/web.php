@@ -1,6 +1,7 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\HomeController;
 
 /*
 |--------------------------------------------------------------------------
@@ -13,12 +14,15 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
-Route::get('/', function () {
-    return view('home');
-});
+// Route::get('/', function () {
+//     return view('home');
+// });
 
 Auth::routes();
 
-Route::get('/home', [App\Http\Controllers\HomeController::class, 'index'])->name('home');
-Route::get('/one/time/sender', [App\Http\Controllers\HomeController::class, 'oneTiemSender'])->name('one.time.sender');
-Route::get('/saved/sender', [App\Http\Controllers\HomeController::class, 'savedSender'])->name('saved.sender');
+Route::get('/home', [HomeController::class, 'index'])->name('home');
+Route::get('/one/time/sender', [HomeController::class, 'oneTiemSender'])->name('one.time.sender');
+Route::get('/saved/sender', [HomeController::class, 'savedSender'])->name('saved.sender');
+
+
+Route::get('/saved/sender', [HomeController::class, 'savedSender'])->name('saved.sender');
