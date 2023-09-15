@@ -25,4 +25,12 @@ class HomeController extends Controller
     {
         return view('home');
     }
+
+    public function oneTiemSender(){
+        return view('one-time-sender');
+    }
+
+    public function savedSender(){
+        return view('saved-sender');
+    }
 }

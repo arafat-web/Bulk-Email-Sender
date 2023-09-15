@@ -1,87 +1,9 @@
-<!DOCTYPE html>
-<html lang="en">
+@extends('layouts.app')
+@section('title')
+    Saved Sender - BES
+@endsection
 
-<head>
-    <!-- Required meta tags -->
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-    <!-- Meta -->
-    <meta name="description" content="Responsive Bootstrap 4 Dashboard Template">
-    <meta name="author" content="BootstrapDash">
-
-    <title>Bulk Email Sender</title>
-
-    <!-- vendor css -->
-    <link href="../lib/ionicons/css/ionicons.min.css" rel="stylesheet">
-    <link href="../lib/typicons.font/typicons.css" rel="stylesheet">
-    <link href="../lib/flag-icon-css/css/flag-icon.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap4.min.css">
-
-    <!-- azia CSS -->
-    <link rel="stylesheet" href="../css/azia.css">
-
-</head>
-
-<body>
-
-    <div class="az-header">
-        <div class="container">
-            <div class="az-header-left">
-                <a href="index.html" class="az-logo"><span></span> BES</a>
-                <a href="" id="azMenuShow" class="az-header-menu-icon d-lg-none"><span></span></a>
-            </div><!-- az-header-left -->
-            <div class="az-header-menu">
-                <div class="az-header-menu-header">
-                    <a href="index.html" class="az-logo"><span></span> BES</a>
-                    <a href="" class="close">&times;</a>
-                </div><!-- az-header-menu-header -->
-                <ul class="nav">
-                    <li class="nav-item">
-                        <a href="index.html" class="nav-link"><i class="typcn typcn-chart-area-outline"></i>
-                            Dashboard</a>
-                    </li>
-                    <li class="nav-item active">
-                        <a href="" class="nav-link with-sub"><i class="typcn typcn-document"></i> Email Sender</a>
-                        <nav class="az-menu-sub">
-                            <a href="one-time-sender.html" class="nav-link">One Time Sender</a>
-                            <a href="saved-sender.html" class="nav-link">Saved Sender</a>
-                        </nav>
-                    </li>
-                    <li class="nav-item">
-                        <a href="chart-chartjs.html" class="nav-link"><i class="typcn typcn-chart-bar-outline"></i>
-                            Configuration</a>
-                    </li>
-                    <li class="nav-item">
-                        <a href="form-elements.html" class="nav-link"><i class="typcn typcn-user-outline"></i>
-                            Profile</a>
-                    </li>
-                </ul>
-            </div><!-- az-header-menu -->
-            <div class="az-header-right">
-                <div class="dropdown az-profile-menu">
-                    <a href="" class="az-img-user"><img src="../img/faces/face1.jpg" alt=""></a>
-                    <div class="dropdown-menu">
-                        <div class="az-dropdown-header d-sm-none">
-                            <a href="" class="az-header-arrow"><i class="icon ion-md-arrow-back"></i></a>
-                        </div>
-                        <div class="az-header-profile">
-                            <div class="az-img-user">
-                                <img src="../img/faces/face1.jpg" alt="">
-                            </div><!-- az-img-user -->
-                            <h6>Aziana Pechon</h6>
-                            <span>Premium Member</span>
-                        </div><!-- az-header-profile -->
-
-                        <a href="" class="dropdown-item"><i class="typcn typcn-user-outline"></i> My Profile</a>
-                        <a href="" class="dropdown-item"><i class="typcn typcn-edit"></i> Edit Profile</a>
-                        <a href="signin.html" class="dropdown-item"><i class="typcn typcn-power-outline"></i> Sign
-                            Out</a>
-                    </div><!-- dropdown-menu -->
-                </div>
-            </div><!-- az-header-right -->
-        </div><!-- container -->
-    </div><!-- az-header -->
-
+@section('content')
     <div class="az-content az-content-dashboard">
         <div class="container">
             <div class="az-content-body">
@@ -185,17 +107,6 @@
                 </div><!-- az-content-body -->
             </div>
         </div><!-- az-content -->
-
-        <div class="az-footer ht-40">
-            <div class="container ht-100p pd-t-0-f">
-                <span class="text-muted d-block text-center text-sm-left d-sm-inline-block">Copyright © <a href="#"
-                        target="_blank">Arafat Hossain Ar</a>
-                    2020</span>
-                <span class="float-none float-sm-right d-block mt-1 mt-sm-0 text-center"> Find me <a href="#"
-                        target="_blank">Facebook</a></span>
-            </div><!-- container -->
-        </div><!-- az-footer -->
-
         <!-- Modal -->
         <div class="modal fade" id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
             <div class="modal-dialog">
@@ -211,8 +122,7 @@
                         <p class="mg-b-20 text-danger">Email field should be in the 3rd row.</p>
                         <div class="custom-file">
                             <input type="file" class="custom-file-input"
-                                accept="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-                                id="customFile">
+                                accept="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" id="customFile">
                             <label class="custom-file-label" for="customFile">Choose excel file</label>
                         </div>
                     </div>
@@ -223,18 +133,4 @@
                 </div>
             </div>
         </div>
-
-        <script src="../lib/jquery/jquery.min.js"></script>
-        <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/js/bootstrap.bundle.min.js"></script>
-        <script src="../lib/ionicons/ionicons.js"></script>
-        <script src="../js/azia.js"></script>
-        <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
-        <script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap4.min.js"></script>
-
-        <script>
-            new DataTable('#example');
-        </script>
-
-</body>
-
-</html>
+    @endsection
