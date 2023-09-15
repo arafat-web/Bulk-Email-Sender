@@ -42,13 +42,15 @@
                                     Email Sender
                                 </h2><!-- card-header -->
                                 <div class="card-body">
-                                    <form action="">
+                                    <form action="{{ route('ots.import') }}" method="POST" name="importform"
+                                    enctype="multipart/form-data">
+                                    @csrf
                                         <div class="az-content-label mg-b-5">Import Excel Sheet</div>
                                         <p class="mg-b-20 text-danger">Email field should be in the 3rd row.</p>
                                         <div class="custom-file">
                                             <input type="file" class="custom-file-input"
-                                                accept="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-                                                id="customFile">
+                                                {{-- accept="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" --}}
+                                                id="customFile" name="file">
                                             <label class="custom-file-label" for="customFile">Choose excel file</label>
                                         </div>
                                         <div class="mt-4 form-group">
@@ -66,7 +68,7 @@
                                                 spellcheck="false" data-ms-editor="true" name="" id="" cols="30" rows="10"></textarea>
                                         </div>
                                         <div class="mt-4 form-group">
-                                            <button class="btn btn-primary">Import & Send</button>
+                                            <button type="submit" class="btn btn-primary">Import & Send</button>
                                         </div>
                                     </form>
                                 </div><!-- card-body -->

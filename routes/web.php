@@ -2,7 +2,7 @@
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\HomeController;
-
+use App\Http\Controllers\OneTimeSenderController;
 /*
 |--------------------------------------------------------------------------
 | Web Routes
@@ -25,4 +25,4 @@ Route::get('/one/time/sender', [HomeController::class, 'oneTiemSender'])->name('
 Route::get('/saved/sender', [HomeController::class, 'savedSender'])->name('saved.sender');
 
 
-Route::get('/saved/sender', [HomeController::class, 'savedSender'])->name('saved.sender');
+Route::post('/one/time', [OneTimeSenderController::class, 'import'])->name('ots.import');
