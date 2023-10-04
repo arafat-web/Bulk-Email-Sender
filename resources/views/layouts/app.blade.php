@@ -23,6 +23,10 @@
     <link rel="stylesheet" href="https://www.jqueryscript.net/demo/Rich-Text-Editor-jQuery-RichText/richtext.min.css">
     <script src="https://www.jqueryscript.net/demo/Rich-Text-Editor-jQuery-RichText/jquery.richtext.js"></script>
 
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.7.31/dist/sweetalert2.all.min.js"></script>
+    <link href="https://cdn.jsdelivr.net/npm/sweetalert2@11.7.31/dist/sweetalert2.min.css" rel="stylesheet">
+
+
 </head>
 
 <body class="az-body">
@@ -42,13 +46,11 @@
 
     <script>
         new DataTable('#example');
-
     </script>
     <script>
         $(function() {
             'use strict'
         });
-
     </script>
 </body>
 

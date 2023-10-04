@@ -23,11 +23,15 @@
                     </nav>
                 </li>
                 <li class="nav-item">
-                    <a href="chart-chartjs.html" class="nav-link"><i class="typcn typcn-chart-bar-outline"></i>
-                        Configuration</a>
+                    <a href="javascript:void(0);" onclick="alert('This feature is currently under construction. Please check back later.'); return false;" class="nav-link">
+                        <i class="typcn typcn-chart-bar-outline"></i> Configuration
+                    </a>
+                    
                 </li>
                 <li class="nav-item">
-                    <a href="form-elements.html" class="nav-link"><i class="typcn typcn-user-outline"></i> Profile</a>
+                    <a href="javascript:void(0);" onclick="alert('This feature is currently under construction. Please check back later.'); return false;" class="nav-link">
+                        <i class="typcn typcn-user-outline"></i> Profile
+                    </a>
                 </li>
             </ul>
         </div><!-- az-header-menu -->
@@ -43,12 +47,12 @@
                         <div class="az-img-user">
                             <img src="{{ asset('assets/img/faces/face1.jpg') }}" alt="">
                         </div><!-- az-img-user -->
-                        <h6>Aziana Pechon</h6>
-                        <span>Premium Member</span>
+                        <h6>{{auth()->user()->name }}</h6>
+                        <span>Admin</span>
                     </div><!-- az-header-profile -->
 
-                    <a href="" class="dropdown-item"><i class="typcn typcn-user-outline"></i> My Profile</a>
-                    <a href="" class="dropdown-item"><i class="typcn typcn-edit"></i> Edit Profile</a>
+                    <a href="javascript:void(0);" onclick="alert('This feature is currently under construction. Please check back later.'); return false;" class="dropdown-item"><i class="typcn typcn-user-outline"></i> My Profile</a>
+                    <a href="javascript:void(0);" onclick="alert('This feature is currently under construction. Please check back later.'); return false;" class="dropdown-item"><i class="typcn typcn-edit"></i> Edit Profile</a>
                     <form action="{{ route('logout') }}" method="post">
                         @csrf
                         <button type="submit" class="dropdown-item"><i class="typcn typcn-power-outline"></i>

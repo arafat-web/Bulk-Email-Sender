@@ -4,11 +4,13 @@
 @endsection
 
 @section('content')
+    <div class="alert alert-danger container text-center p-3 h4">
+        This section is under construction. Please check back later.
+    </div>
     <div class="az-content az-content-dashboard">
         <div class="container">
             <div class="az-content-body">
                 <div class="az-dashboard-one-title">
-
                     <div>
                         <div class="az-content-breadcrumb">
                             <span>Email Sender</span>
@@ -20,15 +22,15 @@
                         <div class="media">
                             <div class="media-body">
                                 <label>Time</label>
-                                <h6>Oct 10, 2018</h6>
-                            </div><!-- media-body -->
-                        </div><!-- media -->
+                                <h6 id="currentTime"></h6>
+                            </div>
+                        </div>
                         <div class="media">
                             <div class="media-body">
                                 <label>Date</label>
-                                <h6>Oct 23, 2018</h6>
-                            </div><!-- media-body -->
-                        </div><!-- media -->
+                                <h6 id="currentDate"></h6>
+                            </div>
+                        </div>
                     </div>
                 </div><!-- az-dashboard-one-title -->
 
@@ -133,4 +135,24 @@
                 </div>
             </div>
         </div>
+
+        <script>
+            function updateDateTime() {
+                var currentDate = new Date().toLocaleDateString('en-US', {
+                    year: 'numeric',
+                    month: 'short',
+                    day: 'numeric'
+                });
+                var currentTime = new Date().toLocaleTimeString('en-US', {
+                    hour: '2-digit',
+                    minute: '2-digit',
+                    second: '2-digit'
+                });
+
+                document.getElementById('currentDate').innerText = currentDate;
+                document.getElementById('currentTime').innerText = currentTime;
+            }
+            updateDateTime();
+            setInterval(updateDateTime, 1000);
+        </script>
     @endsection
