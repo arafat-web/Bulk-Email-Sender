@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\OneTimeSender;
+use App\Models\User;
 use Illuminate\Http\Request;
 
 class HomeController extends Controller
@@ -23,7 +25,11 @@ class HomeController extends Controller
      */
     public function index()
     {
-        return view('home');
+        $total_time = OneTimeSender::all()->count();
+        $total_sent = OneTimeSender::all()->sum('total_email_address');
+        $total_user = User::all()->count();
+        $operations = OneTimeSender::latest()->get()->take(10);
+        return view('home', compact('total_time', 'total_sent', 'total_user', 'operations'));
     }
 
     public function oneTiemSender(){
