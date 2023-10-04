@@ -21,6 +21,11 @@ class OneTimeSenderController extends Controller
             'file' => 'required|file',
             'subject' => 'required',
             'body' => 'required',
+        ], [
+            'file.required' => 'Please upload a file.',
+            'file.file' => 'The uploaded file is not valid.',
+            'subject.required' => 'Please enter a subject.',
+            'body.required' => 'Please enter the body of the email.',
         ]);
 
         if (Excel::import(new ImportData, request()->file('file'))) {
