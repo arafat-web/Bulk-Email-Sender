@@ -5,11 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class OneTimeSender extends Model
+class EmailSetting extends Model
 {
     use HasFactory;
-    protected $fillable = [
-        'file_name',
-        'total_email_address',
-    ];
 }

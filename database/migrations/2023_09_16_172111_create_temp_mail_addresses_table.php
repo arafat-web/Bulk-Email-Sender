@@ -11,10 +11,9 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('one_time_senders', function (Blueprint $table) {
+        Schema::create('temp_mail_addresses', function (Blueprint $table) {
             $table->id();
-            $table->string('file_name', 100)->nullable();
-            $table->integer('total_email_address');
+            $table->string('email', 100)->nullable();
             $table->timestamps();
         });
     }
@@ -24,6 +23,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('one_time_senders');
+        Schema::dropIfExists('temp_mail_addresses');
     }
 };
