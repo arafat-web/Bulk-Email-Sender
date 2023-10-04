@@ -20,7 +20,7 @@ use App\Http\Controllers\OneTimeSenderController;
 
 Auth::routes();
 
-Route::get('/home', [HomeController::class, 'index'])->name('home');
+Route::get('/', [HomeController::class, 'index'])->name('home');
 Route::get('/one/time/sender', [HomeController::class, 'oneTiemSender'])->name('one.time.sender');
 Route::get('/saved/sender', [HomeController::class, 'savedSender'])->name('saved.sender');
 
