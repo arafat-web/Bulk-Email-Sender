@@ -62,9 +62,9 @@
     <link href="{{ asset('assets/lib/ionicons/ionicons.js') }}" rel="stylesheet">
     <link href="{{ asset('assets/js/azia.js') }}" rel="stylesheet">
     <script>
+        localStorage.removeItem('instructionUnderstood');
         $(function() {
             'use strict'
-
         });
     </script>
 </body>
