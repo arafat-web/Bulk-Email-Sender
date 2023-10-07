@@ -3,7 +3,6 @@
 namespace Database\Seeders;
 
 use Hash;
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 use DB;
 
