@@ -24,7 +24,7 @@
 
     <div class="az-signin-wrapper">
         <div class="az-card-signin">
-            <h1 class="az-logo text-uppercase">Bulk Email Sender</h1>
+            <h1 class="az-logo text-uppercase text-center">Bulk Email Sender</h1>
             <div class="az-signin-header">
                 <h2>Welcome back!</h2>
                 <h4>Please sign in to continue</h4>
@@ -52,7 +52,10 @@
                 </form>
             </div><!-- az-signin-header -->
             <div class="text-center az-signin-footer">
-                <p><a target="_blank" href="https://facebook.com/arafathossain000">Arafat Hossain Ar</a></p>
+                <p>
+                    <a target="_blank" href="https://facebook.com/arafathossain000">Arafat Hossain Ar</a> 
+                    <p>{{ date('Y') }} © All Rights Reserved</p> 
+                </p>
             </div><!-- az-signin-footer -->
         </div><!-- az-card-signin -->
     </div><!-- az-signin-wrapper -->
