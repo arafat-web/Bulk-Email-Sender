@@ -5,8 +5,8 @@
 <h1 align="center">Bulk Email Sender</h1>
 
 <p align="center">
-  <img src="https://img.shields.io/github/stars/arafat-web/bulk-email-sender?style=for-the-badge" alt="Total Issues">
-  <img src="https://img.shields.io/github/issues/arafat-web/bulk-email-sender?style=for-the-badge">
+  <img src="https://img.shields.io/github/stars/arafat-web/Bulk-Email-Sender?style=for-the-badge" alt="Total Issues">
+  <img src="https://img.shields.io/github/issues/arafat-web/Bulk-Email-Sender?style=for-the-badge">
   <img src="https://img.shields.io/github/license/arafat-web/Bulk-Email-Sender?style=for-the-badge" alt="License">
   <!-- Add more badges with different icons if necessary -->
 </p>
