@@ -86,7 +86,17 @@ Access the application in your browser at `http://localhost:8000`.
 5. Click the "Send" button.
 6. Wait a few minutes. Your emails will be sent one by one to the recipients.
 
-For any issues or inquiries, please open an issue on the [GitHub repository](https://github.com/arafat-web/bulk-email-sender). Thank you for using Bulk Email Sender!
+## Demo
+<img src="./public/assets/img/demo/demo1.png" alt="Demo" width="33%" height="250px">
+<img src="./public/assets/img/demo/demo2.png" alt="Demo" width="33%" height="250px">
+<img src="./public/assets/img/demo/demo3.png" alt="Demo" width="33%" height="250px">
+
+## Contributing
+For any issues or inquiries, please open an issue on the [Issues](https://github.com/arafat-web/Bulk-Email-Sender/issues).<br/>
+If you can help me by contributing. Please don't hesitate to open a [Pull Request](https://github.com/arafat-web/Bulk-Email-Sender/pulls).<br/>
+🎉 **Thanks for reading!** 🌟  
+
+
 
 ### Contact Me
 [![Email](https://img.shields.io/badge/Gmail-D14836?style=for-the-badge&logo=gmail&logoColor=white)](mailto:arafat.122260@gmail.com)

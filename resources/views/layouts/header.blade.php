@@ -37,7 +37,7 @@
         </div><!-- az-header-menu -->
         <div class="az-header-right">
             <div class="dropdown az-profile-menu">
-                <a href="" class="az-img-user"><img src="{{ asset('assets/img/faces/face1.jpg') }}"
+                <a href="" class="az-img-user"><img src="{{ asset('assets/img/man.png') }}"
                         alt=""></a>
                 <div class="dropdown-menu">
                     <div class="az-dropdown-header d-sm-none">
@@ -45,7 +45,7 @@
                     </div>
                     <div class="az-header-profile">
                         <div class="az-img-user">
-                            <img src="{{ asset('assets/img/faces/face1.jpg') }}" alt="">
+                            <img src="{{ asset('assets/img/man.png') }}" alt="">
                         </div><!-- az-img-user -->
                         <h6>{{auth()->user()->name }}</h6>
                         <span>Admin</span>
