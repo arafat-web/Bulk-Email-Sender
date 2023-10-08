@@ -24,7 +24,7 @@ Bulk Email Sender is an open-source Laravel application designed to simplify the
 
 ### Step 1: Clone the Repository
 ```
-git clone https://github.com/your-username/bulk-email-sender.git
+git clone https://github.com/arafat-web/bulk-email-sender.git
 cd bulk-email-sender
 ```
 
