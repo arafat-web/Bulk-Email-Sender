@@ -17,7 +17,7 @@
     <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap4.min.css">
 
     <!-- azia CSS -->
-    <link href="{{ asset('assets/css/azia.css') }}" rel="stylesheet">
+    <link href="{{ asset('assets/css/azia.min.css') }}" rel="stylesheet">
     <script src="{{ asset('assets/lib/jquery/jquery.min.js') }}"></script>
     <link rel="stylesheet" href="https://netdna.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
     <link rel="stylesheet" href="https://www.jqueryscript.net/demo/Rich-Text-Editor-jQuery-RichText/richtext.min.css">
