@@ -64,6 +64,11 @@ php artisan key:generate
 php artisan migrate --seed
 ```
 
+### Step 6: Start Queue
+```bash
+php artisan queue:listen
+```
+
 ### Step 6: Serve the Application
 ```bash
 php artisan serve
