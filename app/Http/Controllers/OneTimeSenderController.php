@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Imports\ImportData;
+use App\Jobs\SendEmailJob;
 use App\Mail\SendMail;
 use App\Models\OneTimeSender;
 use App\Models\TempMailAddress;
@@ -42,8 +43,7 @@ class OneTimeSenderController extends Controller
             ];
             $getEmailAddress = TempMailAddress::all('email');
             foreach ($getEmailAddress as $value) {
-                Mail::to($value->email)->send(new SendMail($mailData));
-                Sleep::for(10)->milliseconds();
+                SendEmailJob::dispatch($value->email, $mailData);
             }
             TempMailAddress::truncate();
             return back()->with([
