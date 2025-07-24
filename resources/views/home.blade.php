@@ -151,6 +151,23 @@
                         </a>
                     </div>
                     <div class="col-md-6">
+                        <a href="{{ route('individual-emails.create') }}" class="text-decoration-none">
+                            <div class="d-flex align-items-center p-3 border rounded-3 h-100 hover-shadow">
+                                <div class="flex-shrink-0">
+                                    <div class="rounded-circle d-flex align-items-center justify-content-center"
+                                         style="width: 48px; height: 48px; background: linear-gradient(135deg, #ec4899 0%, #be185d 100%);">
+                                        <i class="bi bi-envelope-heart text-white fs-5"></i>
+                                    </div>
+                                </div>
+                                <div class="flex-grow-1 ms-3">
+                                    <h6 class="fw-bold mb-1 text-dark">Individual Emails</h6>
+                                    <p class="text-muted mb-0 small">Send personalized emails to specific recipients</p>
+                                </div>
+                                <i class="bi bi-arrow-right" style="color: #ec4899;"></i>
+                            </div>
+                        </a>
+                    </div>
+                    <div class="col-md-6">
                         <a href="{{ route('email-templates.index') }}" class="text-decoration-none">
                             <div class="d-flex align-items-center p-3 border rounded-3 h-100 hover-shadow">
                                 <div class="flex-shrink-0">

@@ -6,6 +6,7 @@ use App\Http\Controllers\InstantCampaignController;
 use App\Http\Controllers\EmailAccountController;
 use App\Http\Controllers\EmailTemplateController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\IndividualEmailController;
 /*
 |--------------------------------------------------------------------------
 | Web Routes
@@ -46,4 +47,11 @@ Route::middleware('auth')->group(function () {
     Route::put('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::get('/settings/password', [ProfileController::class, 'showPasswordForm'])->name('settings.password');
     Route::put('/settings/password', [ProfileController::class, 'updatePassword'])->name('settings.password.update');
+});
+
+// Individual Email Routes
+Route::middleware('auth')->group(function () {
+    Route::get('/individual-emails', [IndividualEmailController::class, 'create'])->name('individual-emails.create');
+    Route::post('/individual-emails/send', [IndividualEmailController::class, 'send'])->name('individual-emails.send');
+    Route::post('/individual-emails/validate', [IndividualEmailController::class, 'validateEmails'])->name('individual-emails.validate');
 });

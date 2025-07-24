@@ -920,6 +920,13 @@
                         </li>
 
                         <li class="nav-item">
+                            <a class="nav-link {{ request()->routeIs('individual-emails.*') ? 'active' : '' }}" href="{{ route('individual-emails.create') }}">
+                                <i class="bi bi-envelope-heart"></i>
+                                <span>Individual Emails</span>
+                            </a>
+                        </li>
+
+                        <li class="nav-item">
                             <a class="nav-link {{ request()->routeIs('email-templates.*') ? 'active' : '' }}" href="{{ route('email-templates.index') }}">
                                 <i class="bi bi-file-earmark-richtext"></i>
                                 <span>Email Templates</span>
