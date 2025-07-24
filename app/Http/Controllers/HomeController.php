@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\OneTimeSender;
 use App\Models\User;
+use App\Models\EmailAccount;
 use Illuminate\Http\Request;
 
 class HomeController extends Controller
@@ -28,15 +29,13 @@ class HomeController extends Controller
         $total_time = OneTimeSender::all()->count();
         $total_sent = OneTimeSender::all()->sum('total_email_address');
         $total_user = User::all()->count();
+        $total_email_accounts = EmailAccount::count();
         $operations = OneTimeSender::latest()->get()->take(10);
-        return view('home', compact('total_time', 'total_sent', 'total_user', 'operations'));
+
+        return view('home', compact('total_time', 'total_sent', 'total_user', 'total_email_accounts', 'operations'));
     }
 
-    public function oneTiemSender(){
-        return view('one-time-sender');
-    }
-
-    public function savedSender(){
-        return view('saved-sender');
+    public function savedTemplates(){
+        return redirect()->route('email-templates.index');
     }
 }
