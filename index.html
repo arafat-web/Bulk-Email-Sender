@@ -1,0 +1,688 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bulk Email Sender v2.0 - Professional Laravel Email Marketing Solution</title>
+    <meta name="description" content="Professional Laravel-based email marketing solution with advanced contact management, bulk email sending, and tag-based targeting.">
+    <meta name="keywords" content="Laravel, Email Marketing, Bulk Email, Contact Management, PHP, Bootstrap">
+    <meta name="author" content="Arafat Hossain">
+
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            line-height: 1.6;
+            color: #333;
+            overflow-x: hidden;
+        }
+
+        /* Header Section */
+        .hero-section {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 100px 0;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hero-section::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 100" fill="rgba(255,255,255,0.1)"><polygon points="1000,100 1000,0 0,100"/></svg>');
+            background-size: cover;
+        }
+
+        .hero-content {
+            position: relative;
+            z-index: 2;
+        }
+
+        .logo-container {
+            margin-bottom: 30px;
+        }
+
+        .logo-placeholder {
+            width: 120px;
+            height: 120px;
+            background: rgba(255,255,255,0.2);
+            border: 3px solid rgba(255,255,255,0.3);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 30px;
+            font-size: 48px;
+        }
+
+        .hero-title {
+            font-size: 3.5rem;
+            font-weight: 700;
+            margin-bottom: 20px;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .hero-subtitle {
+            font-size: 1.3rem;
+            margin-bottom: 40px;
+            font-weight: 400;
+            opacity: 0.9;
+        }
+
+        .badges-container {
+            margin-bottom: 40px;
+        }
+
+        .badges-container img {
+            margin: 5px;
+        }
+
+        .cta-buttons {
+            margin-top: 40px;
+        }
+
+        .btn-hero {
+            padding: 15px 30px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            border-radius: 50px;
+            margin: 10px;
+            text-decoration: none;
+            display: inline-block;
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary-hero {
+            background: #fff;
+            color: #667eea;
+            border: 2px solid #fff;
+        }
+
+        .btn-primary-hero:hover {
+            background: transparent;
+            color: #fff;
+            border-color: #fff;
+        }
+
+        .btn-outline-hero {
+            background: transparent;
+            color: #fff;
+            border: 2px solid rgba(255,255,255,0.8);
+        }
+
+        .btn-outline-hero:hover {
+            background: #fff;
+            color: #667eea;
+        }
+
+        /* Features Section */
+        .features-section {
+            padding: 80px 0;
+            background: #f8f9fa;
+        }
+
+        .section-title {
+            text-align: center;
+            margin-bottom: 60px;
+        }
+
+        .section-title h2 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: #333;
+            margin-bottom: 20px;
+        }
+
+        .section-title p {
+            font-size: 1.2rem;
+            color: #666;
+        }
+
+        .feature-card {
+            background: white;
+            border-radius: 15px;
+            padding: 40px 30px;
+            text-align: center;
+            box-shadow: 0 5px 25px rgba(0,0,0,0.1);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            height: 100%;
+            border: none;
+        }
+
+        .feature-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 15px 40px rgba(0,0,0,0.15);
+        }
+
+        .feature-icon {
+            font-size: 3rem;
+            margin-bottom: 25px;
+            color: #667eea;
+        }
+
+        .feature-card h4 {
+            font-size: 1.4rem;
+            font-weight: 600;
+            margin-bottom: 15px;
+            color: #333;
+        }
+
+        .feature-card p {
+            color: #666;
+            line-height: 1.6;
+        }
+
+        /* Screenshots Section */
+        .screenshots-section {
+            padding: 80px 0;
+            background: white;
+        }
+
+        .screenshot-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 30px;
+            margin-top: 50px;
+        }
+
+        .screenshot-card {
+            position: relative;
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            transition: transform 0.3s ease;
+        }
+
+        .screenshot-card:hover {
+            transform: scale(1.05);
+        }
+
+        .screenshot-placeholder {
+            width: 100%;
+            height: 250px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 1.2rem;
+            font-weight: 500;
+        }
+
+        /* Installation Section */
+        .installation-section {
+            padding: 80px 0;
+            background: #f8f9fa;
+        }
+
+        .code-block {
+            background: #f8f9fa;
+            color: #495057;
+            padding: 20px;
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+            margin: 20px 0;
+            position: relative;
+            overflow-x: auto;
+            border: 1px solid #dee2e6;
+            font-size: 14px;
+            line-height: 1.5;
+        }
+
+        .code-container {
+            position: relative;
+        }
+
+        .copy-btn {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 8px 12px;
+            border-radius: 5px;
+            font-size: 12px;
+            cursor: pointer;
+            transition: background 0.3s ease;
+            z-index: 10;
+        }
+
+        .copy-btn:hover {
+            background: #5a67d8;
+        }
+
+        .copy-btn.copied {
+            background: #28a745;
+        }
+
+        .step-card {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+            border-left: 5px solid #667eea;
+        }
+
+        .step-number {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 40px;
+            height: 40px;
+            background: #667eea;
+            color: white;
+            border-radius: 50%;
+            font-weight: 600;
+            margin-right: 15px;
+            margin-bottom: 15px;
+        }
+
+        /* Footer */
+        .footer {
+            background: #2d3748;
+            color: white;
+            padding: 60px 0 30px;
+        }
+
+        .social-links {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .social-link {
+            display: inline-block;
+            margin: 0 10px;
+            transition: transform 0.3s ease;
+        }
+
+        .social-link:hover {
+            transform: translateY(-3px);
+        }
+
+        .social-link img {
+            height: 40px;
+        }
+
+        .footer-text {
+            text-align: center;
+            color: #a0aec0;
+            margin-top: 30px;
+            padding-top: 30px;
+            border-top: 1px solid #4a5568;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .hero-title {
+                font-size: 2.5rem;
+            }
+
+            .hero-subtitle {
+                font-size: 1.1rem;
+            }
+
+            .btn-hero {
+                display: block;
+                margin: 10px auto;
+                max-width: 250px;
+            }
+
+            .section-title h2 {
+                font-size: 2rem;
+            }
+
+            .screenshot-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Animations */
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .animate-fade-in-up {
+            animation: fadeInUp 0.6s ease-out;
+        }
+
+        /* Scroll animations */
+        .fade-in {
+            opacity: 0;
+            transform: translateY(30px);
+            transition: all 0.6s ease;
+        }
+
+        .fade-in.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    </style>
+</head>
+<body>
+    <!-- Hero Section -->
+    <section class="hero-section">
+        <div class="container">
+            <div class="hero-content animate-fade-in-up">
+                <div class="logo-container">
+                    <div class="logo-placeholder">
+                        <i class="fas fa-envelope"></i>
+                    </div>
+                </div>
+
+                <h1 class="hero-title">🚀 Bulk Email Sender v2.0</h1>
+                <p class="hero-subtitle">Professional Laravel-based email marketing solution with advanced contact management</p>
+
+                <div class="badges-container">
+                    <img src="https://img.shields.io/badge/Laravel-10.x-red?style=for-the-badge&logo=laravel" alt="Laravel">
+                    <img src="https://img.shields.io/badge/PHP-8.1+-blue?style=for-the-badge&logo=php" alt="PHP">
+                    <img src="https://img.shields.io/badge/Bootstrap-5.x-purple?style=for-the-badge&logo=bootstrap" alt="Bootstrap">
+                    <img src="https://img.shields.io/badge/License-MIT-green?style=for-the-badge" alt="License">
+                    <br>
+                    <img src="https://img.shields.io/github/stars/arafat-web/Bulk-Email-Sender?style=for-the-badge" alt="Stars">
+                    <img src="https://img.shields.io/github/issues/arafat-web/Bulk-Email-Sender?style=for-the-badge" alt="Issues">
+                    <img src="https://img.shields.io/github/forks/arafat-web/Bulk-Email-Sender?style=for-the-badge" alt="Forks">
+                </div>
+
+                <div class="cta-buttons">
+                    <a href="https://github.com/arafat-web/Bulk-Email-Sender" class="btn-hero btn-primary-hero">
+                        <i class="fab fa-github"></i> View on GitHub
+                    </a>
+                    <a href="#installation" class="btn-hero btn-outline-hero">
+                        <i class="fas fa-download"></i> Get Started
+                    </a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Features Section -->
+    <section class="features-section">
+        <div class="container">
+            <div class="section-title fade-in">
+                <h2>✨ What's New in v2.0</h2>
+                <p>Revolutionary improvements and enterprise-grade features</p>
+            </div>
+
+            <div class="row">
+                <div class="col-lg-4 col-md-6 mb-4">
+                    <div class="feature-card fade-in">
+                        <div class="feature-icon">
+                            <i class="fas fa-users"></i>
+                        </div>
+                        <h4>Contact Management</h4>
+                        <p>Complete contact database with tags, categories, and advanced organization features for better targeting.</p>
+                    </div>
+                </div>
+
+                <div class="col-lg-4 col-md-6 mb-4">
+                    <div class="feature-card fade-in">
+                        <div class="feature-icon">
+                            <i class="fas fa-envelope-open-text"></i>
+                        </div>
+                        <h4>Individual Emails</h4>
+                        <p>Send personalized emails to specific contacts with rich text editor and template support.</p>
+                    </div>
+                </div>
+
+                <div class="col-lg-4 col-md-6 mb-4">
+                    <div class="feature-card fade-in">
+                        <div class="feature-icon">
+                            <i class="fas fa-tags"></i>
+                        </div>
+                        <h4>Tag System</h4>
+                        <p>Organize and target contacts with custom tags for precise audience segmentation and campaigns.</p>
+                    </div>
+                </div>
+
+                <div class="col-lg-4 col-md-6 mb-4">
+                    <div class="feature-card fade-in">
+                        <div class="feature-icon">
+                            <i class="fas fa-file-excel"></i>
+                        </div>
+                        <h4>Excel Import/Export</h4>
+                        <p>Seamlessly import contacts from CSV/Excel files and export your contact lists for backup.</p>
+                    </div>
+                </div>
+
+                <div class="col-lg-4 col-md-6 mb-4">
+                    <div class="feature-card fade-in">
+                        <div class="feature-icon">
+                            <i class="fas fa-palette"></i>
+                        </div>
+                        <h4>Modern UI</h4>
+                        <p>Clean, responsive design with breadcrumb navigation and intuitive user experience.</p>
+                    </div>
+                </div>
+
+                <div class="col-lg-4 col-md-6 mb-4">
+                    <div class="feature-card fade-in">
+                        <div class="feature-icon">
+                            <i class="fas fa-cogs"></i>
+                        </div>
+                        <h4>Queue System</h4>
+                        <p>Background email processing with Laravel Queues for efficient bulk email delivery.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Screenshots Section -->
+    <section class="screenshots-section">
+        <div class="container">
+            <div class="section-title fade-in">
+                <h2>📸 Screenshots</h2>
+                <p>See the application in action</p>
+            </div>
+
+            <div class="screenshot-grid">
+                <div class="screenshot-card fade-in">
+                    <div class="screenshot-placeholder">
+                        <i class="fas fa-tachometer-alt"></i> Dashboard Overview
+                    </div>
+                </div>
+
+                <div class="screenshot-card fade-in">
+                    <div class="screenshot-placeholder">
+                        <i class="fas fa-users"></i> Contact Management
+                    </div>
+                </div>
+
+                <div class="screenshot-card fade-in">
+                    <div class="screenshot-placeholder">
+                        <i class="fas fa-paper-plane"></i> Bulk Email Sender
+                    </div>
+                </div>
+
+                <div class="screenshot-card fade-in">
+                    <div class="screenshot-placeholder">
+                        <i class="fas fa-envelope"></i> Individual Email
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Installation Section -->
+    <section id="installation" class="installation-section">
+        <div class="container">
+            <div class="section-title fade-in">
+                <h2>⚡ Quick Installation</h2>
+                <p>Get started in minutes with our simple setup process</p>
+            </div>
+
+            <div class="row">
+                <div class="col-lg-8 mx-auto">
+                    <div class="step-card fade-in">
+                        <span class="step-number">1</span>
+                        <h4>Clone and Setup</h4>
+                        <div class="code-container">
+                            <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+                            <div class="code-block">git clone https://github.com/arafat-web/Bulk-Email-Sender.git<br>cd Bulk-Email-Sender<br>composer install<br>cp .env.example .env<br>php artisan key:generate</div>
+                        </div>
+                    </div>
+
+                    <div class="step-card fade-in">
+                        <span class="step-number">2</span>
+                        <h4>Database Configuration</h4>
+                        <div class="code-container">
+                            <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+                            <div class="code-block"># Configure database in .env file<br>php artisan migrate --seed</div>
+                        </div>
+                    </div>
+
+                    <div class="step-card fade-in">
+                        <span class="step-number">3</span>
+                        <h4>Email Configuration in .env file</h4>
+                        <div class="code-container">
+                            <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+                            <div class="code-block">MAIL_MAILER=smtp<br>MAIL_HOST=smtp.gmail.com<br>MAIL_PORT=587<br>MAIL_USERNAME=your-email@gmail.com<br>MAIL_PASSWORD=your-app-password<br>MAIL_ENCRYPTION=tls</div>
+                        </div>
+                    </div>
+
+                    <div class="step-card fade-in">
+                        <span class="step-number">4</span>
+                        <h4>Start Application</h4>
+                        <div class="code-container">
+                            <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+                            <div class="code-block">php artisan serve<br>php artisan queue:work</div>
+                        </div>
+                        <div class="mt-3">
+                            <strong>Default Login:</strong> <code>admin@email.com</code> / <code>12345678</code>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="social-links">
+                <a href="mailto:arafat.122260@gmail.com" class="social-link">
+                    <img src="https://img.shields.io/badge/Gmail-D14836?style=for-the-badge&logo=gmail&logoColor=white" alt="Gmail">
+                </a>
+                <a href="https://www.facebook.com/arafathossain000" class="social-link">
+                    <img src="https://img.shields.io/badge/Facebook-1877F2?style=for-the-badge&logo=facebook&logoColor=white" alt="Facebook">
+                </a>
+                <a href="https://www.linkedin.com/in/arafat-hossain-ar-a174b51a6/" class="social-link">
+                    <img src="https://img.shields.io/badge/LinkedIn-0077B5?style=for-the-badge&logo=linkedin&logoColor=white" alt="LinkedIn">
+                </a>
+                <a href="https://arafatdev.com" class="social-link">
+                    <img src="https://img.shields.io/badge/website-000000?style=for-the-badge&logo=About.me&logoColor=white" alt="Website">
+                </a>
+            </div>
+
+            <div class="footer-text">
+                <p><strong>⭐ If you found this project helpful, please give it a star! ⭐</strong></p>
+                <p>Made with ❤️ by <a href="https://github.com/arafat-web" style="color: #667eea;">Arafat Hossain</a></p>
+                <p>&copy; 2025 Bulk Email Sender v2.0. Licensed under MIT License.</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+    <!-- Custom JS -->
+    <script>
+        // Smooth scrolling for anchor links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                document.querySelector(this.getAttribute('href')).scrollIntoView({
+                    behavior: 'smooth'
+                });
+            });
+        });
+
+        // Scroll animations
+        const observerOptions = {
+            threshold: 0.1,
+            rootMargin: '0px 0px -50px 0px'
+        };
+
+        const observer = new IntersectionObserver(function(entries) {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('visible');
+                }
+            });
+        }, observerOptions);
+
+        document.querySelectorAll('.fade-in').forEach(el => {
+            observer.observe(el);
+        });
+
+        // Add some interactivity to feature cards
+        document.querySelectorAll('.feature-card').forEach(card => {
+            card.addEventListener('mouseenter', function() {
+                this.style.transform = 'translateY(-10px) scale(1.02)';
+            });
+
+            card.addEventListener('mouseleave', function() {
+                this.style.transform = 'translateY(-10px) scale(1)';
+            });
+        });
+
+        // Copy code functionality
+        function copyCode(button) {
+            const codeBlock = button.nextElementSibling;
+            const text = codeBlock.innerHTML.replace(/<br>/g, '\n').replace(/<[^>]*>/g, '');
+
+            navigator.clipboard.writeText(text).then(function() {
+                button.textContent = 'Copied!';
+                button.classList.add('copied');
+
+                setTimeout(function() {
+                    button.textContent = 'Copy';
+                    button.classList.remove('copied');
+                }, 2000);
+            }).catch(function(err) {
+                // Fallback for older browsers
+                const textArea = document.createElement('textarea');
+                textArea.value = text;
+                document.body.appendChild(textArea);
+                textArea.select();
+                document.execCommand('copy');
+                document.body.removeChild(textArea);
+
+                button.textContent = 'Copied!';
+                button.classList.add('copied');
+
+                setTimeout(function() {
+                    button.textContent = 'Copy';
+                    button.classList.remove('copied');
+                }, 2000);
+            });
+        }
+    </script>
+</body>
+</html>
