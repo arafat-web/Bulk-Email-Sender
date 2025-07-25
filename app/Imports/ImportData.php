@@ -2,7 +2,6 @@
 
 namespace App\Imports;
 
-use Hash;
 use Maatwebsite\Excel\Concerns\ToModel;
 use Maatwebsite\Excel\Concerns\WithHeadingRow;
 use App\Models\TempMailAddress;
