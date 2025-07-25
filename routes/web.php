@@ -7,6 +7,8 @@ use App\Http\Controllers\EmailAccountController;
 use App\Http\Controllers\EmailTemplateController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\IndividualEmailController;
+use App\Http\Controllers\ContactController;
+use App\Http\Controllers\ContactTagController;
 /*
 |--------------------------------------------------------------------------
 | Web Routes
@@ -54,4 +56,17 @@ Route::middleware('auth')->group(function () {
     Route::get('/individual-emails', [IndividualEmailController::class, 'create'])->name('individual-emails.create');
     Route::post('/individual-emails/send', [IndividualEmailController::class, 'send'])->name('individual-emails.send');
     Route::post('/individual-emails/validate', [IndividualEmailController::class, 'validateEmails'])->name('individual-emails.validate');
+});
+
+// Contact Management Routes
+Route::middleware('auth')->group(function () {
+    Route::get('/contacts/import/form', [ContactController::class, 'importForm'])->name('contacts.import.form');
+    Route::post('/contacts/import', [ContactController::class, 'import'])->name('contacts.import');
+    Route::post('/contacts/bulk-action', [ContactController::class, 'bulkAction'])->name('contacts.bulk-action');
+    Route::resource('contacts', ContactController::class);
+});
+
+// Contact Tag Management Routes
+Route::middleware('auth')->group(function () {
+    Route::resource('tags', ContactTagController::class)->except(['show']);
 });

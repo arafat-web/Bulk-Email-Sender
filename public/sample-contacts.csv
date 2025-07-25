@@ -1,0 +1,11 @@
+email,first_name,last_name,phone,company,notes
+alice.brown@marketing.com,Alice,Brown,+1 (555) 234-5678,Marketing Pro,Expert in digital marketing campaigns
+bob.davis@tech.com,Bob,Davis,+1 (555) 345-6789,Tech Solutions,Software developer interested in APIs
+carol.white@startup.com,Carol,White,+1 (555) 456-7890,Startup Inc,CEO of fast-growing startup
+david.green@enterprise.com,David,Green,+1 (555) 567-8901,Enterprise Corp,IT director managing large infrastructure
+emma.wilson@consulting.com,Emma,Wilson,+1 (555) 678-9012,Wilson Consulting,Business consultant specializing in process optimization
+frank.taylor@agency.com,Frank,Taylor,+1 (555) 789-0123,Creative Agency,Creative director looking for email design tools
+grace.miller@nonprofit.org,Grace,Miller,+1 (555) 890-1234,Nonprofit Org,Communications manager for nonprofit organization
+henry.jones@retail.com,Henry,Jones,+1 (555) 901-2345,Retail Chain,Marketing coordinator for retail chain
+info@example.com,,,+1 (555) 000-0000,Example Company,General contact for company inquiries
+admin@testsite.com,Admin,User,+1 (555) 111-1111,Test Site,Administrative contact for testing purposes

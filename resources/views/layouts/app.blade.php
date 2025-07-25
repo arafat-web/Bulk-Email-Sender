@@ -70,8 +70,9 @@
             top: 0;
             left: 0;
             height: 100vh;
+            min-height: 100vh;
             width: var(--sidebar-width);
-            background: linear-gradient(180deg, #1e1b4b 0%, #312e81 50%, #3730a3 100%);
+            background: #1f2937;
             backdrop-filter: blur(20px);
             border-right: 1px solid rgba(139, 92, 246, 0.1);
             z-index: 1040;
@@ -135,6 +136,7 @@
         .sidebar-nav {
             padding: 1.5rem 0;
             position: relative;
+            min-height: 100vh;
         }
 
         .nav-section {
@@ -194,7 +196,7 @@
 
         .nav-link.active {
             background: linear-gradient(135deg, rgba(139, 92, 246, 0.2) 0%, rgba(124, 58, 237, 0.1) 100%);
-            color: white;
+            color: white !important;
             transform: translateX(8px);
         }
 
@@ -930,6 +932,20 @@
                             <a class="nav-link {{ request()->routeIs('email-templates.*') ? 'active' : '' }}" href="{{ route('email-templates.index') }}">
                                 <i class="bi bi-file-earmark-richtext"></i>
                                 <span>Email Templates</span>
+                            </a>
+                        </li>
+
+                        <li class="nav-item">
+                            <a class="nav-link {{ request()->routeIs('contacts.*') ? 'active' : '' }}" href="{{ route('contacts.index') }}">
+                                <i class="bi bi-people"></i>
+                                <span>Email Contacts</span>
+                            </a>
+                        </li>
+
+                        <li class="nav-item">
+                            <a class="nav-link {{ request()->routeIs('tags.*') ? 'active' : '' }}" href="{{ route('tags.index') }}">
+                                <i class="bi bi-tags"></i>
+                                <span>Contact Tags</span>
                             </a>
                         </li>
                     </ul>

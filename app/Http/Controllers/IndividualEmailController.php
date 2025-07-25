@@ -6,8 +6,8 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Mail;
 use App\Models\EmailAccount;
 use App\Models\EmailTemplate;
-use App\Jobs\SendIndividualEmailJob;
-use Illuminate\Support\Facades\Validator;
+use App\Models\EmailContact;
+use App\Models\ContactTag;
 
 class IndividualEmailController extends Controller
 {
@@ -16,16 +16,21 @@ class IndividualEmailController extends Controller
         $this->middleware('auth');
     }
 
-    public function create()
+    public function create(Request $request)
     {
         $emailAccounts = EmailAccount::where('is_active', true)->get();
         $templates = EmailTemplate::where('is_active', true)->get();
+        $contacts = EmailContact::where('user_id', auth()->id())->active()->with('tags')->get();
+        $tags = ContactTag::where('user_id', auth()->id())->get();
 
         if ($emailAccounts->isEmpty()) {
             return redirect()->route('email-accounts.index')->with('error', 'Please configure at least one email account before sending emails.');
         }
 
-        return view('individual-emails.create', compact('emailAccounts', 'templates'));
+        // Pre-fill emails if provided in query string
+        $preSelectedEmails = $request->get('emails', '');
+
+        return view('individual-emails.create', compact('emailAccounts', 'templates', 'contacts', 'tags', 'preSelectedEmails'));
     }
 
     public function send(Request $request)

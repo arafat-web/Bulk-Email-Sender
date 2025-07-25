@@ -4,6 +4,7 @@ namespace App\Jobs;
 
 use App\Mail\SendMail;
 use App\Models\EmailAccount;
+use App\Models\EmailContact;
 use App\Models\OneTimeSender;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldBeUnique;
@@ -78,8 +79,15 @@ class SendEmailJob implements ShouldQueue
             Config::set('mail.mailers.smtp.timeout', 30);
             Config::set('mail.mailers.smtp.local_domain', env('MAIL_EHLO_DOMAIN'));
 
+            // Purge the mail manager to ensure fresh configuration
+            app('mail.manager')->purge('smtp');
+
             // Send the email
             Mail::to($this->email)->send(new SendMail($this->mailData));
+
+            // Update contact last_emailed_at if contact exists
+            EmailContact::where('email', $this->email)
+                ->update(['last_emailed_at' => now()]);
 
             // Log successful send (only for debugging if needed)
             if (config('app.debug')) {

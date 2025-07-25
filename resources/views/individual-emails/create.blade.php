@@ -86,6 +86,81 @@
                     </button>
                 </div>
                 <div class="card-body">
+                    <!-- Contact Selection -->
+                    @if($contacts->count() > 0)
+                    <div class="mb-4">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <h6 class="mb-0">
+                                <i class="bi bi-people me-1"></i>Select from Contacts
+                            </h6>
+                            <div class="d-flex gap-2">
+                                <button type="button" class="btn btn-outline-secondary btn-sm" onclick="selectAllContacts()">
+                                    Select All
+                                </button>
+                                <button type="button" class="btn btn-outline-secondary btn-sm" onclick="clearAllContacts()">
+                                    Clear All
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Tag Filter -->
+                        <div class="mb-3">
+                            <select class="form-select form-select-sm" id="tagFilter" onchange="filterContactsByTag()">
+                                <option value="">All Tags</option>
+                                @foreach($tags as $tag)
+                                    <option value="{{ $tag->id }}">{{ $tag->name }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+
+                        <!-- Contact List -->
+                        <div class="contact-list" style="max-height: 300px; overflow-y: auto;">
+                            <div class="row g-2">
+                                @foreach($contacts as $contact)
+                                    <div class="col-12 contact-item" data-tags="{{ $contact->tags->pluck('id')->implode(',') }}">
+                                        <div class="form-check">
+                                            <input type="checkbox" class="form-check-input contact-checkbox"
+                                                   id="contact_{{ $contact->id }}"
+                                                   value="{{ $contact->email }}"
+                                                   data-name="{{ $contact->full_name }}">
+                                            <label class="form-check-label d-flex justify-content-between align-items-center w-100"
+                                                   for="contact_{{ $contact->id }}">
+                                                <div>
+                                                    <strong>{{ $contact->full_name }}</strong>
+                                                    <br>
+                                                    <small class="text-muted">{{ $contact->email }}</small>
+                                                    @if($contact->company)
+                                                        <br>
+                                                        <small class="text-info">{{ $contact->company }}</small>
+                                                    @endif
+                                                </div>
+                                                <div>
+                                                    @foreach($contact->tags as $tag)
+                                                        <span class="badge badge-sm me-1" style="background-color: {{ $tag->color }}; font-size: 0.7rem;">
+                                                            {{ $tag->name }}
+                                                        </span>
+                                                    @endforeach
+                                                </div>
+                                            </label>
+                                        </div>
+                                    </div>
+                                @endforeach
+                            </div>
+                        </div>
+
+                        <div class="mt-3">
+                            <button type="button" class="btn btn-primary btn-sm" onclick="addSelectedContacts()">
+                                <i class="bi bi-plus-circle me-1"></i>Add Selected to Recipients
+                            </button>
+                            <small class="text-muted ms-2">
+                                <span id="selectedContactsCount">0</span> contact(s) selected
+                            </small>
+                        </div>
+
+                        <hr class="my-4">
+                    </div>
+                    @endif
+
                     <div class="mb-3">
                         <label for="recipients" class="form-label fw-semibold">
                             <i class="bi bi-envelope-plus me-1"></i>Email Addresses
@@ -95,7 +170,7 @@
                                   name="recipients"
                                   rows="6"
                                   placeholder="Enter email addresses separated by commas, semicolons, or new lines:&#10;&#10;example1@email.com&#10;example2@email.com, example3@email.com&#10;example4@email.com; example5@email.com"
-                                  required>{{ old('recipients') }}</textarea>
+                                  required>{{ old('recipients', $preSelectedEmails) }}</textarea>
                         @error('recipients')
                             <div class="invalid-feedback">{{ $message }}</div>
                         @enderror
@@ -473,6 +548,84 @@ $(document).ready(function() {
                 });
             }
         });
+    });
+
+    // Contact selection functions
+    function updateSelectedContactsCount() {
+        const selectedCount = $('.contact-checkbox:checked').length;
+        $('#selectedContactsCount').text(selectedCount);
+    }
+
+    function selectAllContacts() {
+        $('.contact-item:visible .contact-checkbox').prop('checked', true);
+        updateSelectedContactsCount();
+    }
+
+    function clearAllContacts() {
+        $('.contact-checkbox').prop('checked', false);
+        updateSelectedContactsCount();
+    }
+
+    function filterContactsByTag() {
+        const selectedTag = $('#tagFilter').val();
+
+        $('.contact-item').each(function() {
+            const itemTags = $(this).data('tags').toString().split(',');
+            if (selectedTag === '' || itemTags.includes(selectedTag)) {
+                $(this).show();
+            } else {
+                $(this).hide();
+                $(this).find('.contact-checkbox').prop('checked', false);
+            }
+        });
+
+        updateSelectedContactsCount();
+    }
+
+    function addSelectedContacts() {
+        const selectedEmails = [];
+        $('.contact-checkbox:checked').each(function() {
+            selectedEmails.push($(this).val());
+        });
+
+        if (selectedEmails.length === 0) {
+            Swal.fire({
+                icon: 'warning',
+                title: 'No Contacts Selected',
+                text: 'Please select at least one contact to add.'
+            });
+            return;
+        }
+
+        const currentRecipients = $('#recipients').val().trim();
+        const newRecipients = selectedEmails.join(', ');
+
+        let finalRecipients;
+        if (currentRecipients) {
+            finalRecipients = currentRecipients + ', ' + newRecipients;
+        } else {
+            finalRecipients = newRecipients;
+        }
+
+        $('#recipients').val(finalRecipients);
+
+        // Clear selections
+        $('.contact-checkbox').prop('checked', false);
+        updateSelectedContactsCount();
+
+        Swal.fire({
+            icon: 'success',
+            title: 'Contacts Added!',
+            text: `${selectedEmails.length} contact(s) added to recipients.`,
+            timer: 1500,
+            showConfirmButton: false
+        });
+    }
+
+    // Initialize contact selection
+    $(document).ready(function() {
+        $('.contact-checkbox').on('change', updateSelectedContactsCount);
+        updateSelectedContactsCount();
     });
 });
 </script>

@@ -114,6 +114,171 @@
     </div>
 </div>
 
+<!-- Contact Management Stats -->
+<div class="row g-4 mb-5">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <div class="d-flex align-items-center justify-content-between">
+                    <div>
+                        <h5 class="card-title mb-0">
+                            <i class="bi bi-person-lines-fill text-info me-2"></i>Contact Management Overview
+                        </h5>
+                        <p class="text-muted mb-0 small">Your email contacts and engagement statistics</p>
+                    </div>
+                    <div class="d-flex gap-2">
+                        <a href="{{ route('contacts.index') }}" class="btn btn-outline-info btn-sm">
+                            <i class="bi bi-people me-1"></i>Manage Contacts
+                        </a>
+                        <a href="{{ route('contacts.create') }}" class="btn btn-info btn-sm">
+                            <i class="bi bi-person-plus me-1"></i>Add Contact
+                        </a>
+                    </div>
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="row g-3">
+                    <div class="col-xl-3 col-lg-6 col-md-6">
+                        <div class="d-flex align-items-center p-3 bg-light rounded-3">
+                            <div class="rounded-circle d-flex align-items-center justify-content-center me-3"
+                                 style="width: 48px; height: 48px; background: linear-gradient(135deg, #0891b2 0%, #0369a1 100%);">
+                                <i class="bi bi-people text-white fs-5"></i>
+                            </div>
+                            <div>
+                                <div class="fs-4 fw-bold text-dark">{{ number_format($total_contacts ?? 0) }}</div>
+                                <div class="text-muted small">Total Contacts</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-xl-3 col-lg-6 col-md-6">
+                        <div class="d-flex align-items-center p-3 bg-light rounded-3">
+                            <div class="rounded-circle d-flex align-items-center justify-content-center me-3"
+                                 style="width: 48px; height: 48px; background: linear-gradient(135deg, #059669 0%, #047857 100%);">
+                                <i class="bi bi-person-check text-white fs-5"></i>
+                            </div>
+                            <div>
+                                <div class="fs-4 fw-bold text-dark">{{ number_format($active_contacts ?? 0) }}</div>
+                                <div class="text-muted small">Active Contacts</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-xl-3 col-lg-6 col-md-6">
+                        <div class="d-flex align-items-center p-3 bg-light rounded-3">
+                            <div class="rounded-circle d-flex align-items-center justify-content-center me-3"
+                                 style="width: 48px; height: 48px; background: linear-gradient(135deg, #7c3aed 0%, #5b21b6 100%);">
+                                <i class="bi bi-tags text-white fs-5"></i>
+                            </div>
+                            <div>
+                                <div class="fs-4 fw-bold text-dark">{{ number_format($total_tags ?? 0) }}</div>
+                                <div class="text-muted small">Contact Tags</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-xl-3 col-lg-6 col-md-6">
+                        <div class="d-flex align-items-center p-3 bg-light rounded-3">
+                            <div class="rounded-circle d-flex align-items-center justify-content-center me-3"
+                                 style="width: 48px; height: 48px; background: linear-gradient(135deg, #dc2626 0%, #991b1b 100%);">
+                                <i class="bi bi-envelope-at text-white fs-5"></i>
+                            </div>
+                            <div>
+                                <div class="fs-4 fw-bold text-dark">{{ number_format($emails_sent_today ?? 0) }}</div>
+                                <div class="text-muted small">Emails Today</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                @if(isset($recent_contacts) && $recent_contacts->count() > 0)
+                <div class="row mt-4">
+                    <div class="col-12">
+                        <h6 class="mb-3">
+                            <i class="bi bi-clock-history me-2"></i>Recently Added Contacts
+                        </h6>
+                        <div class="table-responsive">
+                            <table class="table table-sm table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>Name</th>
+                                        <th>Email</th>
+                                        <th>Company</th>
+                                        <th>Tags</th>
+                                        <th>Status</th>
+                                        <th>Added</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach($recent_contacts->take(5) as $contact)
+                                    <tr>
+                                        <td>
+                                            <div class="d-flex align-items-center">
+                                                <div class="rounded-circle bg-primary bg-opacity-10 d-flex align-items-center justify-content-center me-2"
+                                                     style="width: 32px; height: 32px;">
+                                                    <i class="bi bi-person text-primary"></i>
+                                                </div>
+                                                <strong>{{ $contact->name ?: 'N/A' }}</strong>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <small class="text-muted">{{ $contact->email }}</small>
+                                        </td>
+                                        <td>
+                                            <small class="text-muted">{{ $contact->company ?: 'N/A' }}</small>
+                                        </td>
+                                        <td>
+                                            @foreach($contact->tags->take(2) as $tag)
+                                                <span class="badge bg-secondary bg-opacity-10 text-secondary me-1" style="font-size: 0.7rem;">
+                                                    {{ $tag->name }}
+                                                </span>
+                                            @endforeach
+                                            @if($contact->tags->count() > 2)
+                                                <span class="badge bg-light text-muted" style="font-size: 0.7rem;">
+                                                    +{{ $contact->tags->count() - 2 }}
+                                                </span>
+                                            @endif
+                                        </td>
+                                        <td>
+                                            <span class="badge {{ $contact->status === 'active' ? 'bg-success' : 'bg-secondary' }}">
+                                                {{ ucfirst($contact->status) }}
+                                            </span>
+                                        </td>
+                                        <td>
+                                            <small class="text-muted">{{ $contact->created_at->diffForHumans() }}</small>
+                                        </td>
+                                    </tr>
+                                    @endforeach
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="text-center mt-3">
+                            <a href="{{ route('contacts.index') }}" class="btn btn-outline-info btn-sm">
+                                <i class="bi bi-eye me-1"></i>View All Contacts
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                @else
+                <div class="text-center mt-4 py-4">
+                    <i class="bi bi-person-plus display-6 text-muted mb-3"></i>
+                    <h6 class="text-muted">No contacts yet</h6>
+                    <p class="text-muted small mb-3">Start building your contact database by adding contacts manually or importing from Excel/CSV files.</p>
+                    <div class="d-flex gap-2 justify-content-center">
+                        <a href="{{ route('contacts.create') }}" class="btn btn-info btn-sm">
+                            <i class="bi bi-person-plus me-1"></i>Add First Contact
+                        </a>
+                        <a href="{{ route('contacts.index') }}" class="btn btn-outline-info btn-sm">
+                            <i class="bi bi-upload me-1"></i>Import Contacts
+                        </a>
+                    </div>
+                </div>
+                @endif
+            </div>
+        </div>
+    </div>
+</div>
+
 <!-- Modern Quick Actions & Recent Activity -->
 <div class="row g-4 mb-5">
     <div class="col-lg-8">
@@ -198,6 +363,23 @@
                                     <p class="text-muted mb-0 small">Configure SMTP email accounts</p>
                                 </div>
                                 <i class="bi bi-arrow-right text-warning"></i>
+                            </div>
+                        </a>
+                    </div>
+                    <div class="col-md-6">
+                        <a href="{{ route('contacts.index') }}" class="text-decoration-none">
+                            <div class="d-flex align-items-center p-3 border rounded-3 h-100 hover-shadow">
+                                <div class="flex-shrink-0">
+                                    <div class="rounded-circle d-flex align-items-center justify-content-center"
+                                         style="width: 48px; height: 48px; background: linear-gradient(135deg, #0891b2 0%, #0369a1 100%);">
+                                        <i class="bi bi-person-lines-fill text-white fs-5"></i>
+                                    </div>
+                                </div>
+                                <div class="flex-grow-1 ms-3">
+                                    <h6 class="fw-bold mb-1 text-dark">Contact Management</h6>
+                                    <p class="text-muted mb-0 small">Manage your email contacts and tags</p>
+                                </div>
+                                <i class="bi bi-arrow-right text-info"></i>
                             </div>
                         </a>
                     </div>
