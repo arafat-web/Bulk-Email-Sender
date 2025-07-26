@@ -1,5 +1,19 @@
 <div align="center">
-  <img src="./docs/images/logo.png" alt="Bulk Email Sender Logo" width="120" height="120">
+  
+<svg width="120" height="120" viewBox="0 0 120 120">
+  <defs>
+    <linearGradient id="logoGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#667eea;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#764ba2;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  <circle cx="60" cy="60" r="55" fill="url(#logoGradient)"/>
+  <rect x="30" y="42" width="60" height="36" rx="6" fill="white" opacity="0.95"/>
+  <path d="M30 48 L60 65 L90 48" stroke="url(#logoGradient)" stroke-width="2" fill="none" stroke-linecap="round"/>
+  <circle cx="85" cy="35" r="2" fill="white" opacity="0.8"/>
+  <circle cx="90" cy="30" r="1.5" fill="white" opacity="0.6"/>
+  <circle cx="95" cy="35" r="1" fill="white" opacity="0.4"/>
+</svg>
   
   <h1>🚀 Bulk Email Sender v2.0</h1>
   
@@ -41,7 +55,42 @@
 
 ---
 
-## 🛠️ Prerequisites
+## � Screenshots
+
+<div align="center">
+
+### Dashboard Overview
+<img src="./public/bulk-mailer-screenshots/dashboard.png" alt="Dashboard" width="700">
+
+### Contact Management
+<img src="./public/bulk-mailer-screenshots/contacts.png" alt="Contact Management" width="700">
+
+### Email Templates
+<img src="./public/bulk-mailer-screenshots/email-templates.png" alt="Email Templates" width="700">
+
+### Individual Email Sending
+<img src="./public/bulk-mailer-screenshots/individual-emails.png" alt="Individual Emails" width="700">
+
+### Instant Campaign
+<img src="./public/bulk-mailer-screenshots/instant-campaign.png" alt="Instant Campaign" width="700">
+
+### Tag Management
+<img src="./public/bulk-mailer-screenshots/tags.png" alt="Tag Management" width="700">
+
+### Email Accounts Settings
+<img src="./public/bulk-mailer-screenshots/email-accounts.png" alt="Email Accounts" width="700">
+
+### User Profile
+<img src="./public/bulk-mailer-screenshots/profile.png" alt="User Profile" width="700">
+
+### Login Page
+<img src="./public/bulk-mailer-screenshots/login.png" alt="Login Page" width="700">
+
+</div>
+
+---
+
+## �🛠️ Prerequisites
 
 - **PHP**: 8.1+
 - **Composer**: Latest version

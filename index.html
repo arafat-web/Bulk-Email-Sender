@@ -62,14 +62,8 @@
         .logo-placeholder {
             width: 120px;
             height: 120px;
-            background: rgba(255,255,255,0.2);
-            border: 3px solid rgba(255,255,255,0.3);
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
+            display: block;
             margin: 0 auto 30px;
-            font-size: 48px;
         }
 
         .hero-title {
@@ -208,10 +202,19 @@
             overflow: hidden;
             box-shadow: 0 10px 30px rgba(0,0,0,0.1);
             transition: transform 0.3s ease;
+            height: 250px;
         }
 
         .screenshot-card:hover {
             transform: scale(1.05);
+        }
+
+        .screenshot-card img {
+            transition: transform 0.3s ease;
+        }
+
+        .screenshot-card:hover img {
+            transform: scale(1.1);
         }
 
         .screenshot-placeholder {
@@ -390,9 +393,35 @@
         <div class="container">
             <div class="hero-content animate-fade-in-up">
                 <div class="logo-container">
-                    <div class="logo-placeholder">
-                        <i class="fas fa-envelope"></i>
-                    </div>
+                    <svg width="120" height="120" viewBox="0 0 120 120" class="logo-placeholder">
+                        <defs>
+                            <linearGradient id="logoGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                                <stop offset="0%" style="stop-color:#667eea;stop-opacity:1" />
+                                <stop offset="100%" style="stop-color:#764ba2;stop-opacity:1" />
+                            </linearGradient>
+                            <filter id="logoShadow">
+                                <feDropShadow dx="0" dy="4" stdDeviation="8" flood-color="rgba(0,0,0,0.3)"/>
+                            </filter>
+                        </defs>
+
+                        <!-- Background Circle -->
+                        <circle cx="60" cy="60" r="55" fill="url(#logoGradient)" filter="url(#logoShadow)"/>
+
+                        <!-- Email Icon -->
+                        <rect x="30" y="42" width="60" height="36" rx="6" fill="white" opacity="0.95"/>
+                        <path d="M30 48 L60 65 L90 48" stroke="url(#logoGradient)" stroke-width="2" fill="none" stroke-linecap="round"/>
+
+                        <!-- Sending Lines (Multiple emails effect) -->
+                        <circle cx="85" cy="35" r="2" fill="white" opacity="0.8">
+                            <animate attributeName="opacity" values="0.8;0.3;0.8" dur="2s" repeatCount="indefinite"/>
+                        </circle>
+                        <circle cx="90" cy="30" r="1.5" fill="white" opacity="0.6">
+                            <animate attributeName="opacity" values="0.6;0.2;0.6" dur="2.5s" repeatCount="indefinite"/>
+                        </circle>
+                        <circle cx="95" cy="35" r="1" fill="white" opacity="0.4">
+                            <animate attributeName="opacity" values="0.4;0.1;0.4" dur="3s" repeatCount="indefinite"/>
+                        </circle>
+                    </svg>
                 </div>
 
                 <h1 class="hero-title">🚀 Bulk Email Sender v2.0</h1>
@@ -503,26 +532,44 @@
 
             <div class="screenshot-grid">
                 <div class="screenshot-card fade-in">
-                    <div class="screenshot-placeholder">
+                    <img src="./public/bulk-mailer-screenshots/dashboard.png" alt="Dashboard Overview" style="width: 100%; height: 250px; object-fit: cover; border-radius: 15px;">
+                    <div style="position: absolute; bottom: 10px; left: 10px; right: 10px; background: rgba(0,0,0,0.8); color: white; padding: 8px; border-radius: 5px; font-size: 14px; font-weight: 500;">
                         <i class="fas fa-tachometer-alt"></i> Dashboard Overview
                     </div>
                 </div>
 
                 <div class="screenshot-card fade-in">
-                    <div class="screenshot-placeholder">
+                    <img src="./public/bulk-mailer-screenshots/contacts.png" alt="Contact Management" style="width: 100%; height: 250px; object-fit: cover; border-radius: 15px;">
+                    <div style="position: absolute; bottom: 10px; left: 10px; right: 10px; background: rgba(0,0,0,0.8); color: white; padding: 8px; border-radius: 5px; font-size: 14px; font-weight: 500;">
                         <i class="fas fa-users"></i> Contact Management
                     </div>
                 </div>
 
                 <div class="screenshot-card fade-in">
-                    <div class="screenshot-placeholder">
+                    <img src="./public/bulk-mailer-screenshots/instant-campaign.png" alt="Bulk Email Sender" style="width: 100%; height: 250px; object-fit: cover; border-radius: 15px;">
+                    <div style="position: absolute; bottom: 10px; left: 10px; right: 10px; background: rgba(0,0,0,0.8); color: white; padding: 8px; border-radius: 5px; font-size: 14px; font-weight: 500;">
                         <i class="fas fa-paper-plane"></i> Bulk Email Sender
                     </div>
                 </div>
 
                 <div class="screenshot-card fade-in">
-                    <div class="screenshot-placeholder">
+                    <img src="./public/bulk-mailer-screenshots/individual-emails.png" alt="Individual Email" style="width: 100%; height: 250px; object-fit: cover; border-radius: 15px;">
+                    <div style="position: absolute; bottom: 10px; left: 10px; right: 10px; background: rgba(0,0,0,0.8); color: white; padding: 8px; border-radius: 5px; font-size: 14px; font-weight: 500;">
                         <i class="fas fa-envelope"></i> Individual Email
+                    </div>
+                </div>
+
+                <div class="screenshot-card fade-in">
+                    <img src="./public/bulk-mailer-screenshots/email-templates.png" alt="Email Templates" style="width: 100%; height: 250px; object-fit: cover; border-radius: 15px;">
+                    <div style="position: absolute; bottom: 10px; left: 10px; right: 10px; background: rgba(0,0,0,0.8); color: white; padding: 8px; border-radius: 5px; font-size: 14px; font-weight: 500;">
+                        <i class="fas fa-file-alt"></i> Email Templates
+                    </div>
+                </div>
+
+                <div class="screenshot-card fade-in">
+                    <img src="./public/bulk-mailer-screenshots/tags.png" alt="Tag Management" style="width: 100%; height: 250px; object-fit: cover; border-radius: 15px;">
+                    <div style="position: absolute; bottom: 10px; left: 10px; right: 10px; background: rgba(0,0,0,0.8); color: white; padding: 8px; border-radius: 5px; font-size: 14px; font-weight: 500;">
+                        <i class="fas fa-tags"></i> Tag Management
                     </div>
                 </div>
             </div>
