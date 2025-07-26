@@ -88,11 +88,11 @@
                                 <div class="row text-sm">
                                     <div class="col-md-6">
                                         <small class="text-muted">Account Created:</small>
-                                        <div class="fw-semibold">{{ $user->created_at->format('M d, Y \a\t h:i A') }}</div>
+                                        <div class="fw-semibold">{{ $user->created_at ? $user->created_at->format('M d, Y \a\t h:i A') : 'N/A' }}</div>
                                     </div>
                                     <div class="col-md-6">
                                         <small class="text-muted">Last Updated:</small>
-                                        <div class="fw-semibold">{{ $user->updated_at->format('M d, Y \a\t h:i A') }}</div>
+                                        <div class="fw-semibold">{{ $user->updated_at ? $user->updated_at->format('M d, Y \a\t h:i A') : 'N/A' }}</div>
                                     </div>
                                 </div>
                             </div>
