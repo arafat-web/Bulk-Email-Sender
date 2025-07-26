@@ -55,41 +55,6 @@
 
 ---
 
-## � Screenshots
-
-<div align="center">
-
-### Dashboard Overview
-<img src="./public/bulk-mailer-screenshots/dashboard.png" alt="Dashboard" width="700">
-
-### Contact Management
-<img src="./public/bulk-mailer-screenshots/contacts.png" alt="Contact Management" width="700">
-
-### Email Templates
-<img src="./public/bulk-mailer-screenshots/email-templates.png" alt="Email Templates" width="700">
-
-### Individual Email Sending
-<img src="./public/bulk-mailer-screenshots/individual-emails.png" alt="Individual Emails" width="700">
-
-### Instant Campaign
-<img src="./public/bulk-mailer-screenshots/instant-campaign.png" alt="Instant Campaign" width="700">
-
-### Tag Management
-<img src="./public/bulk-mailer-screenshots/tags.png" alt="Tag Management" width="700">
-
-### Email Accounts Settings
-<img src="./public/bulk-mailer-screenshots/email-accounts.png" alt="Email Accounts" width="700">
-
-### User Profile
-<img src="./public/bulk-mailer-screenshots/profile.png" alt="User Profile" width="700">
-
-### Login Page
-<img src="./public/bulk-mailer-screenshots/login.png" alt="Login Page" width="700">
-
-</div>
-
----
-
 ## �🛠️ Prerequisites
 
 - **PHP**: 8.1+
@@ -140,13 +105,34 @@
 ## 📸 Screenshots
 
 <div align="center">
-  <img src="./docs/images/dashboard.png" alt="Dashboard" width="45%">
-  <img src="./docs/images/contact-management.png" alt="Contact Management" width="45%">
-</div>
 
-<div align="center">
-  <img src="./docs/images/bulk-email.png" alt="Bulk Email" width="45%">
-  <img src="./docs/images/individual-email.png" alt="Individual Email" width="45%">
+### Dashboard Overview
+<img src="./public/bulk-mailer-screenshots/dashboard.png" alt="Dashboard" width="700">
+
+### Contact Management
+<img src="./public/bulk-mailer-screenshots/contacts.png" alt="Contact Management" width="700">
+
+### Email Templates
+<img src="./public/bulk-mailer-screenshots/email-templates.png" alt="Email Templates" width="700">
+
+### Individual Email Sending
+<img src="./public/bulk-mailer-screenshots/individual-emails.png" alt="Individual Emails" width="700">
+
+### Instant Campaign
+<img src="./public/bulk-mailer-screenshots/instant-campaign.png" alt="Instant Campaign" width="700">
+
+### Tag Management
+<img src="./public/bulk-mailer-screenshots/tags.png" alt="Tag Management" width="700">
+
+### Email Accounts Settings
+<img src="./public/bulk-mailer-screenshots/email-accounts.png" alt="Email Accounts" width="700">
+
+### User Profile
+<img src="./public/bulk-mailer-screenshots/profile.png" alt="User Profile" width="700">
+
+### Login Page
+<img src="./public/bulk-mailer-screenshots/login.png" alt="Login Page" width="700">
+
 </div>
 
 ---
