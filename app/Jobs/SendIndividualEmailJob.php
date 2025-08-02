@@ -54,7 +54,7 @@ class SendIndividualEmailJob implements ShouldQueue
             // Purge the mail manager to use new config
             app('mail.manager')->purge('smtp');
 
-            if ($this->sendType === 'bulk') {
+            if ($this->isBulk) {
                 // Send bulk email
                 Mail::to($this->recipients)
                     ->send(new IndividualMail($this->subject, $this->body));
