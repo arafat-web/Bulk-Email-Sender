@@ -4,10 +4,12 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Validator;
 use App\Models\EmailAccount;
 use App\Models\EmailTemplate;
 use App\Models\EmailContact;
 use App\Models\ContactTag;
+use App\Jobs\SendIndividualEmailJob;
 
 class IndividualEmailController extends Controller
 {
