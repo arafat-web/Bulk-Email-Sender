@@ -29,13 +29,21 @@ class ContactsImport implements ToCollection, WithHeadingRow
     {
         foreach ($collection as $row) {
             try {
+                // Map new column names to database fields
+                $emailField = $row['email_address'] ?? $row['email'] ?? null;
+                $firstNameField = $row['given_name'] ?? $row['first_name'] ?? null;
+                $lastNameField = $row['family_name'] ?? $row['last_name'] ?? null;
+                $phoneField = $row['phone'] ?? null;
+                $companyField = $row['company'] ?? null;
+                $notesField = $row['notes'] ?? null;
+
                 // Skip empty rows
-                if (empty($row['email'])) {
+                if (empty($emailField)) {
                     continue;
                 }
 
                 // Validate email
-                $validator = Validator::make($row->toArray(), [
+                $validator = Validator::make(['email' => $emailField], [
                     'email' => 'required|email'
                 ]);
 
@@ -45,19 +53,19 @@ class ContactsImport implements ToCollection, WithHeadingRow
                 }
 
                 // Check if contact already exists
-                if (EmailContact::where('email', $row['email'])->where('user_id', $this->userId)->exists()) {
+                if (EmailContact::where('email', $emailField)->where('user_id', $this->userId)->exists()) {
                     $this->skippedCount++;
                     continue;
                 }
 
                 // Create contact
                 $contact = EmailContact::create([
-                    'email' => $row['email'],
-                    'first_name' => $row['first_name'] ?? null,
-                    'last_name' => $row['last_name'] ?? null,
-                    'phone' => $row['phone'] ?? null,
-                    'company' => $row['company'] ?? null,
-                    'notes' => $row['notes'] ?? null,
+                    'email' => $emailField,
+                    'first_name' => $firstNameField,
+                    'last_name' => $lastNameField,
+                    'phone' => $phoneField,
+                    'company' => $companyField,
+                    'notes' => $notesField,
                     'user_id' => $this->userId
                 ]);
 

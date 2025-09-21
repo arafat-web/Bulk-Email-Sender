@@ -109,11 +109,11 @@
                                 </li>
                                 <li class="mb-2">
                                     <i class="bi bi-check-circle text-success me-2"></i>
-                                    Required column: <code>email</code>
+                                    Required column: <code>eMail Address</code>
                                 </li>
                                 <li class="mb-2">
                                     <i class="bi bi-check-circle text-success me-2"></i>
-                                    Optional columns: <code>first_name</code>, <code>last_name</code>, <code>phone</code>, <code>company</code>, <code>notes</code>
+                                    Optional columns: <code>Given Name</code>, <code>Family Name</code>, <code>Phone</code>, <code>Company</code>, <code>Notes</code>
                                 </li>
                                 <li class="mb-2">
                                     <i class="bi bi-check-circle text-success me-2"></i>
@@ -129,9 +129,9 @@
                                 <h6 class="text-dark mb-3">Sample CSV Format:</h6>
                                 <div class="bg-light p-3 rounded small border">
                                     <code class="text-dark">
-email,first_name,last_name,company<br>
-john@example.com,John,Doe,ABC Corp<br>
-jane@example.com,Jane,Smith,XYZ Inc<br>
+Given Name,Family Name,eMail Address,Company,Phone,Notes<br>
+John,Doe,john@example.com,ABC Corp,+1234567890,Sales contact<br>
+Jane,Smith,jane@example.com,XYZ Inc,+0987654321,Marketing lead<br>
                                     </code>
                                 </div>
                             </div>
@@ -298,10 +298,11 @@ function downloadSampleCSV() {
 @push('scripts')
 <script>
 function downloadSampleCSV() {
-    const csvContent = "email,first_name,last_name,phone,company,notes\n" +
-                      "john.doe@example.com,John,Doe,+1234567890,ABC Corporation,Sales contact\n" +
-                      "jane.smith@example.com,Jane,Smith,+0987654321,XYZ Inc,Marketing lead\n" +
-                      "contact@example.com,,,+1122334455,Example LLC,General inquiry";
+    const csvContent = "Given Name,Family Name,eMail Address,Company,Phone,Notes\n" +
+                      "John,Doe,john.doe@example.com,ABC Corporation,+1234567890,Sales contact\n" +
+                      "Jane,Smith,jane.smith@example.com,XYZ Inc,+0987654321,Marketing lead\n" +
+                      "Crystal,Chantal-Leer,ccl@example.com,Sample Company,,\n" +
+                      "Isaac,,isaac@example.com,,,a short note";
 
     const blob = new Blob([csvContent], { type: 'text/csv' });
     const url = window.URL.createObjectURL(blob);

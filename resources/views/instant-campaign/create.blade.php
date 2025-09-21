@@ -99,17 +99,17 @@
                     <!-- Excel File Upload -->
                     <div class="mb-4">
                         <label for="file" class="form-label">
-                            <i class="bi bi-file-earmark-spreadsheet me-2"></i>Excel File
+                            <i class="bi bi-file-earmark-spreadsheet me-2"></i>Excel/CSV File
                             <span class="text-danger">*</span>
                         </label>
                         <input type="file" class="form-control @error('file') is-invalid @enderror"
-                               id="file" name="file" accept=".xlsx,.xls" required>
+                               id="file" name="file" accept=".xlsx,.xls,.csv" required>
                         @error('file')
                             <div class="invalid-feedback">{{ $message }}</div>
                         @enderror
                         <div class="form-text">
                             <i class="bi bi-info-circle me-1"></i>
-                            Upload an Excel file with email addresses in the 3rd column (Column C). Max size: 10MB.
+                            Upload an Excel file using the standard format: Given Name, Family Name, eMail Address, Company, Phone, Notes. Max size: 10MB.
                         </div>
                     </div>
 
@@ -173,7 +173,15 @@
                         <i class="bi bi-check-circle text-success"></i>
                     </div>
                     <div class="flex-grow-1 ms-2">
-                        <small>Email addresses should be in Column C (3rd column)</small>
+                        <small>Use standard format: Given Name, Family Name, eMail Address, Company, Phone, Notes</small>
+                    </div>
+                </div>
+                <div class="d-flex mb-3">
+                    <div class="flex-shrink-0">
+                        <i class="bi bi-check-circle text-success"></i>
+                    </div>
+                    <div class="flex-grow-1 ms-2">
+                        <small>Email address is required in Column C, other fields are optional</small>
                     </div>
                 </div>
                 <div class="d-flex mb-3">
@@ -189,7 +197,7 @@
                         <i class="bi bi-check-circle text-success"></i>
                     </div>
                     <div class="flex-grow-1 ms-2">
-                        <small>Use .xlsx or .xls file formats only</small>
+                        <small>Use .xlsx, .xls, or .csv file formats</small>
                     </div>
                 </div>
                 <div class="d-flex">
@@ -207,7 +215,7 @@
         <div class="card mb-4">
             <div class="card-header">
                 <h6 class="card-title mb-0">
-                    <i class="bi bi-table me-2"></i>Excel File Format
+                    <i class="bi bi-table me-2"></i>Excel/CSV File Format
                 </h6>
             </div>
             <div class="card-body">
@@ -218,25 +226,42 @@
                                 <th>A</th>
                                 <th>B</th>
                                 <th class="bg-primary text-white">C</th>
+                                <th>D</th>
+                                <th>E</th>
+                                <th>F</th>
                             </tr>
                         </thead>
                         <tbody>
                             <tr>
-                                <td>Name</td>
+                                <td>Given Name</td>
+                                <td>Family Name</td>
+                                <td class="fw-bold bg-primary text-white">eMail Address</td>
                                 <td>Company</td>
-                                <td class="fw-bold">john@example.com</td>
+                                <td>Phone</td>
+                                <td>Notes</td>
                             </tr>
                             <tr>
-                                <td>Jane</td>
+                                <td>John</td>
+                                <td>Doe</td>
+                                <td class="fw-bold">john@example.com</td>
                                 <td>ABC Corp</td>
-                                <td class="fw-bold">jane@company.com</td>
+                                <td>+1234567890</td>
+                                <td>Sales contact</td>
+                            </tr>
+                            <tr>
+                                <td>Crystal</td>
+                                <td>Chantal-Leer</td>
+                                <td class="fw-bold">ccl@example.com</td>
+                                <td>Sample Company</td>
+                                <td></td>
+                                <td></td>
                             </tr>
                         </tbody>
                     </table>
                 </div>
                 <small class="text-muted">
                     <i class="bi bi-info-circle me-1"></i>
-                    Email addresses must be in Column C (highlighted in blue).
+                    Use the standard format: Given Name, Family Name, eMail Address, Company, Phone, Notes. Email address is required in column C.
                 </small>
             </div>
         </div>
@@ -361,7 +386,7 @@ $(document).ready(function() {
         // File validation
         if (file) {
             const fileSize = file.size / 1024 / 1024; // Size in MB
-            const allowedTypes = ['application/vnd.ms-excel', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'];
+            const allowedTypes = ['application/vnd.ms-excel', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', 'text/csv'];
 
             if (fileSize > 10) {
                 e.preventDefault();
@@ -379,7 +404,7 @@ $(document).ready(function() {
                 Swal.fire({
                     icon: 'error',
                     title: 'Invalid File Type',
-                    text: 'Please upload a valid Excel file (.xlsx or .xls).',
+                    text: 'Please upload a valid Excel (.xlsx, .xls) or CSV (.csv) file.',
                     confirmButtonColor: '#6366f1'
                 });
                 return false;
