@@ -47,14 +47,14 @@ class InstantCampaignController extends Controller
 
             // Validate the request with custom messages
             $request->validate([
-                'file' => 'required|file|mimetypes:application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet|max:10240',
+                'file' => 'required|file|mimetypes:application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,text/csv|max:10240',
                 'subject' => 'required|string|max:255',
                 'body' => 'required|string|max:65535',
                 'template_id' => 'nullable|exists:email_templates,id',
             ], [
-                'file.required' => 'Please upload an Excel file.',
+                'file.required' => 'Please upload an Excel or CSV file.',
                 'file.file' => 'The uploaded file is not valid.',
-                'file.mimetypes' => 'Please upload a valid Excel file (.xlsx or .xls).',
+                'file.mimetypes' => 'Please upload a valid Excel (.xlsx, .xls) or CSV (.csv) file.',
                 'file.max' => 'The file size must not exceed 10MB.',
                 'subject.required' => 'Please enter an email subject.',
                 'subject.max' => 'Subject must not exceed 255 characters.',
