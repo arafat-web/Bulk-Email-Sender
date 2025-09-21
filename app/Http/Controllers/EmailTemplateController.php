@@ -3,7 +3,9 @@
 namespace App\Http\Controllers;
 
 use App\Models\EmailTemplate;
+use App\Services\EmailTemplateProcessor;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 
 class EmailTemplateController extends Controller
@@ -28,7 +30,10 @@ class EmailTemplateController extends Controller
      */
     public function create()
     {
-        return view('email-templates.create');
+        $processor = new EmailTemplateProcessor();
+        $availablePlaceholders = $processor->getAvailablePlaceholders(Auth::id());
+        
+        return view('email-templates.create', compact('availablePlaceholders'));
     }
 
     /**
@@ -84,7 +89,10 @@ class EmailTemplateController extends Controller
      */
     public function edit(EmailTemplate $emailTemplate)
     {
-        return view('email-templates.edit', compact('emailTemplate'));
+        $processor = new EmailTemplateProcessor();
+        $availablePlaceholders = $processor->getAvailablePlaceholders(Auth::id());
+        
+        return view('email-templates.edit', compact('emailTemplate', 'availablePlaceholders'));
     }
 
     /**
@@ -208,6 +216,28 @@ class EmailTemplateController extends Controller
             'name' => $emailTemplate->name,
             'subject' => $emailTemplate->subject,
             'body' => $emailTemplate->body,
+        ]);
+    }
+
+    /**
+     * Preview template with sample data
+     */
+    public function preview(Request $request)
+    {
+        $request->validate([
+            'subject' => 'required|string',
+            'body' => 'required|string'
+        ]);
+
+        $processor = new EmailTemplateProcessor();
+        
+        // Preview both subject and body
+        $previewSubject = $processor->previewTemplate($request->subject, Auth::id());
+        $previewBody = $processor->previewTemplate($request->body, Auth::id());
+
+        return response()->json([
+            'subject' => $previewSubject,
+            'body' => $previewBody
         ]);
     }
 }

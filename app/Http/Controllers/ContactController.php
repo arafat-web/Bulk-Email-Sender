@@ -125,6 +125,10 @@ class ContactController extends Controller
     public function show(EmailContact $contact)
     {
         $this->authorize('view', $contact);
+        
+        // Load custom field values
+        $contact->load(['customFieldValues.field']);
+        
         return view('contacts.show', compact('contact'));
     }
 

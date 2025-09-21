@@ -7,6 +7,8 @@ use Illuminate\Mail\Mailable;
 use Illuminate\Mail\Mailables\Content;
 use Illuminate\Mail\Mailables\Envelope;
 use Illuminate\Queue\SerializesModels;
+use App\Services\EmailTemplateProcessor;
+use App\Models\EmailContact;
 
 class IndividualMail extends Mailable
 {
@@ -14,14 +16,30 @@ class IndividualMail extends Mailable
 
     public $emailSubject;
     public $emailBody;
+    public $processedBody;
 
     /**
      * Create a new message instance.
      */
-    public function __construct($subject, $body)
+    public function __construct($subject, $body, $recipientEmail = null)
     {
         $this->emailSubject = $subject;
         $this->emailBody = $body;
+        
+        // Process the email body with custom fields if we have a recipient
+        $processor = new EmailTemplateProcessor();
+        
+        if ($recipientEmail) {
+            $contact = EmailContact::where('email', $recipientEmail)->first();
+            
+            if ($contact) {
+                $this->processedBody = $processor->processTemplate($body, $contact);
+            } else {
+                $this->processedBody = $processor->processPlainTemplate($body, $recipientEmail);
+            }
+        } else {
+            $this->processedBody = $body;
+        }
     }
 
     /**
@@ -41,6 +59,9 @@ class IndividualMail extends Mailable
     {
         return new Content(
             html: 'emails.individual',
+            with: [
+                'emailBody' => $this->processedBody
+            ]
         );
     }
 

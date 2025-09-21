@@ -43,6 +43,7 @@ Route::resource('email-templates', EmailTemplateController::class);
 Route::post('/email-templates/{emailTemplate}/toggle-active', [EmailTemplateController::class, 'toggleActive'])->name('email-templates.toggle-active');
 Route::post('/email-templates/{emailTemplate}/duplicate', [EmailTemplateController::class, 'duplicate'])->name('email-templates.duplicate');
 Route::get('/api/email-templates/{emailTemplate}', [EmailTemplateController::class, 'getTemplate'])->name('email-templates.get');
+Route::post('/api/email-templates/preview', [EmailTemplateController::class, 'preview'])->name('email-templates.preview');
 
 // Profile Management Routes
 Route::middleware('auth')->group(function () {

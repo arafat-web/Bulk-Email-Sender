@@ -83,7 +83,10 @@ class SendEmailJob implements ShouldQueue
             app('mail.manager')->purge('smtp');
 
             // Send the email
-            Mail::to($this->email)->send(new SendMail($this->mailData));
+            $contact = EmailContact::where('email', $this->email)->first();
+            $mailDataWithRecipient = array_merge($this->mailData, ['recipient' => $this->email]);
+            
+            Mail::to($this->email)->send(new SendMail($mailDataWithRecipient, $contact));
 
             // Update contact last_emailed_at if contact exists
             EmailContact::where('email', $this->email)

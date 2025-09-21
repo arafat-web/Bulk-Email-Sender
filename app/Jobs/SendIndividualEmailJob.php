@@ -64,7 +64,7 @@ class SendIndividualEmailJob implements ShouldQueue
             } else {
                 // Send individual email
                 $recipient = is_array($this->recipients) ? $this->recipients[0] : $this->recipients;
-                Mail::to($recipient)->send(new IndividualMail($this->subject, $this->body));
+                Mail::to($recipient)->send(new IndividualMail($this->subject, $this->body, $recipient));
 
                 // Update last_emailed_at for the recipient
                 $this->updateContactsLastEmailed([$recipient]);

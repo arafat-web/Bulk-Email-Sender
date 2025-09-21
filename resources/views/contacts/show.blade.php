@@ -84,6 +84,25 @@
                                     <div class="text-light mt-2">{{ $contact->notes }}</div>
                                 </div>
                                 @endif
+
+                                <!-- Custom Fields -->
+                                @if($contact->customFieldValues->count() > 0)
+                                    <div class="col-12">
+                                        <hr class="my-3 border-light opacity-25">
+                                        <h6 class="text-white mb-3">
+                                            <i class="bi bi-gear me-2"></i>Custom Fields
+                                        </h6>
+                                    </div>
+
+                                    @foreach($contact->customFieldValues as $fieldValue)
+                                        @if($fieldValue->value)
+                                            <div class="col-md-6">
+                                                <strong class="text-white">{{ $fieldValue->field->label }}:</strong>
+                                                <div class="text-light">{{ $fieldValue->formatted_value }}</div>
+                                            </div>
+                                        @endif
+                                    @endforeach
+                                @endif
                             </div>
                         </div>
                     </div>
