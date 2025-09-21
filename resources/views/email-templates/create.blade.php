@@ -187,6 +187,55 @@
             </div>
         </div>
 
+        <!-- Available Placeholders -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h6 class="card-title mb-0">
+                    <i class="bi bi-braces me-2"></i>Available Placeholders
+                </h6>
+            </div>
+            <div class="card-body">
+                <div class="mb-3">
+                    <h6 class="text-primary mb-2">Standard Fields</h6>
+                    @foreach($availablePlaceholders['standard'] as $placeholder => $description)
+                        <div class="d-flex justify-content-between align-items-center mb-1">
+                            <code class="text-primary placeholder-item" style="cursor: pointer; font-size: 0.85rem;" 
+                                  title="Click to insert">{{ $placeholder }}</code>
+                            <small class="text-muted">{{ $description }}</small>
+                        </div>
+                    @endforeach
+                </div>
+
+                @if(count($availablePlaceholders['custom']) > 0)
+                    <div class="mb-3">
+                        <h6 class="text-success mb-2">Custom Fields</h6>
+                        @foreach($availablePlaceholders['custom'] as $placeholder => $description)
+                            <div class="d-flex justify-content-between align-items-center mb-1">
+                                <code class="text-success placeholder-item" style="cursor: pointer; font-size: 0.85rem;" 
+                                      title="Click to insert">{{ $placeholder }}</code>
+                                <small class="text-muted">{{ $description }}</small>
+                            </div>
+                        @endforeach
+                    </div>
+                @else
+                    <div class="alert alert-info py-2">
+                        <small>
+                            <i class="bi bi-info-circle me-1"></i>
+                            No custom fields created yet. 
+                            <a href="{{ route('custom-fields.create') }}" class="alert-link">Create custom fields</a> 
+                            to personalize your emails.
+                        </small>
+                    </div>
+                @endif
+
+                <div class="text-center">
+                    <button type="button" class="btn btn-outline-primary btn-sm" id="previewTemplateBtn">
+                        <i class="bi bi-eye me-1"></i>Preview with Sample Data
+                    </button>
+                </div>
+            </div>
+        </div>
+
         <!-- Preview Card -->
         <div class="card">
             <div class="card-header">
@@ -246,6 +295,41 @@ $(document).ready(function() {
     }
 
     $('#subject').on('input keyup', updatePreview);
+
+    // Placeholder insertion
+    $('.placeholder-item').on('click', function() {
+        const placeholder = $(this).text();
+        const editor = tinymce.get('body');
+        
+        if (editor) {
+            editor.insertContent(placeholder);
+            updatePreview();
+        }
+    });
+
+    // Preview with sample data
+    $('#previewTemplateBtn').on('click', function() {
+        const subject = $('#subject').val();
+        const body = tinymce.get('body') ? tinymce.get('body').getContent() : '';
+        
+        if (!subject || !body) {
+            alert('Please enter both subject and body content before previewing.');
+            return;
+        }
+
+        $.post('{{ route("email-templates.preview") }}', {
+            _token: '{{ csrf_token() }}',
+            subject: subject,
+            body: body
+        })
+        .done(function(response) {
+            $('#preview-subject').text(response.subject);
+            $('#preview-body').html(response.body);
+        })
+        .fail(function() {
+            alert('Failed to generate preview. Please try again.');
+        });
+    });
 
     // Form validation
     $('#templateForm').on('submit', function(e) {
