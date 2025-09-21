@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\EmailContact;
 use App\Models\ContactTag;
+use App\Models\CustomContactField;
 use App\Imports\ContactsImport;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -49,7 +50,12 @@ class ContactController extends Controller
     public function create()
     {
         $tags = ContactTag::where('user_id', Auth::id())->get();
-        return view('contacts.create', compact('tags'));
+        $customFields = CustomContactField::where('user_id', Auth::id())
+            ->active()
+            ->ordered()
+            ->get();
+        
+        return view('contacts.create', compact('tags', 'customFields'));
     }
 
     /**
@@ -57,7 +63,12 @@ class ContactController extends Controller
      */
     public function store(Request $request)
     {
-        $validator = Validator::make($request->all(), [
+        // Get custom fields for validation
+        $customFields = CustomContactField::where('user_id', Auth::id())
+            ->active()
+            ->get();
+
+        $rules = [
             'email' => 'required|email|unique:email_contacts,email',
             'first_name' => 'nullable|string|max:255',
             'last_name' => 'nullable|string|max:255',
@@ -66,7 +77,14 @@ class ContactController extends Controller
             'notes' => 'nullable|string',
             'tags' => 'nullable|array',
             'tags.*' => 'exists:contact_tags,id'
-        ]);
+        ];
+
+        // Add custom field validation rules
+        foreach ($customFields as $field) {
+            $rules['custom_' . $field->name] = $field->getValidationRule();
+        }
+
+        $validator = Validator::make($request->all(), $rules);
 
         if ($validator->fails()) {
             return back()->withErrors($validator)->withInput();
@@ -82,8 +100,20 @@ class ContactController extends Controller
             'user_id' => Auth::id()
         ]);
 
+        // Handle tags
         if ($request->filled('tags')) {
             $contact->tags()->sync($request->tags);
+        }
+
+        // Handle custom fields
+        foreach ($customFields as $field) {
+            $fieldKey = 'custom_' . $field->name;
+            if ($request->has($fieldKey)) {
+                $value = $request->input($fieldKey);
+                if (!empty($value) || $field->is_required) {
+                    $contact->setCustomField($field->name, $value);
+                }
+            }
         }
 
         return redirect()->route('contacts.index')->with('success', 'Contact created successfully.');
@@ -105,7 +135,12 @@ class ContactController extends Controller
     {
         $this->authorize('update', $contact);
         $tags = ContactTag::where('user_id', Auth::id())->get();
-        return view('contacts.edit', compact('contact', 'tags'));
+        $customFields = CustomContactField::where('user_id', Auth::id())
+            ->active()
+            ->ordered()
+            ->get();
+        
+        return view('contacts.edit', compact('contact', 'tags', 'customFields'));
     }
 
     /**
@@ -115,7 +150,12 @@ class ContactController extends Controller
     {
         $this->authorize('update', $contact);
 
-        $validator = Validator::make($request->all(), [
+        // Get custom fields for validation
+        $customFields = CustomContactField::where('user_id', Auth::id())
+            ->active()
+            ->get();
+
+        $rules = [
             'email' => 'required|email|unique:email_contacts,email,' . $contact->id,
             'first_name' => 'nullable|string|max:255',
             'last_name' => 'nullable|string|max:255',
@@ -125,7 +165,14 @@ class ContactController extends Controller
             'status' => 'required|in:active,inactive,bounced,unsubscribed',
             'tags' => 'nullable|array',
             'tags.*' => 'exists:contact_tags,id'
-        ]);
+        ];
+
+        // Add custom field validation rules
+        foreach ($customFields as $field) {
+            $rules['custom_' . $field->name] = $field->getValidationRule();
+        }
+
+        $validator = Validator::make($request->all(), $rules);
 
         if ($validator->fails()) {
             return back()->withErrors($validator)->withInput();
@@ -136,6 +183,15 @@ class ContactController extends Controller
         ]));
 
         $contact->tags()->sync($request->tags ?? []);
+
+        // Handle custom fields
+        foreach ($customFields as $field) {
+            $fieldKey = 'custom_' . $field->name;
+            if ($request->has($fieldKey)) {
+                $value = $request->input($fieldKey);
+                $contact->setCustomField($field->name, $value);
+            }
+        }
 
         return redirect()->route('contacts.index')->with('success', 'Contact updated successfully.');
     }

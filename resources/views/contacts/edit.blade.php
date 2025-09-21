@@ -159,6 +159,64 @@
                                             <div class="invalid-feedback">{{ $message }}</div>
                                         @enderror
                                     </div>
+
+                                    <!-- Custom Fields -->
+                                    @if($customFields->count() > 0)
+                                        <div class="col-12">
+                                            <hr class="my-4">
+                                            <h6 class="text-dark fw-medium mb-3">
+                                                <i class="bi bi-gear me-2 text-primary"></i>Custom Fields
+                                            </h6>
+                                        </div>
+
+                                        @foreach($customFields as $field)
+                                            <div class="col-md-6">
+                                                <label for="custom_{{ $field->name }}" class="form-label text-dark fw-medium">
+                                                    {{ $field->label }}
+                                                    @if($field->is_required)
+                                                        <span class="text-danger">*</span>
+                                                    @endif
+                                                </label>
+
+                                                @php
+                                                    $currentValue = old('custom_' . $field->name, $contact->getCustomField($field->name));
+                                                @endphp
+
+                                                @if($field->type === 'textarea')
+                                                    <textarea class="form-control @error('custom_' . $field->name) is-invalid @enderror"
+                                                              id="custom_{{ $field->name }}" name="custom_{{ $field->name }}" rows="3"
+                                                              placeholder="{{ $field->description }}"
+                                                              {{ $field->is_required ? 'required' : '' }}>{{ $currentValue }}</textarea>
+                                                @elseif($field->type === 'select')
+                                                    <select class="form-select @error('custom_' . $field->name) is-invalid @enderror"
+                                                            id="custom_{{ $field->name }}" name="custom_{{ $field->name }}"
+                                                            {{ $field->is_required ? 'required' : '' }}>
+                                                        <option value="">{{ $field->is_required ? 'Select an option' : 'Select an option (optional)' }}</option>
+                                                        @if($field->options)
+                                                            @foreach($field->options as $key => $value)
+                                                                <option value="{{ $key }}" {{ $currentValue == $key ? 'selected' : '' }}>{{ $value }}</option>
+                                                            @endforeach
+                                                        @endif
+                                                    </select>
+                                                @else
+                                                    <input type="{{ $field->type === 'number' ? 'number' : ($field->type === 'email' ? 'email' : ($field->type === 'url' ? 'url' : ($field->type === 'date' ? 'date' : 'text'))) }}" 
+                                                           class="form-control @error('custom_' . $field->name) is-invalid @enderror"
+                                                           id="custom_{{ $field->name }}" name="custom_{{ $field->name }}" 
+                                                           value="{{ $currentValue }}"
+                                                           placeholder="{{ $field->description }}"
+                                                           {{ $field->is_required ? 'required' : '' }}>
+                                                @endif
+
+                                                @if($field->description)
+                                                    <div class="form-text">{{ $field->description }}</div>
+                                                @endif
+
+                                                @error('custom_' . $field->name)
+                                                    <div class="invalid-feedback">{{ $message }}</div>
+                                                @enderror
+                                            </div>
+                                        @endforeach
+                                    @endif
                                 </div>
 
                                 <div class="d-flex justify-content-end gap-2 mt-4">

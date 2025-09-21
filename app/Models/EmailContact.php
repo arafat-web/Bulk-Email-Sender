@@ -44,6 +44,67 @@ class EmailContact extends Model
     }
 
     /**
+     * Get custom field values for this contact.
+     */
+    public function customFieldValues()
+    {
+        return $this->hasMany(CustomContactFieldValue::class, 'contact_id');
+    }
+
+    /**
+     * Get a specific custom field value.
+     */
+    public function getCustomField(string $fieldName)
+    {
+        $fieldValue = $this->customFieldValues()
+            ->whereHas('field', function ($query) use ($fieldName) {
+                $query->where('name', $fieldName)->where('user_id', $this->user_id);
+            })
+            ->with('field')
+            ->first();
+
+        return $fieldValue ? $fieldValue->value : null;
+    }
+
+    /**
+     * Set a custom field value.
+     */
+    public function setCustomField(string $fieldName, $value)
+    {
+        $field = CustomContactField::where('name', $fieldName)
+            ->where('user_id', $this->user_id)
+            ->first();
+
+        if (!$field) {
+            return false;
+        }
+
+        return CustomContactFieldValue::updateOrCreate(
+            [
+                'contact_id' => $this->id,
+                'field_id' => $field->id,
+            ],
+            [
+                'value' => $value,
+            ]
+        );
+    }
+
+    /**
+     * Get all custom fields as key-value pairs.
+     */
+    public function getCustomFieldsAttribute()
+    {
+        $customFields = [];
+        
+        foreach ($this->customFieldValues()->with('field')->get() as $fieldValue) {
+            $customFields[$fieldValue->field->name] = $fieldValue->value;
+        }
+
+        return $customFields;
+    }
+
+    /**
      * Get the contact's full name.
      */
     public function getFullNameAttribute(): string

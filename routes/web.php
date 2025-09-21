@@ -9,6 +9,7 @@ use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\IndividualEmailController;
 use App\Http\Controllers\ContactController;
 use App\Http\Controllers\ContactTagController;
+use App\Http\Controllers\CustomContactFieldController;
 /*
 |--------------------------------------------------------------------------
 | Web Routes
@@ -69,4 +70,10 @@ Route::middleware('auth')->group(function () {
 // Contact Tag Management Routes
 Route::middleware('auth')->group(function () {
     Route::resource('tags', ContactTagController::class)->except(['show']);
+});
+
+// Custom Contact Field Management Routes
+Route::middleware('auth')->group(function () {
+    Route::resource('custom-fields', CustomContactFieldController::class)->except(['show']);
+    Route::post('/custom-fields/update-order', [CustomContactFieldController::class, 'updateOrder'])->name('custom-fields.update-order');
 });

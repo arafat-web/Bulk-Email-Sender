@@ -948,6 +948,13 @@
                                 <span>Contact Tags</span>
                             </a>
                         </li>
+
+                        <li class="nav-item">
+                            <a class="nav-link {{ request()->routeIs('custom-fields.*') ? 'active' : '' }}" href="{{ route('custom-fields.index') }}">
+                                <i class="bi bi-gear"></i>
+                                <span>Custom Fields</span>
+                            </a>
+                        </li>
                     </ul>
                 </div>
 
