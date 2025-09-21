@@ -76,7 +76,8 @@ class EmailTemplateController extends Controller
      */
     public function show(EmailTemplate $emailTemplate)
     {
-        return view('email-templates.show', compact('emailTemplate'));
+        $template = $emailTemplate;
+        return view('email-templates.show', compact('template'));
     }
 
     /**
@@ -84,7 +85,8 @@ class EmailTemplateController extends Controller
      */
     public function edit(EmailTemplate $emailTemplate)
     {
-        return view('email-templates.edit', compact('emailTemplate'));
+        $template = $emailTemplate;
+        return view('email-templates.edit', compact('template'));
     }
 
     /**
