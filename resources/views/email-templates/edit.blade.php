@@ -60,7 +60,7 @@
                     <i class="bi bi-file-earmark-text me-2"></i>Template Details
                 </h5>
                 <div class="d-flex gap-2">
-                    {!! $template->getStatusBadge() !!}
+                    {!! $template->status_badge !!}
                     <small class="text-muted">
                         <i class="bi bi-clock me-1"></i>
                         Last updated {{ $template->updated_at->diffForHumans() }}

@@ -16,7 +16,7 @@
                 <h1 class="page-title me-3">
                     <i class="bi bi-file-earmark-text text-info me-2"></i>{{ $template->name }}
                 </h1>
-                {!! $template->getStatusBadge() !!}
+                {!! $template->status_badge !!}
             </div>
             <p class="page-subtitle">
                 {{ $template->description ?: 'Email template for marketing campaigns' }}
@@ -137,7 +137,7 @@
                 <table class="table table-sm table-borderless">
                     <tr>
                         <td class="text-muted">Status:</td>
-                        <td>{!! $template->getStatusBadge() !!}</td>
+                        <td>{!! $template->status_badge !!}</td>
                     </tr>
                     <tr>
                         <td class="text-muted">Created:</td>
