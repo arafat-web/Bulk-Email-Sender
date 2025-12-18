@@ -30,7 +30,7 @@
             <div class="card-header">
                 <div class="d-flex align-items-center">
                     <div class="rounded-circle d-flex align-items-center justify-content-center me-3"
-                         style="width: 48px; height: 48px; background: linear-gradient(135deg, var(--warning-color) 0%, #d97706 100%);">
+                         style="width: 48px; height: 48px; background: var(--primary-color);">
                         <i class="bi bi-key text-white fs-5"></i>
                     </div>
                     <div>

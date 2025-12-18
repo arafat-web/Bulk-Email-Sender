@@ -128,20 +128,49 @@
                         @enderror
                     </div>
 
-                    <!-- Email Body -->
-                    <div class="mb-4">
-                        <label for="body" class="form-label">
-                            <i class="bi bi-card-text me-2"></i>Email Content
+                    <!-- Editor Mode Toggle -->
+                    <div class="mb-3">
+                        <div class="btn-group" role="group">
+                            <input type="radio" class="btn-check" name="editorMode" id="visualMode" checked autocomplete="off">
+                            <label class="btn btn-outline-primary" for="visualMode">
+                                <i class="bi bi-palette me-1"></i>Visual Designer
+                            </label>
+
+                            <input type="radio" class="btn-check" name="editorMode" id="codeMode" autocomplete="off">
+                            <label class="btn btn-outline-primary" for="codeMode">
+                                <i class="bi bi-code-slash me-1"></i>HTML/CSS Code
+                            </label>
+                        </div>
+                        <small class="text-muted ms-2">Choose your preferred editing mode</small>
+                    </div>
+
+                    <!-- Email Body - Visual Designer -->
+                    <div class="mb-4" id="visualEditorContainer">
+                        <label class="form-label">
+                            <i class="bi bi-brush me-2"></i>Email Design
                             <span class="text-danger">*</span>
                         </label>
-                        <textarea id="body" name="body" class="form-control @error('body') is-invalid @enderror"
-                                  rows="12" placeholder="Compose your email message here..." required>{{ old('body', $selectedTemplate ? $selectedTemplate->body : '') }}</textarea>
+                        <div id="gjs" style="height: 0px;"></div>
+                        <textarea id="body" name="body" class="form-control d-none">{{ old('body', $selectedTemplate ? $selectedTemplate->body : '') }}</textarea>
+                        @error('body')
+                            <div class="invalid-feedback d-block">{{ $message }}</div>
+                        @enderror
+                    </div>
+
+                    <!-- Email Body - Code Editor -->
+                    <div class="mb-4 d-none" id="codeEditorContainer">
+                        <label for="bodyCode" class="form-label">
+                            <i class="bi bi-code-square me-2"></i>HTML/CSS Code
+                            <span class="text-danger">*</span>
+                        </label>
+                        <textarea id="bodyCode" class="form-control font-monospace @error('body') is-invalid @enderror"
+                                  rows="20" placeholder="Enter your HTML/CSS code here..." style="font-size: 13px;">{{ old('body', $selectedTemplate ? $selectedTemplate->body : '') }}</textarea>
                         @error('body')
                             <div class="invalid-feedback">{{ $message }}</div>
                         @enderror
                         <div class="form-text">
-                            <i class="bi bi-palette me-1"></i>
-                            Use the rich text editor to format your email with colors, fonts, and styling.
+                            <i class="bi bi-info-circle me-1"></i>
+                            Full HTML/CSS support. Use inline styles for best email client compatibility.
                         </div>
                     </div>
 
@@ -275,49 +304,193 @@
                     </h6>
                 </div>
                 <div class="card-body">
-                    <div class="d-grid gap-2">
-                        @foreach($templates->take(3) as $template)
-                            <button type="button" class="btn btn-outline-primary btn-sm text-start template-quick-btn"
+                    <div class="d-flex flex-wrap gap-2">
+                        @foreach($templates->take(6) as $template)
+                            <button type="button"
+                                    class="btn btn-sm btn-outline-primary template-quick-btn"
                                     data-template-id="{{ $template->id }}"
                                     data-subject="{{ $template->subject }}"
-                                    data-body="{{ base64_encode($template->body) }}">
-                                <div class="fw-bold">{{ $template->name }}</div>
-                                <small class="text-muted">{{ Str::limit($template->subject, 40) }}</small>
+                                    data-body="{{ base64_encode($template->body) }}"
+                                    title="Click to apply: {{ $template->name }}">
+                                <i class="bi bi-file-text me-1"></i>{{ Str::limit($template->name, 15) }}
                             </button>
                         @endforeach
-                        @if($templates->count() > 3)
-                            <a href="{{ route('email-templates.index') }}" class="btn btn-link btn-sm">
-                                View all {{ $templates->count() }} templates
-                            </a>
-                        @endif
                     </div>
+                    <small class="text-muted d-block mt-2">
+                        <i class="bi bi-info-circle me-1"></i>
+                        Click any template to quickly apply it to your campaign.
+                    </small>
                 </div>
             </div>
         @endif
     </div>
 </div>
+@endsection
+
+@push('styles')
+<link href="https://unpkg.com/grapesjs/dist/css/grapes.min.css" rel="stylesheet">
+<link href="https://unpkg.com/grapesjs-preset-newsletter/dist/grapesjs-preset-newsletter.min.css" rel="stylesheet">
+<style>
+    .gjs-one-bg {
+        background-color: #1e293b;
+    }
+    .gjs-two-color {
+        color: rgba(255, 255, 255, 0.7);
+    }
+    .gjs-three-bg {
+        background-color: #334155;
+        color: white;
+    }
+    .gjs-four-color,
+    .gjs-four-color-h:hover {
+        color: #6366f1;
+    }
+    #gjs {
+        border: 2px solid #e2e8f0;
+        border-radius: 8px;
+        overflow: hidden;
+    }
+</style>
+@endpush
 
 @push('scripts')
+<script src="https://unpkg.com/grapesjs"></script>
+<script src="https://unpkg.com/grapesjs-preset-newsletter"></script>
 <script>
 $(document).ready(function() {
-    // Initialize TinyMCE editor with premium features
-    tinymce.init({
-        selector: '#body',
-        plugins: 'advlist autolink lists link image charmap preview anchor searchreplace visualblocks code fullscreen insertdatetime media table help wordcount template emoticons',
-        toolbar: 'undo redo | blocks fontfamily fontsize | bold italic underline strikethrough | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent | forecolor backcolor | link image media table | emoticons template | removeformat code fullscreen | help',
-        menubar: false,
-        branding: false,
-        height: 350,
-        content_style: 'body { font-family: Plus Jakarta Sans, sans-serif; font-size: 14px; line-height: 1.6; }',
-        font_family_formats: 'Plus Jakarta Sans=Plus Jakarta Sans, sans-serif; Arial=arial,helvetica,sans-serif; Times New Roman=times new roman,times; Courier New=courier new,courier',
-        fontsize_formats: '8pt 10pt 12pt 14pt 16pt 18pt 24pt 36pt',
-        image_advtab: true,
-        link_context_toolbar: true,
-        setup: function (editor) {
-            editor.on('change', function () {
-                editor.save();
-            });
+    let editor;
+    
+    // Initialize GrapeJS Email Builder
+    function initGrapesJS() {
+        editor = grapesjs.init({
+            container: '#gjs',
+            height: '600px',
+            width: 'auto',
+            plugins: ['gjs-preset-newsletter'],
+            pluginsOpts: {
+                'gjs-preset-newsletter': {
+                    modalTitleImport: 'Import Template',
+                    modalLabelImport: 'Paste your HTML here',
+                    modalBtnImport: 'Import',
+                    modalTitleExport: 'Export Template',
+                    modalLabelExport: 'Copy the code below',
+                    codeViewerTheme: 'material',
+                    importPlaceholder: '<table>...</table>',
+                    cellStyle: {
+                        'font-size': '14px',
+                        'font-family': 'Arial, sans-serif',
+                        'line-height': '1.6'
+                    }
+                }
+            },
+            storageManager: false,
+            assetManager: {
+                embedAsBase64: false,
+                assets: []
+            },
+            canvas: {
+                styles: [
+                    'https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css'
+                ],
+                scripts: []
+            }
+        });
+
+        // Add custom email blocks
+        editor.BlockManager.add('header-block', {
+            label: 'Header',
+            category: 'Email Sections',
+            content: `
+                <table style="width: 100%; background: #6366f1; padding: 30px; text-align: center;">
+                    <tr>
+                        <td>
+                            <h1 style="color: white; margin: 0; font-size: 32px;">Your Company</h1>
+                            <p style="color: white; margin: 10px 0 0;">Your tagline here</p>
+                        </td>
+                    </tr>
+                </table>
+            `
+        });
+
+        editor.BlockManager.add('cta-button', {
+            label: 'CTA Button',
+            category: 'Email Sections',
+            content: `
+                <table style="width: 100%; padding: 20px; text-align: center;">
+                    <tr>
+                        <td>
+                            <a href="#" style="display: inline-block; padding: 15px 40px; background: #6366f1; color: white; text-decoration: none; border-radius: 6px; font-weight: bold;">
+                                Click Here
+                            </a>
+                        </td>
+                    </tr>
+                </table>
+            `
+        });
+
+        editor.BlockManager.add('footer-block', {
+            label: 'Footer',
+            category: 'Email Sections',
+            content: `
+                <table style="width: 100%; background: #f8fafc; padding: 30px; text-align: center; font-size: 12px; color: #64748b;">
+                    <tr>
+                        <td>
+                            <p style="margin: 0 0 10px;">© 2025 Your Company. All rights reserved.</p>
+                            <p style="margin: 0;">
+                                <a href="#" style="color: #6366f1; text-decoration: none;">Unsubscribe</a> | 
+                                <a href="#" style="color: #6366f1; text-decoration: none;">Privacy Policy</a>
+                            </p>
+                        </td>
+                    </tr>
+                </table>
+            `
+        });
+
+        // Update hidden textarea when editor changes
+        editor.on('update', function() {
+            const html = editor.getHtml();
+            const css = editor.getCss();
+            const fullContent = `<style>${css}</style>${html}`;
+            $('#body').val(fullContent);
+        });
+
+        // Load existing content if any
+        const existingContent = $('#body').val();
+        if (existingContent) {
+            editor.setComponents(existingContent);
         }
+    }
+
+    // Initialize editor on page load
+    initGrapesJS();
+
+    // Editor mode switching
+    $('input[name="editorMode"]').on('change', function() {
+        if ($('#visualMode').is(':checked')) {
+            $('#visualEditorContainer').removeClass('d-none');
+            $('#codeEditorContainer').addClass('d-none');
+            
+            // Sync code to visual
+            const codeContent = $('#bodyCode').val();
+            if (codeContent && editor) {
+                editor.setComponents(codeContent);
+            }
+        } else {
+            $('#codeEditorContainer').removeClass('d-none');
+            $('#visualEditorContainer').addClass('d-none');
+            
+            // Sync visual to code
+            if (editor) {
+                const html = editor.getHtml();
+                const css = editor.getCss();
+                $('#bodyCode').val(`<style>${css}</style>\n${html}`);
+            }
+        }
+    });
+
+    // Sync code editor changes to hidden field
+    $('#bodyCode').on('input', function() {
+        $('#body').val($(this).val());
     });
 
     // Template selection handler
@@ -329,8 +502,13 @@ $(document).ready(function() {
 
             $('#subject').val(subject);
 
-            // Update TinyMCE editor
-            tinymce.get('body').setContent(body);
+            // Update visual editor or code editor based on active mode
+            if ($('#visualMode').is(':checked') && editor) {
+                editor.setComponents(body);
+            } else {
+                $('#bodyCode').val(body);
+            }
+            $('#body').val(body);
 
             // Show success message
             Swal.fire({
@@ -351,10 +529,14 @@ $(document).ready(function() {
 
         $('#template_select').val(templateId);
         $('#subject').val(subject);
-        $('#body').val(body);
 
-        // Update rich text editor
-        $('#body').next('.richText-editor').html(body);
+        // Update visual editor or code editor based on active mode
+        if ($('#visualMode').is(':checked') && editor) {
+            editor.setComponents(body);
+        } else {
+            $('#bodyCode').val(body);
+        }
+        $('#body').val(body);
 
         // Show success message
         Swal.fire({
@@ -368,6 +550,15 @@ $(document).ready(function() {
 
     // Form validation and submission
     $('#campaignForm').on('submit', function(e) {
+        // Ensure content is synced before submission
+        if ($('#visualMode').is(':checked') && editor) {
+            const html = editor.getHtml();
+            const css = editor.getCss();
+            $('#body').val(`<style>${css}</style>${html}`);
+        } else {
+            $('#body').val($('#bodyCode').val());
+        }
+
         const file = $('#file')[0].files[0];
         const subject = $('#subject').val().trim();
         const body = $('#body').val().trim();
@@ -427,7 +618,11 @@ $(document).ready(function() {
     // Reset form handler
     $('#resetForm').on('click', function() {
         $('#template_select').val('');
-        tinymce.get('body').setContent('');
+        if (editor) {
+            editor.setComponents('');
+        }
+        $('#bodyCode').val('');
+        $('#body').val('');
     });
 
     // Auto-apply template if pre-selected
@@ -443,4 +638,3 @@ $(document).ready(function() {
 });
 </script>
 @endpush
-@endsection
