@@ -92,10 +92,39 @@
    MAIL_ENCRYPTION=tls
    ```
 
-4. **Start application**
+4. **Queue setup (Choose one option)**
+
+   **Option A: Instant Mode (Default - No Queue Worker)**
    ```bash
+   # In .env file:
+   QUEUE_CONNECTION=sync
+   
+   # Start application
    php artisan serve
-   php artisan queue:work
+   ```
+   ✅ Emails send immediately  
+   ✅ No queue worker needed  
+   ⚠️ Slower for large campaigns
+
+   **Option B: Queue Mode (Recommended for Production)**
+   ```bash
+   # In .env file:
+   QUEUE_CONNECTION=database
+   
+   # Start application
+   php artisan serve
+   
+   # In a separate terminal, start queue worker:
+   php artisan queue:work --queue=emails,default
+   ```
+   ✅ Fast campaign creation  
+   ✅ Better for bulk emails  
+   ✅ Automatic retries  
+   📖 See [QUEUE-SETUP.md](QUEUE-SETUP.md) for details
+
+5. **Check queue status anytime**
+   ```bash
+   php artisan queue:status
    ```
 
 **Default Login:** `admin@email.com` / `12345678`

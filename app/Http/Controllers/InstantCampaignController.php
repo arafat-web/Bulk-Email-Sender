@@ -97,7 +97,7 @@ class InstantCampaignController extends Controller
 
                 // Create campaign record
                 $campaign = OneTimeSender::create([
-                    'filename' => $request->file->getClientOriginalName(),
+                    'file_name' => $request->file->getClientOriginalName(),
                     'total_email_address' => $emailCount,
                     'subject' => $request->subject,
                     'status' => 'processing',
@@ -123,12 +123,18 @@ class InstantCampaignController extends Controller
                     'email_account' => $defaultEmailAccount->name
                 ]);
 
+                $queueConnection = config('queue.default');
+                $useDelay = $queueConnection !== 'sync'; // Only use delay if not in sync mode
+
                 foreach ($emailAddresses->chunk($batchSize) as $batch) {
                     foreach ($batch as $email) {
                         if (filter_var($email->email, FILTER_VALIDATE_EMAIL)) {
-                            SendEmailJob::dispatch($email->email, $mailData)
-                                ->onQueue('emails')
-                                ->delay(rand(1, 5)); // Random delay to avoid rate limiting
+                            $job = SendEmailJob::dispatch($email->email, $mailData);
+                            
+                            // Only apply queue name and delay if using async queue
+                            if ($useDelay) {
+                                $job->onQueue('emails')->delay(rand(1, 5));
+                            }
                         } else {
                             Log::warning("Invalid email address skipped: " . $email->email);
                         }

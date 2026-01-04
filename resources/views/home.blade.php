@@ -36,7 +36,7 @@
     <div class="col-xl-3 col-lg-6 col-md-6">
         <div class="stats-card" style="--color: var(--primary-color)">
             <div class="d-flex align-items-center justify-content-between mb-3">
-                <div class="stats-icon" style="background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%)">
+                <div class="stats-icon" style="background: var(--primary-color)">
                     <i class="bi bi-rocket-takeoff"></i>
                 </div>
                 <div class="badge bg-primary bg-opacity-10 text-primary">
@@ -56,7 +56,7 @@
     <div class="col-xl-3 col-lg-6 col-md-6">
         <div class="stats-card" style="--color: var(--success-color)">
             <div class="d-flex align-items-center justify-content-between mb-3">
-                <div class="stats-icon" style="background: linear-gradient(135deg, var(--success-color) 0%, #059669 100%)">
+                <div class="stats-icon" style="background: var(--gray-700)">
                     <i class="bi bi-envelope-check"></i>
                 </div>
                 <div class="badge bg-success bg-opacity-10 text-success">
@@ -76,7 +76,7 @@
     <div class="col-xl-3 col-lg-6 col-md-6">
         <div class="stats-card" style="--color: var(--secondary-color)">
             <div class="d-flex align-items-center justify-content-between mb-3">
-                <div class="stats-icon" style="background: linear-gradient(135deg, var(--secondary-color) 0%, #0891b2 100%)">
+                <div class="stats-icon" style="background: var(--gray-700)">
                     <i class="bi bi-people-fill"></i>
                 </div>
                 <div class="badge bg-info bg-opacity-10 text-info">
@@ -96,7 +96,7 @@
     <div class="col-xl-3 col-lg-6 col-md-6">
         <div class="stats-card" style="--color: var(--warning-color)">
             <div class="d-flex align-items-center justify-content-between mb-3">
-                <div class="stats-icon" style="background: linear-gradient(135deg, var(--warning-color) 0%, #d97706 100%)">
+                <div class="stats-icon" style="background: var(--gray-700)">
                     <i class="bi bi-envelope-gear"></i>
                 </div>
                 <div class="badge bg-warning bg-opacity-10 text-warning">
@@ -141,7 +141,7 @@
                     <div class="col-xl-3 col-lg-6 col-md-6">
                         <div class="d-flex align-items-center p-3 bg-light rounded-3">
                             <div class="rounded-circle d-flex align-items-center justify-content-center me-3"
-                                 style="width: 48px; height: 48px; background: linear-gradient(135deg, #0891b2 0%, #0369a1 100%);">
+                                 style="width: 48px; height: 48px; background: var(--primary-color);">
                                 <i class="bi bi-people text-white fs-5"></i>
                             </div>
                             <div>
@@ -154,7 +154,7 @@
                     <div class="col-xl-3 col-lg-6 col-md-6">
                         <div class="d-flex align-items-center p-3 bg-light rounded-3">
                             <div class="rounded-circle d-flex align-items-center justify-content-center me-3"
-                                 style="width: 48px; height: 48px; background: linear-gradient(135deg, #059669 0%, #047857 100%);">
+                                 style="width: 48px; height: 48px; background: var(--gray-700);">
                                 <i class="bi bi-person-check text-white fs-5"></i>
                             </div>
                             <div>
@@ -167,7 +167,7 @@
                     <div class="col-xl-3 col-lg-6 col-md-6">
                         <div class="d-flex align-items-center p-3 bg-light rounded-3">
                             <div class="rounded-circle d-flex align-items-center justify-content-center me-3"
-                                 style="width: 48px; height: 48px; background: linear-gradient(135deg, #7c3aed 0%, #5b21b6 100%);">
+                                 style="width: 48px; height: 48px; background: var(--gray-700);">
                                 <i class="bi bi-tags text-white fs-5"></i>
                             </div>
                             <div>
@@ -180,7 +180,7 @@
                     <div class="col-xl-3 col-lg-6 col-md-6">
                         <div class="d-flex align-items-center p-3 bg-light rounded-3">
                             <div class="rounded-circle d-flex align-items-center justify-content-center me-3"
-                                 style="width: 48px; height: 48px; background: linear-gradient(135deg, #dc2626 0%, #991b1b 100%);">
+                                 style="width: 48px; height: 48px; background: var(--gray-700);">
                                 <i class="bi bi-envelope-at text-white fs-5"></i>
                             </div>
                             <div>
@@ -303,7 +303,7 @@
                             <div class="d-flex align-items-center p-3 border rounded-3 h-100 hover-shadow">
                                 <div class="flex-shrink-0">
                                     <div class="rounded-circle d-flex align-items-center justify-content-center"
-                                         style="width: 48px; height: 48px; background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%);">
+                                         style="width: 48px; height: 48px; background: var(--primary-color);">
                                         <i class="bi bi-rocket-takeoff text-white fs-5"></i>
                                     </div>
                                 </div>
@@ -320,7 +320,7 @@
                             <div class="d-flex align-items-center p-3 border rounded-3 h-100 hover-shadow">
                                 <div class="flex-shrink-0">
                                     <div class="rounded-circle d-flex align-items-center justify-content-center"
-                                         style="width: 48px; height: 48px; background: linear-gradient(135deg, #ec4899 0%, #be185d 100%);">
+                                         style="width: 48px; height: 48px; background: var(--gray-700);">
                                         <i class="bi bi-envelope-heart text-white fs-5"></i>
                                     </div>
                                 </div>
@@ -328,7 +328,7 @@
                                     <h6 class="fw-bold mb-1 text-dark">Individual Emails</h6>
                                     <p class="text-muted mb-0 small">Send personalized emails to specific recipients</p>
                                 </div>
-                                <i class="bi bi-arrow-right" style="color: #ec4899;"></i>
+                                <i class="bi bi-arrow-right text-muted"></i>
                             </div>
                         </a>
                     </div>
@@ -337,7 +337,7 @@
                             <div class="d-flex align-items-center p-3 border rounded-3 h-100 hover-shadow">
                                 <div class="flex-shrink-0">
                                     <div class="rounded-circle d-flex align-items-center justify-content-center"
-                                         style="width: 48px; height: 48px; background: linear-gradient(135deg, var(--success-color) 0%, #059669 100%);">
+                                         style="width: 48px; height: 48px; background: var(--primary-color);">
                                         <i class="bi bi-file-earmark-richtext text-white fs-5"></i>
                                     </div>
                                 </div>
@@ -345,7 +345,7 @@
                                     <h6 class="fw-bold mb-1 text-dark">Manage Templates</h6>
                                     <p class="text-muted mb-0 small">Create and organize email templates</p>
                                 </div>
-                                <i class="bi bi-arrow-right text-success"></i>
+                                <i class="bi bi-arrow-right text-primary"></i>
                             </div>
                         </a>
                     </div>
@@ -354,7 +354,7 @@
                             <div class="d-flex align-items-center p-3 border rounded-3 h-100 hover-shadow">
                                 <div class="flex-shrink-0">
                                     <div class="rounded-circle d-flex align-items-center justify-content-center"
-                                         style="width: 48px; height: 48px; background: linear-gradient(135deg, var(--warning-color) 0%, #d97706 100%);">
+                                         style="width: 48px; height: 48px; background: var(--gray-700);">
                                         <i class="bi bi-envelope-gear text-white fs-5"></i>
                                     </div>
                                 </div>
@@ -362,7 +362,7 @@
                                     <h6 class="fw-bold mb-1 text-dark">Email Accounts</h6>
                                     <p class="text-muted mb-0 small">Configure SMTP email accounts</p>
                                 </div>
-                                <i class="bi bi-arrow-right text-warning"></i>
+                                <i class="bi bi-arrow-right text-muted"></i>
                             </div>
                         </a>
                     </div>
@@ -371,7 +371,7 @@
                             <div class="d-flex align-items-center p-3 border rounded-3 h-100 hover-shadow">
                                 <div class="flex-shrink-0">
                                     <div class="rounded-circle d-flex align-items-center justify-content-center"
-                                         style="width: 48px; height: 48px; background: linear-gradient(135deg, #0891b2 0%, #0369a1 100%);">
+                                         style="width: 48px; height: 48px; background: var(--primary-color);">
                                         <i class="bi bi-person-lines-fill text-white fs-5"></i>
                                     </div>
                                 </div>
@@ -388,7 +388,7 @@
                             <div class="d-flex align-items-center p-3 border rounded-3 h-100 hover-shadow">
                                 <div class="flex-shrink-0">
                                     <div class="rounded-circle d-flex align-items-center justify-content-center"
-                                         style="width: 48px; height: 48px; background: linear-gradient(135deg, var(--secondary-color) 0%, #0891b2 100%);">
+                                         style="width: 48px; height: 48px; background: var(--gray-700);">
                                         <i class="bi bi-graph-up-arrow text-white fs-5"></i>
                                     </div>
                                 </div>
@@ -396,7 +396,7 @@
                                     <h6 class="fw-bold mb-1 text-dark">View Analytics</h6>
                                     <p class="text-muted mb-0 small">Track campaign performance</p>
                                 </div>
-                                <i class="bi bi-arrow-right text-info"></i>
+                                <i class="bi bi-arrow-right text-muted"></i>
                             </div>
                         </a>
                     </div>
