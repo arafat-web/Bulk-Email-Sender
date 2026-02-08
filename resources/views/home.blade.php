@@ -281,7 +281,7 @@
 
 <!-- Modern Quick Actions & Recent Activity -->
 <div class="row g-4 mb-5">
-    <div class="col-lg-8">
+    <div class="col-lg-12">
         <div class="card h-100">
             <div class="card-header">
                 <div class="d-flex align-items-center justify-content-between">
@@ -405,7 +405,7 @@
         </div>
     </div>
 
-    <div class="col-lg-4">
+    <div class="col-lg-12">
         <div class="card h-100">
             <div class="card-header">
                 <h5 class="card-title mb-0">
@@ -467,7 +467,7 @@
         </div>
     </div>
 
-    <div class="col-lg-4">
+    <div class="col-lg-6">
         <div class="card">
             <div class="card-header">
                 <h5 class="card-title mb-0">
@@ -488,9 +488,10 @@
                 </div>
             </div>
         </div>
-
+    </div>
+<div class="col-lg-6">
         <!-- System Status -->
-        <div class="card mt-4">
+        <div class="card">
             <div class="card-header">
                 <h6 class="card-title mb-0">
                     <i class="bi bi-shield-check me-2"></i>System Status
