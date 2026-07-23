@@ -143,10 +143,15 @@
 
 @push('scripts')
 <script>
+let deleteTagModalInstance = null;
+
 function deleteTag(tagId) {
     const form = document.getElementById('deleteTagForm');
     form.action = `{{ route('tags.index') }}/${tagId}`;
-    new bootstrap.Modal(document.getElementById('deleteTagModal')).show();
+    if (!deleteTagModalInstance) {
+        deleteTagModalInstance = new bootstrap.Modal(document.getElementById('deleteTagModal'));
+    }
+    deleteTagModalInstance.show();
 }
 </script>
 @endpush

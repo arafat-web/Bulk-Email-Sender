@@ -362,10 +362,15 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 });
 
+let deleteModalInstance = null;
+
 function deleteContact(contactId) {
     const form = document.getElementById('deleteContactForm');
     form.action = `{{ route('contacts.index') }}/${contactId}`;
-    new bootstrap.Modal(document.getElementById('deleteContactModal')).show();
+    if (!deleteModalInstance) {
+        deleteModalInstance = new bootstrap.Modal(document.getElementById('deleteContactModal'));
+    }
+    deleteModalInstance.show();
 }
 
 function setBulkAction(action) {
@@ -382,9 +387,11 @@ function setBulkAction(action) {
             document.getElementById('bulkActionForm').submit();
         }
     } else if (action === 'add_tag' || action === 'remove_tag') {
-        new bootstrap.Modal(document.getElementById('tagModal')).show();
+        const tagModal = bootstrap.Modal.getInstance(document.getElementById('tagModal')) || new bootstrap.Modal(document.getElementById('tagModal'));
+        tagModal.show();
     } else if (action === 'change_status') {
-        new bootstrap.Modal(document.getElementById('statusModal')).show();
+        const statusModal = bootstrap.Modal.getInstance(document.getElementById('statusModal')) || new bootstrap.Modal(document.getElementById('statusModal'));
+        statusModal.show();
     }
 }
 

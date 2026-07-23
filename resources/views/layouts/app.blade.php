@@ -75,7 +75,7 @@
             background: #1f2937;
             backdrop-filter: blur(20px);
             border-right: 1px solid rgba(139, 92, 246, 0.1);
-            z-index: 1040;
+            z-index: 1020;
             transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
             overflow-y: auto;
             box-shadow: var(--shadow-xl);
@@ -336,8 +336,6 @@
             top: 0;
             z-index: 1030;
         }
-            z-index: 1030;
-        }
 
         .topbar-left {
             display: flex;
@@ -420,7 +418,6 @@
         .page-content {
             padding: 2rem;
             position: relative;
-            z-index: 1;
         }
 
         .page-header {
@@ -1103,7 +1100,9 @@
 
             // Smooth scroll for anchor links
             $('a[href^="#"]').on('click', function(event) {
-                var target = $(this.getAttribute('href'));
+                var href = this.getAttribute('href');
+                if (!href || href === '#') return;
+                var target = $(href);
                 if (target.length) {
                     event.preventDefault();
                     $('html, body').stop().animate({

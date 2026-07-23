@@ -181,35 +181,16 @@
                     </div>
 
                     <!-- Email Validation Results -->
-                    <div id="emailValidation" class="d-none">
-                        <div class="alert alert-info border-0" style="background: rgba(13, 202, 240, 0.1);">
-                            <h6 class="alert-heading">
-                                <i class="bi bi-info-circle me-1"></i>Email Validation Results
-                            </h6>
-                            <div class="row g-3">
-                                <div class="col-md-4">
-                                    <div class="text-center">
-                                        <div class="fs-4 fw-bold text-success" id="validCount">0</div>
-                                        <small class="text-muted">Valid Emails</small>
-                                    </div>
-                                </div>
-                                <div class="col-md-4">
-                                    <div class="text-center">
-                                        <div class="fs-4 fw-bold text-danger" id="invalidCount">0</div>
-                                        <small class="text-muted">Invalid Emails</small>
-                                    </div>
-                                </div>
-                                <div class="col-md-4">
-                                    <div class="text-center">
-                                        <div class="fs-4 fw-bold text-primary" id="totalCount">0</div>
-                                        <small class="text-muted">Total Processed</small>
-                                    </div>
-                                </div>
-                            </div>
-                            <div id="invalidEmailsList" class="mt-3 d-none">
-                                <h6 class="text-danger">Invalid Emails:</h6>
-                                <div class="invalid-emails-container"></div>
-                            </div>
+                    <div id="emailValidation" class="d-none mt-2">
+                        <div class="d-flex align-items-center gap-3 text-muted small">
+                            <span><span class="text-success fw-bold" id="validCount">0</span> valid</span>
+                            <span class="text-muted">·</span>
+                            <span><span class="text-danger fw-bold" id="invalidCount">0</span> invalid</span>
+                            <span class="text-muted">·</span>
+                            <span><span class="fw-bold" id="totalCount">0</span> total</span>
+                        </div>
+                        <div id="invalidEmailsList" class="mt-2 d-none">
+                            <div class="invalid-emails-container d-flex flex-wrap gap-1"></div>
                         </div>
                     </div>
                 </div>
@@ -373,34 +354,72 @@
 @push('scripts')
 <script>
 $(document).ready(function() {
-    // Initialize TinyMCE editor with premium features
-    tinymce.init({
-        selector: '#body',
-        plugins: 'advlist autolink lists link image charmap preview anchor searchreplace visualblocks code fullscreen insertdatetime media table help wordcount template emoticons',
-        toolbar: 'undo redo | blocks fontfamily fontsize | bold italic underline strikethrough | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent | forecolor backcolor | link image media table | emoticons template | removeformat code fullscreen | help',
-        menubar: false,
-        branding: false,
-        height: 300,
-        content_style: 'body { font-family: Plus Jakarta Sans, sans-serif; font-size: 14px; line-height: 1.6; }',
-        font_family_formats: 'Plus Jakarta Sans=Plus Jakarta Sans, sans-serif; Arial=arial,helvetica,sans-serif; Times New Roman=times new roman,times; Courier New=courier new,courier',
-        fontsize_formats: '8pt 10pt 12pt 14pt 16pt 18pt 24pt 36pt',
-        image_advtab: true,
-        link_context_toolbar: true,
-        setup: function (editor) {
-            editor.on('change', function () {
-                editor.save();
-            });
+    // Initialize TinyMCE editor (only if CDN loaded successfully)
+    if (typeof tinymce !== 'undefined') {
+        tinymce.init({
+            selector: '#body',
+            plugins: 'advlist autolink lists link image charmap preview anchor searchreplace visualblocks code fullscreen insertdatetime media table help wordcount template emoticons',
+            toolbar: 'undo redo | blocks fontfamily fontsize | bold italic underline strikethrough | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent | forecolor backcolor | link image media table | emoticons template | removeformat code fullscreen | help',
+            menubar: false,
+            branding: false,
+            height: 300,
+            content_style: 'body { font-family: Plus Jakarta Sans, sans-serif; font-size: 14px; line-height: 1.6; }',
+            font_family_formats: 'Plus Jakarta Sans=Plus Jakarta Sans, sans-serif; Arial=arial,helvetica,sans-serif; Times New Roman=times new roman,times; Courier New=courier new,courier',
+            fontsize_formats: '8pt 10pt 12pt 14pt 16pt 18pt 24pt 36pt',
+            image_advtab: true,
+            link_context_toolbar: true,
+            setup: function (editor) {
+                editor.on('change', function () {
+                    editor.save();
+                });
+            }
+        });
+    }
+
+    // Helper: set email body content (works with or without TinyMCE)
+    function setEmailBody(content) {
+        if (typeof tinymce !== 'undefined' && tinymce.get('body')) {
+            tinymce.get('body').setContent(content);
+        } else {
+            $('#body').val(content);
         }
-    });
+    }
+
+    // Helper: get email body content (works with or without TinyMCE)
+    function getEmailBody() {
+        if (typeof tinymce !== 'undefined' && tinymce.get('body')) {
+            return tinymce.get('body').getContent();
+        }
+        return $('#body').val();
+    }
+
+    // Helper: decode base64 with UTF-8 support
+    function decodeBase64(str) {
+        try {
+            const binary = atob(str);
+            const bytes = new Uint8Array(binary.length);
+            for (let i = 0; i < binary.length; i++) {
+                bytes[i] = binary.charCodeAt(i);
+            }
+            return new TextDecoder('utf-8').decode(bytes);
+        } catch (e) {
+            // Fallback: try plain atob if UTF-8 decoding fails
+            try {
+                return atob(str);
+            } catch (e2) {
+                return str;
+            }
+        }
+    }
 
     // Template selection handler
     $('.template-option').on('click', function(e) {
         e.preventDefault();
         const subject = $(this).data('subject');
-        const body = atob($(this).data('body'));
+        const body = decodeBase64($(this).data('body'));
 
         $('#subject').val(subject);
-        tinymce.get('body').setContent(body);
+        setEmailBody(body);
 
         Swal.fire({
             icon: 'success',
@@ -423,6 +442,10 @@ $(document).ready(function() {
             });
             return;
         }
+
+        const $btn = $(this);
+        const originalHtml = $btn.html();
+        $btn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm me-1"></span>Validating...');
 
         $.ajax({
             url: '{{ route("individual-emails.validate") }}',
@@ -448,6 +471,20 @@ $(document).ready(function() {
                 }
 
                 $('#emailValidation').removeClass('d-none');
+            },
+            error: function(xhr) {
+                let message = 'Failed to validate emails. Please try again.';
+                if (xhr.responseJSON && xhr.responseJSON.message) {
+                    message = xhr.responseJSON.message;
+                }
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Validation Failed',
+                    text: message
+                });
+            },
+            complete: function() {
+                $btn.prop('disabled', false).html(originalHtml);
             }
         });
     });
@@ -458,9 +495,11 @@ $(document).ready(function() {
 
         const formData = new FormData(this);
 
-        // Update TinyMCE content
-        tinymce.get('body').save();
-        formData.set('body', tinymce.get('body').getContent());
+        // Update body content from editor
+        if (typeof tinymce !== 'undefined' && tinymce.get('body')) {
+            tinymce.get('body').save();
+        }
+        formData.set('body', getEmailBody());
 
         Swal.fire({
             title: 'Sending Emails...',
@@ -493,8 +532,7 @@ $(document).ready(function() {
                     }).then(() => {
                         // Reset form
                         $('#individualEmailForm')[0].reset();
-                        tinymce.get('body').setContent('');
-                        $('#emailValidation').addClass('d-none');
+                        setEmailBody('');
                     });
                 } else {
                     Swal.fire({
@@ -536,7 +574,7 @@ $(document).ready(function() {
         }).then((result) => {
             if (result.isConfirmed) {
                 $('#individualEmailForm')[0].reset();
-                tinymce.get('body').setContent('');
+                setEmailBody('');
                 $('#emailValidation').addClass('d-none');
 
                 Swal.fire({

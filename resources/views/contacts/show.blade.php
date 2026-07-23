@@ -214,8 +214,13 @@
 
 @push('scripts')
 <script>
+let deleteModalInstance = null;
+
 function deleteContact() {
-    new bootstrap.Modal(document.getElementById('deleteContactModal')).show();
+    if (!deleteModalInstance) {
+        deleteModalInstance = new bootstrap.Modal(document.getElementById('deleteContactModal'));
+    }
+    deleteModalInstance.show();
 }
 </script>
 @endpush

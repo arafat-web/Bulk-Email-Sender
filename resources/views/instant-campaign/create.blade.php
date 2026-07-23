@@ -300,37 +300,74 @@
 @push('scripts')
 <script>
 $(document).ready(function() {
-    // Initialize TinyMCE editor with premium features
-    tinymce.init({
-        selector: '#body',
-        plugins: 'advlist autolink lists link image charmap preview anchor searchreplace visualblocks code fullscreen insertdatetime media table help wordcount template emoticons',
-        toolbar: 'undo redo | blocks fontfamily fontsize | bold italic underline strikethrough | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent | forecolor backcolor | link image media table | emoticons template | removeformat code fullscreen | help',
-        menubar: false,
-        branding: false,
-        height: 350,
-        content_style: 'body { font-family: Plus Jakarta Sans, sans-serif; font-size: 14px; line-height: 1.6; }',
-        font_family_formats: 'Plus Jakarta Sans=Plus Jakarta Sans, sans-serif; Arial=arial,helvetica,sans-serif; Times New Roman=times new roman,times; Courier New=courier new,courier',
-        fontsize_formats: '8pt 10pt 12pt 14pt 16pt 18pt 24pt 36pt',
-        image_advtab: true,
-        link_context_toolbar: true,
-        setup: function (editor) {
-            editor.on('change', function () {
-                editor.save();
-            });
+    // Initialize TinyMCE editor (only if CDN loaded successfully)
+    if (typeof tinymce !== 'undefined') {
+        tinymce.init({
+            selector: '#body',
+            plugins: 'advlist autolink lists link image charmap preview anchor searchreplace visualblocks code fullscreen insertdatetime media table help wordcount template emoticons',
+            toolbar: 'undo redo | blocks fontfamily fontsize | bold italic underline strikethrough | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent | forecolor backcolor | link image media table | emoticons template | removeformat code fullscreen | help',
+            menubar: false,
+            branding: false,
+            height: 350,
+            content_style: 'body { font-family: Plus Jakarta Sans, sans-serif; font-size: 14px; line-height: 1.6; }',
+            font_family_formats: 'Plus Jakarta Sans=Plus Jakarta Sans, sans-serif; Arial=arial,helvetica,sans-serif; Times New Roman=times new roman,times; Courier New=courier new,courier',
+            fontsize_formats: '8pt 10pt 12pt 14pt 16pt 18pt 24pt 36pt',
+            image_advtab: true,
+            link_context_toolbar: true,
+            setup: function (editor) {
+                editor.on('change', function () {
+                    editor.save();
+                });
+            }
+        });
+    }
+
+    // Helper: set email body content (works with or without TinyMCE)
+    function setEmailBody(content) {
+        if (typeof tinymce !== 'undefined' && tinymce.get('body')) {
+            tinymce.get('body').setContent(content);
+        } else {
+            $('#body').val(content);
         }
-    });
+    }
+
+    // Helper: get email body content (works with or without TinyMCE)
+    function getEmailBody() {
+        if (typeof tinymce !== 'undefined' && tinymce.get('body')) {
+            return tinymce.get('body').getContent();
+        }
+        return $('#body').val();
+    }
+
+    // Helper: decode base64 with UTF-8 support
+    function decodeBase64(str) {
+        try {
+            const binary = atob(str);
+            const bytes = new Uint8Array(binary.length);
+            for (let i = 0; i < binary.length; i++) {
+                bytes[i] = binary.charCodeAt(i);
+            }
+            return new TextDecoder('utf-8').decode(bytes);
+        } catch (e) {
+            try {
+                return atob(str);
+            } catch (e2) {
+                return str;
+            }
+        }
+    }
 
     // Template selection handler
     $('#template_select').on('change', function() {
         const selectedOption = $(this).find('option:selected');
         if (selectedOption.val()) {
             const subject = selectedOption.data('subject');
-            const body = atob(selectedOption.data('body')); // Decode base64
+            const body = decodeBase64(selectedOption.data('body'));
 
             $('#subject').val(subject);
 
-            // Update TinyMCE editor
-            tinymce.get('body').setContent(body);
+            // Update editor
+            setEmailBody(body);
 
             // Show success message
             Swal.fire({
@@ -347,11 +384,11 @@ $(document).ready(function() {
     $('.template-quick-btn').on('click', function() {
         const templateId = $(this).data('template-id');
         const subject = $(this).data('subject');
-        const body = atob($(this).data('body'));
+        const body = decodeBase64($(this).data('body'));
 
         $('#template_select').val(templateId);
         $('#subject').val(subject);
-        $('#body').val(body);
+        setEmailBody(body);
 
         // Update rich text editor
         $('#body').next('.richText-editor').html(body);
@@ -427,7 +464,7 @@ $(document).ready(function() {
     // Reset form handler
     $('#resetForm').on('click', function() {
         $('#template_select').val('');
-        tinymce.get('body').setContent('');
+        setEmailBody('');
     });
 
     // Auto-apply template if pre-selected
