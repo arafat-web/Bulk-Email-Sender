@@ -216,7 +216,7 @@
                             <i class="bi bi-files me-2"></i>Duplicate Template
                         </button>
                     </form>
-                    <form action="{{ route('email-templates.toggle', $template) }}" method="POST" class="d-inline">
+                    <form action="{{ route('email-templates.toggle-active', $template) }}" method="POST" class="d-inline">
                         @csrf
                         <button type="submit" class="btn btn-outline-{{ $template->is_active ? 'warning' : 'success' }} btn-sm w-100">
                             <i class="bi bi-{{ $template->is_active ? 'pause' : 'play' }}-circle me-2"></i>

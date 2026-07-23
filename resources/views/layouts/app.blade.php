@@ -22,13 +22,11 @@
 
     <style>
         :root {
-            --primary-color: #8b5cf6;
-            --primary-dark: #7c3aed;
-            --secondary-color: #06b6d4;
-            --success-color: #10b981;
-            --warning-color: #f59e0b;
-            --danger-color: #ef4444;
-            --dark-color: #0f172a;
+            /* Simple 3-color palette: Primary, Dark, Light */
+            --primary-color: #6366f1;
+            --primary-dark: #4f46e5;
+            --primary-light: #818cf8;
+            --dark-color: #1e293b;
             --light-color: #f8fafc;
             --gray-50: #f9fafb;
             --gray-100: #f3f4f6;
@@ -57,7 +55,7 @@
 
         body {
             font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
-            background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+            background: var(--light-color);
             color: var(--gray-800);
             font-size: 14px;
             line-height: 1.6;
@@ -81,17 +79,6 @@
             box-shadow: var(--shadow-xl);
         }
 
-        .sidebar::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: linear-gradient(45deg, rgba(139, 92, 246, 0.1) 0%, rgba(124, 58, 237, 0.05) 100%);
-            pointer-events: none;
-        }
-
         .sidebar-brand {
             position: relative;
             padding: 2rem 1.5rem;
@@ -102,7 +89,7 @@
         .sidebar-brand .brand-icon {
             width: 48px;
             height: 48px;
-            background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+            background: var(--primary-color);
             border-radius: 16px;
             display: flex;
             align-items: center;
@@ -125,7 +112,7 @@
         }
 
         .sidebar-brand small {
-            color: #a78bfa;
+            color: var(--primary-light);
             font-size: 0.75rem;
             font-weight: 500;
             text-transform: uppercase;
@@ -144,7 +131,7 @@
         }
 
         .nav-section-title {
-            color: #a78bfa;
+            color: var(--primary-light);
             font-size: 0.75rem;
             font-weight: 600;
             text-transform: uppercase;
@@ -178,14 +165,14 @@
             left: 0;
             width: 4px;
             height: 100%;
-            background: linear-gradient(180deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+            background: var(--primary-color);
             transform: scaleY(0);
             transition: transform 0.3s ease;
             transform-origin: bottom;
         }
 
         .nav-link:hover {
-            background: rgba(139, 92, 246, 0.1);
+            background: rgba(99, 102, 241, 0.1);
             color: white;
             transform: translateX(8px);
         }
@@ -195,7 +182,7 @@
         }
 
         .nav-link.active {
-            background: linear-gradient(135deg, rgba(139, 92, 246, 0.2) 0%, rgba(124, 58, 237, 0.1) 100%);
+            background: rgba(99, 102, 241, 0.15);
             color: white !important;
             transform: translateX(8px);
         }

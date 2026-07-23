@@ -24,6 +24,11 @@ class EmailTemplate extends Model
         'last_used_at' => 'datetime',
     ];
 
+    public function getStatusBadge()
+    {
+        return $this->status_badge;
+    }
+
     public function getStatusBadgeAttribute()
     {
         return $this->is_active

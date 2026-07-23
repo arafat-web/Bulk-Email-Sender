@@ -10,7 +10,7 @@ class OneTimeSender extends Model
     use HasFactory;
 
     protected $fillable = [
-        'filename',
+        'file_name',
         'total_email_address',
         'subject',
         'status',

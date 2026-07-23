@@ -63,14 +63,12 @@ class SendEmailJob implements ShouldQueue
                 throw new Exception('No active email account available for sending emails.');
             }
 
-            // Decrypt password for use
-            $decryptedPassword = decrypt($emailAccount->smtp_password);
-
             // Configure mail settings dynamically for this job
+            // Note: smtp_password is already decrypted by the model accessor
             Config::set('mail.mailers.smtp.host', $emailAccount->smtp_host);
             Config::set('mail.mailers.smtp.port', $emailAccount->smtp_port);
             Config::set('mail.mailers.smtp.username', $emailAccount->smtp_username);
-            Config::set('mail.mailers.smtp.password', $decryptedPassword);
+            Config::set('mail.mailers.smtp.password', $emailAccount->smtp_password);
             Config::set('mail.mailers.smtp.encryption', $emailAccount->smtp_encryption === 'none' ? null : $emailAccount->smtp_encryption);
             Config::set('mail.from.address', $emailAccount->email);
             Config::set('mail.from.name', $emailAccount->from_name);

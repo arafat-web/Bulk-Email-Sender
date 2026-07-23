@@ -98,7 +98,7 @@
                         </form>
                     </div>
                     <div class="col-md-4">
-                        <form action="{{ route('email-templates.toggle', $template) }}" method="POST" class="d-inline w-100" id="toggleForm">
+                        <form action="{{ route('email-templates.toggle-active', $template) }}" method="POST" class="d-inline w-100" id="toggleForm">
                             @csrf
                             <button type="submit" class="btn btn-outline-{{ $template->is_active ? 'warning' : 'success' }} w-100">
                                 <i class="bi bi-{{ $template->is_active ? 'pause' : 'play' }}-circle me-2"></i>

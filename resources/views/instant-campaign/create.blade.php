@@ -128,20 +128,49 @@
                         @enderror
                     </div>
 
-                    <!-- Email Body -->
-                    <div class="mb-4">
-                        <label for="body" class="form-label">
-                            <i class="bi bi-card-text me-2"></i>Email Content
+                    <!-- Editor Mode Toggle -->
+                    <div class="mb-3">
+                        <div class="btn-group" role="group">
+                            <input type="radio" class="btn-check" name="editorMode" id="visualMode" checked autocomplete="off">
+                            <label class="btn btn-outline-primary" for="visualMode">
+                                <i class="bi bi-palette me-1"></i>Visual Designer
+                            </label>
+
+                            <input type="radio" class="btn-check" name="editorMode" id="codeMode" autocomplete="off">
+                            <label class="btn btn-outline-primary" for="codeMode">
+                                <i class="bi bi-code-slash me-1"></i>HTML/CSS Code
+                            </label>
+                        </div>
+                        <small class="text-muted ms-2">Choose your preferred editing mode</small>
+                    </div>
+
+                    <!-- Email Body - Visual Designer -->
+                    <div class="mb-4" id="visualEditorContainer">
+                        <label class="form-label">
+                            <i class="bi bi-brush me-2"></i>Email Design
                             <span class="text-danger">*</span>
                         </label>
-                        <textarea id="body" name="body" class="form-control @error('body') is-invalid @enderror"
-                                  rows="12" placeholder="Compose your email message here..." required>{{ old('body', $selectedTemplate ? $selectedTemplate->body : '') }}</textarea>
+                        <div id="gjs" style="height: 0px;"></div>
+                        <textarea id="body" name="body" class="form-control d-none">{{ old('body', $selectedTemplate ? $selectedTemplate->body : '') }}</textarea>
+                        @error('body')
+                            <div class="invalid-feedback d-block">{{ $message }}</div>
+                        @enderror
+                    </div>
+
+                    <!-- Email Body - Code Editor -->
+                    <div class="mb-4 d-none" id="codeEditorContainer">
+                        <label for="bodyCode" class="form-label">
+                            <i class="bi bi-code-square me-2"></i>HTML/CSS Code
+                            <span class="text-danger">*</span>
+                        </label>
+                        <textarea id="bodyCode" class="form-control font-monospace @error('body') is-invalid @enderror"
+                                  rows="20" placeholder="Enter your HTML/CSS code here..." style="font-size: 13px;">{{ old('body', $selectedTemplate ? $selectedTemplate->body : '') }}</textarea>
                         @error('body')
                             <div class="invalid-feedback">{{ $message }}</div>
                         @enderror
                         <div class="form-text">
-                            <i class="bi bi-palette me-1"></i>
-                            Use the rich text editor to format your email with colors, fonts, and styling.
+                            <i class="bi bi-info-circle me-1"></i>
+                            Full HTML/CSS support. Use inline styles for best email client compatibility.
                         </div>
                     </div>
 
@@ -275,29 +304,58 @@
                     </h6>
                 </div>
                 <div class="card-body">
-                    <div class="d-grid gap-2">
-                        @foreach($templates->take(3) as $template)
-                            <button type="button" class="btn btn-outline-primary btn-sm text-start template-quick-btn"
+                    <div class="d-flex flex-wrap gap-2">
+                        @foreach($templates->take(6) as $template)
+                            <button type="button"
+                                    class="btn btn-sm btn-outline-primary template-quick-btn"
                                     data-template-id="{{ $template->id }}"
                                     data-subject="{{ $template->subject }}"
-                                    data-body="{{ base64_encode($template->body) }}">
-                                <div class="fw-bold">{{ $template->name }}</div>
-                                <small class="text-muted">{{ Str::limit($template->subject, 40) }}</small>
+                                    data-body="{{ base64_encode($template->body) }}"
+                                    title="Click to apply: {{ $template->name }}">
+                                <i class="bi bi-file-text me-1"></i>{{ Str::limit($template->name, 15) }}
                             </button>
                         @endforeach
-                        @if($templates->count() > 3)
-                            <a href="{{ route('email-templates.index') }}" class="btn btn-link btn-sm">
-                                View all {{ $templates->count() }} templates
-                            </a>
-                        @endif
                     </div>
+                    <small class="text-muted d-block mt-2">
+                        <i class="bi bi-info-circle me-1"></i>
+                        Click any template to quickly apply it to your campaign.
+                    </small>
                 </div>
             </div>
         @endif
     </div>
 </div>
+@endsection
+
+@push('styles')
+<link href="https://unpkg.com/grapesjs/dist/css/grapes.min.css" rel="stylesheet">
+<link href="https://unpkg.com/grapesjs-preset-newsletter/dist/grapesjs-preset-newsletter.min.css" rel="stylesheet">
+<style>
+    .gjs-one-bg {
+        background-color: #1e293b;
+    }
+    .gjs-two-color {
+        color: rgba(255, 255, 255, 0.7);
+    }
+    .gjs-three-bg {
+        background-color: #334155;
+        color: white;
+    }
+    .gjs-four-color,
+    .gjs-four-color-h:hover {
+        color: #6366f1;
+    }
+    #gjs {
+        border: 2px solid #e2e8f0;
+        border-radius: 8px;
+        overflow: hidden;
+    }
+</style>
+@endpush
 
 @push('scripts')
+<script src="https://unpkg.com/grapesjs"></script>
+<script src="https://unpkg.com/grapesjs-preset-newsletter"></script>
 <script>
 $(document).ready(function() {
     // Initialize TinyMCE editor (only if CDN loaded successfully)
@@ -405,6 +463,15 @@ $(document).ready(function() {
 
     // Form validation and submission
     $('#campaignForm').on('submit', function(e) {
+        // Ensure content is synced before submission
+        if ($('#visualMode').is(':checked') && editor) {
+            const html = editor.getHtml();
+            const css = editor.getCss();
+            $('#body').val(`<style>${css}</style>${html}`);
+        } else {
+            $('#body').val($('#bodyCode').val());
+        }
+
         const file = $('#file')[0].files[0];
         const subject = $('#subject').val().trim();
         const body = $('#body').val().trim();
@@ -480,4 +547,3 @@ $(document).ready(function() {
 });
 </script>
 @endpush
-@endsection
