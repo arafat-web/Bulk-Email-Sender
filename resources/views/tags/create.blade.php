@@ -1,114 +1,71 @@
 @extends('layouts.app')
 
-@section('title', 'Create New Tag - BulkMailer')
+@section('title', 'Create Tag - BulkMailer')
 
 @section('breadcrumb')
     <li class="breadcrumb-item"><a href="{{ route('home') }}">Dashboard</a></li>
-    <li class="breadcrumb-item"><a href="{{ route('tags.index') }}">Contact Tags</a></li>
-    <li class="breadcrumb-item active">Create New Tag</li>
+    <li class="breadcrumb-item"><a href="{{ route('tags.index') }}">Tags</a></li>
+    <li class="breadcrumb-item active">Create</li>
 @endsection
 
 @section('content')
-<div class="container-fluid">
-    <div class="row">
-        <div class="col-12">
-            <div class="d-flex justify-content-between align-items-center mb-4">
-                <div>
-                    <h1 class="h3 mb-0 text-white">Create New Tag</h1>
-                    <p class="text-light mb-0">Create a new tag to organize your contacts</p>
-                </div>
-                <a href="{{ route('tags.index') }}" class="btn btn-outline-light">
-                    <i class="bi bi-arrow-left me-2"></i>Back to Tags
-                </a>
-            </div>
+<div class="d-flex flex-wrap justify-content-between align-items-center mb-4" style="gap:12px;">
+    <div>
+        <h1 style="font-size:20px;font-weight:600;margin:0;letter-spacing:-0.3px;">Create New Tag</h1>
+        <p style="font-size:13px;color:#64748b;margin:2px 0 0;">Create a tag to organize your contacts</p>
+    </div>
+    <a href="{{ route('tags.index') }}" class="btn btn-outline-primary btn-sm">Back to Tags</a>
+</div>
 
-            <div class="row justify-content-center">
-                <div class="col-lg-6">
-                    <div class="card bg-white/10 backdrop-blur-sm border-0">
-                        <div class="card-header bg-transparent border-0">
-                            <h5 class="mb-0 text-white">Tag Information</h5>
-                        </div>
-                        <div class="card-body">
-                            <form method="POST" action="{{ route('tags.store') }}">
-                                @csrf
+<div class="row justify-content-center">
+    <div class="col-lg-6">
+        <div class="card">
+            <div class="card-header"><h5 class="card-title">Tag Information</h5></div>
+            <div class="card-body">
+                <form method="POST" action="{{ route('tags.store') }}">
+                    @csrf
 
-                                <!-- Tag Name -->
-                                <div class="mb-3">
-                                    <label for="name" class="form-label text-white">Tag Name <span class="text-danger">*</span></label>
-                                    <input type="text" class="form-control @error('name') is-invalid @enderror"
-                                           id="name" name="name" value="{{ old('name') }}" required
-                                           placeholder="e.g., VIP Customers, Newsletter Subscribers">
-                                    @error('name')
-                                        <div class="invalid-feedback">{{ $message }}</div>
-                                    @enderror
-                                </div>
-
-                                <!-- Tag Color -->
-                                <div class="mb-3">
-                                    <label for="color" class="form-label text-white">Tag Color <span class="text-danger">*</span></label>
-                                    <div class="d-flex align-items-center gap-3">
-                                        <input type="color" class="form-control form-control-color @error('color') is-invalid @enderror"
-                                               id="color" name="color" value="{{ old('color', '#6f42c1') }}" required>
-                                        <div id="colorPreview" class="badge fs-6" style="background-color: {{ old('color', '#6f42c1') }};">
-                                            Preview Tag
-                                        </div>
-                                    </div>
-                                    <div class="form-text text-muted">Choose a color to represent this tag</div>
-                                    @error('color')
-                                        <div class="invalid-feedback">{{ $message }}</div>
-                                    @enderror
-                                </div>
-
-                                <!-- Preset Colors -->
-                                <div class="mb-3">
-                                    <label class="form-label text-white">Quick Color Selection</label>
-                                    <div class="d-flex flex-wrap gap-2">
-                                        @php
-                                            $presetColors = [
-                                                '#6f42c1' => 'Purple',
-                                                '#dc3545' => 'Red',
-                                                '#fd7e14' => 'Orange',
-                                                '#ffc107' => 'Yellow',
-                                                '#198754' => 'Green',
-                                                '#20c997' => 'Teal',
-                                                '#0dcaf0' => 'Cyan',
-                                                '#0d6efd' => 'Blue',
-                                                '#6610f2' => 'Indigo',
-                                                '#d63384' => 'Pink'
-                                            ];
-                                        @endphp
-                                        @foreach($presetColors as $colorValue => $colorName)
-                                            <button type="button" class="btn p-2 border"
-                                                    style="background-color: {{ $colorValue }}"
-                                                    title="{{ $colorName }}"
-                                                    onclick="selectColor('{{ $colorValue }}')">
-                                                <span class="d-block" style="width: 20px; height: 20px;"></span>
-                                            </button>
-                                        @endforeach
-                                    </div>
-                                </div>
-
-                                <!-- Description -->
-                                <div class="mb-4">
-                                    <label for="description" class="form-label text-white">Description</label>
-                                    <textarea class="form-control @error('description') is-invalid @enderror"
-                                              id="description" name="description" rows="3"
-                                              placeholder="Optional description for this tag...">{{ old('description') }}</textarea>
-                                    @error('description')
-                                        <div class="invalid-feedback">{{ $message }}</div>
-                                    @enderror
-                                </div>
-
-                                <div class="d-flex justify-content-end gap-2">
-                                    <a href="{{ route('tags.index') }}" class="btn btn-outline-secondary">Cancel</a>
-                                    <button type="submit" class="btn btn-primary">
-                                        <i class="bi bi-plus-circle me-2"></i>Create Tag
-                                    </button>
-                                </div>
-                            </form>
-                        </div>
+                    <div class="mb-3">
+                        <label for="name" class="form-label">Tag Name <span style="color:#ef4444;">*</span></label>
+                        <input type="text" class="form-control @error('name') is-invalid @enderror"
+                               id="name" name="name" value="{{ old('name') }}" required
+                               placeholder="e.g. VIP Customers, Newsletter">
+                        @error('name')<div class="invalid-feedback">{{ $message }}</div>@enderror
                     </div>
-                </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Tag Color <span style="color:#ef4444;">*</span></label>
+                        <div class="d-flex align-items-center gap-3 mb-2">
+                            <input type="color" class="form-control form-control-color @error('color') is-invalid @enderror"
+                                   id="color" name="color" value="{{ old('color', '#0f172a') }}" required
+                                   style="width:48px;height:38px;padding:2px;border:1px solid #e2e8f0;border-radius:8px;cursor:pointer;">
+                            <span id="colorPreview" class="badge" style="background-color:{{ old('color', '#0f172a') }};color:#fff;font-size:13px;padding:6px 14px;">Preview Tag</span>
+                        </div>
+
+                        <div class="d-flex flex-wrap gap-2">
+                            @php
+                                $presetColors = ['#0f172a','#475569','#dc2626','#ea580c','#ca8a04','#16a34a','#0d9488','#2563eb','#7c3aed','#db2777'];
+                            @endphp
+                            @foreach($presetColors as $c)
+                                <button type="button" class="color-swatch" style="width:28px;height:28px;background:{{ $c }};border:2px solid transparent;border-radius:6px;cursor:pointer;padding:0;" onclick="selectColor('{{ $c }}')" title="{{ $c }}"></button>
+                            @endforeach
+                        </div>
+                        @error('color')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="description" class="form-label">Description</label>
+                        <textarea class="form-control @error('description') is-invalid @enderror"
+                                  id="description" name="description" rows="3"
+                                  placeholder="Optional description...">{{ old('description') }}</textarea>
+                        @error('description')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                    </div>
+
+                    <div class="d-flex justify-content-end gap-2">
+                        <a href="{{ route('tags.index') }}" class="btn btn-outline-primary">Cancel</a>
+                        <button type="submit" class="btn btn-primary">Create Tag</button>
+                    </div>
+                </form>
             </div>
         </div>
     </div>
@@ -117,71 +74,23 @@
 
 @push('styles')
 <style>
-    .form-control, .form-select {
-        background-color: rgba(255, 255, 255, 0.1);
-        border-color: rgba(255, 255, 255, 0.2);
-        color: white;
-    }
-
-    .form-control:focus, .form-select:focus {
-        background-color: rgba(255, 255, 255, 0.15);
-        border-color: #6f42c1;
-        color: white;
-        box-shadow: 0 0 0 0.2rem rgba(111, 66, 193, 0.25);
-    }
-
-    .form-control::placeholder {
-        color: rgba(255, 255, 255, 0.6);
-    }
-
-    .form-control-color {
-        width: 60px;
-        height: 40px;
-        border-radius: 0.375rem;
-    }
-
-    .badge {
-        font-size: 0.875rem;
-        padding: 0.5rem 1rem;
-    }
-
-    .btn[style*="background-color"] {
-        transition: transform 0.2s ease;
-    }
-
-    .btn[style*="background-color"]:hover {
-        transform: scale(1.1);
-    }
+.color-swatch:hover { border-color: #0f172a !important; transform: scale(1.15); }
+.color-swatch:focus { outline: 2px solid #0f172a; outline-offset: 1px; }
 </style>
 @endpush
 
 @push('scripts')
 <script>
-document.addEventListener('DOMContentLoaded', function() {
-    const colorInput = document.getElementById('color');
-    const colorPreview = document.getElementById('colorPreview');
-    const nameInput = document.getElementById('name');
-
-    // Update preview when color changes
-    colorInput.addEventListener('input', function() {
-        updatePreview();
-    });
-
-    // Update preview when name changes
-    nameInput.addEventListener('input', function() {
-        updatePreview();
-    });
-
-    function updatePreview() {
-        const color = colorInput.value;
-        const name = nameInput.value || 'Preview Tag';
-        colorPreview.style.backgroundColor = color;
-        colorPreview.textContent = name;
-    }
+document.getElementById('color').addEventListener('input', function() {
+    var p = document.getElementById('colorPreview');
+    p.style.backgroundColor = this.value;
+    p.textContent = document.getElementById('name').value || 'Preview Tag';
 });
-
-function selectColor(color) {
-    document.getElementById('color').value = color;
+document.getElementById('name').addEventListener('input', function() {
+    document.getElementById('colorPreview').textContent = this.value || 'Preview Tag';
+});
+function selectColor(c) {
+    document.getElementById('color').value = c;
     document.getElementById('color').dispatchEvent(new Event('input'));
 }
 </script>

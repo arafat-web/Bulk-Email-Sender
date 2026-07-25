@@ -1,374 +1,186 @@
 @extends('layouts.app')
 
-@section('title', 'Edit Template - BES')
+@section('title', 'Edit Template - BulkMailer')
 
 @section('breadcrumb')
     <li class="breadcrumb-item"><a href="{{ route('home') }}">Dashboard</a></li>
-    <li class="breadcrumb-item"><a href="{{ route('email-templates.index') }}">Saved Templates</a></li>
-    <li class="breadcrumb-item active">Edit Template</li>
+    <li class="breadcrumb-item"><a href="{{ route('email-templates.index') }}">Templates</a></li>
+    <li class="breadcrumb-item active">Edit</li>
 @endsection
 
 @section('content')
-<div class="page-header">
-    <div class="d-flex justify-content-between align-items-center">
-        <div>
-            <h1 class="page-title">
-                <i class="bi bi-pencil-square text-warning me-2"></i>Edit Email Template
-            </h1>
-            <p class="page-subtitle">Modify your email template and keep it up to date.</p>
-        </div>
-        <div class="d-flex gap-2">
-            <a href="{{ route('email-templates.show', $template) }}" class="btn btn-outline-info">
-                <i class="bi bi-eye me-2"></i>View Template
-            </a>
-            <a href="{{ route('email-templates.index') }}" class="btn btn-outline-secondary">
-                <i class="bi bi-arrow-left me-2"></i>Back to Templates
-            </a>
-        </div>
+<div class="d-flex flex-wrap justify-content-between align-items-center mb-4" style="gap:12px;">
+    <div>
+        <h1 style="font-size:20px;font-weight:600;margin:0;letter-spacing:-0.3px;">Edit: {{ $template->name }}</h1>
+        <p style="font-size:13px;color:#64748b;margin:2px 0 0;">Used {{ $template->usage_count }} times &middot; Last updated {{ $template->updated_at->diffForHumans() }}</p>
     </div>
+    <a href="{{ route('email-templates.index') }}" class="btn btn-outline-primary btn-sm">Back to Templates</a>
 </div>
 
-<!-- Success Message -->
-@if(session('success'))
-    <div class="alert alert-success alert-dismissible fade show" role="alert">
-        <i class="bi bi-check-circle me-2"></i>
-        {{ session('success') }}
-        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-    </div>
-@endif
-
-<!-- Error Messages -->
 @if ($errors->any())
-    <div class="alert alert-danger mb-4">
-        <div class="d-flex align-items-center mb-2">
-            <i class="bi bi-exclamation-triangle fs-4 me-3"></i>
-            <strong>Please fix the following errors:</strong>
-        </div>
-        <ul class="mb-0 ms-4">
-            @foreach ($errors->all() as $error)
-                <li>{{ $error }}</li>
-            @endforeach
+    <div class="alert alert-danger">
+        <strong>Please fix the following errors:</strong>
+        <ul class="mb-0 mt-1 ps-3">
+            @foreach ($errors->all() as $error)<li>{{ $error }}</li>@endforeach
         </ul>
     </div>
 @endif
 
-<div class="row">
-    <div class="col-lg-8">
+<div class="row g-3">
+    <div class="col-12 col-lg-8">
         <div class="card">
-            <div class="card-header d-flex justify-content-between align-items-center">
-                <h5 class="card-title mb-0">
-                    <i class="bi bi-file-earmark-text me-2"></i>Template Details
-                </h5>
-                <div class="d-flex gap-2">
-                    {!! $template->getStatusBadge() !!}
-                    <small class="text-muted">
-                        <i class="bi bi-clock me-1"></i>
-                        Last updated {{ $template->updated_at->diffForHumans() }}
-                    </small>
-                </div>
-            </div>
+            <div class="card-header"><h5 class="card-title">Template Content</h5></div>
             <div class="card-body">
                 <form action="{{ route('email-templates.update', $template) }}" method="POST" id="templateForm">
-                    @csrf
-                    @method('PUT')
-
-                    <!-- Template Name -->
-                    <div class="mb-4">
-                        <label for="name" class="form-label">
-                            <i class="bi bi-tag me-2"></i>Template Name
-                            <span class="text-danger">*</span>
-                        </label>
-                        <input type="text" class="form-control @error('name') is-invalid @enderror"
-                               id="name" name="name" value="{{ old('name', $template->name) }}"
-                               placeholder="Enter template name" required>
-                        @error('name')
-                            <div class="invalid-feedback">{{ $message }}</div>
-                        @enderror
-                        <div class="form-text">
-                            <i class="bi bi-info-circle me-1"></i>
-                            Choose a descriptive name for easy identification.
+                    @csrf @method('PUT')
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-6">
+                            <label for="name" class="form-label">Template Name <span style="color:#ef4444;">*</span></label>
+                            <input type="text" class="form-control @error('name') is-invalid @enderror" id="name" name="name" value="{{ old('name', $template->name) }}" required>
+                            @error('name')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                        </div>
+                        <div class="col-md-6">
+                            <label for="subject" class="form-label">Email Subject <span style="color:#ef4444;">*</span></label>
+                            <input type="text" class="form-control @error('subject') is-invalid @enderror" id="subject" name="subject" value="{{ old('subject', $template->subject) }}" required>
+                            @error('subject')<div class="invalid-feedback">{{ $message }}</div>@enderror
                         </div>
                     </div>
 
-                    <!-- Template Description -->
-                    <div class="mb-4">
-                        <label for="description" class="form-label">
-                            <i class="bi bi-card-text me-2"></i>Description
-                        </label>
-                        <textarea class="form-control @error('description') is-invalid @enderror"
-                                  id="description" name="description" rows="3"
-                                  placeholder="Brief description of this template (optional)">{{ old('description', $template->description) }}</textarea>
-                        @error('description')
-                            <div class="invalid-feedback">{{ $message }}</div>
-                        @enderror
+                    <div class="mb-3">
+                        <label for="description" class="form-label">Description</label>
+                        <input type="text" class="form-control" id="description" name="description" value="{{ old('description', $template->description) }}" placeholder="Brief description">
                     </div>
 
-                    <!-- Email Subject -->
-                    <div class="mb-4">
-                        <label for="subject" class="form-label">
-                            <i class="bi bi-type me-2"></i>Email Subject
-                            <span class="text-danger">*</span>
-                        </label>
-                        <input type="text" class="form-control @error('subject') is-invalid @enderror"
-                               id="subject" name="subject" value="{{ old('subject', $template->subject) }}"
-                               placeholder="Enter email subject line" required>
-                        @error('subject')
-                            <div class="invalid-feedback">{{ $message }}</div>
-                        @enderror
-                    </div>
-
-                    <!-- Email Body -->
-                    <div class="mb-4">
-                        <label for="body" class="form-label">
-                            <i class="bi bi-card-text me-2"></i>Email Content
-                            <span class="text-danger">*</span>
-                        </label>
-                        <textarea id="body" name="body" class="form-control @error('body') is-invalid @enderror"
-                                  rows="12" placeholder="Compose your email content here..." required>{{ old('body', $template->body) }}</textarea>
-                        @error('body')
-                            <div class="invalid-feedback">{{ $message }}</div>
-                        @enderror
-                        <div class="form-text">
-                            <i class="bi bi-palette me-1"></i>
-                            Use the rich text editor to format your email with colors, fonts, and styling.
+                    <div class="mb-3">
+                        <div class="btn-group" role="group">
+                            <input type="radio" class="btn-check" name="editorMode" id="visualMode" checked autocomplete="off">
+                            <label class="btn btn-outline-primary" for="visualMode"><i class="bi bi-palette me-1"></i>Visual Designer</label>
+                            <input type="radio" class="btn-check" name="editorMode" id="codeMode" autocomplete="off">
+                            <label class="btn btn-outline-primary" for="codeMode"><i class="bi bi-code-slash me-1"></i>HTML Code</label>
                         </div>
                     </div>
 
-                    <!-- Template Status -->
-                    <div class="mb-4">
+                    <div class="mb-3" id="visualEditorContainer">
+                        <label class="form-label">Email Body <span style="color:#ef4444;">*</span></label>
+                        <div id="gjs"></div>
+                        <textarea id="body" name="body" class="form-control d-none" required>{{ old('body', $template->body) }}</textarea>
+                        @error('body')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
+                    </div>
+
+                    <div class="mb-3 d-none" id="codeEditorContainer">
+                        <label for="bodyCode" class="form-label">HTML Code <span style="color:#ef4444;">*</span></label>
+                        <textarea id="bodyCode" class="form-control font-monospace @error('body') is-invalid @enderror" rows="18" style="font-size:13px;">{{ old('body', $template->body) }}</textarea>
+                    </div>
+
+                    <div class="mb-3">
                         <div class="form-check">
-                            <input class="form-check-input" type="checkbox" id="is_active" name="is_active"
-                                   {{ old('is_active', $template->is_active) ? 'checked' : '' }}>
-                            <label class="form-check-label" for="is_active">
-                                <i class="bi bi-check-circle me-2"></i>Active Template
-                            </label>
-                        </div>
-                        <div class="form-text">
-                            <i class="bi bi-info-circle me-1"></i>
-                            Active templates can be used in campaigns. Inactive templates are hidden.
+                            <input class="form-check-input" type="checkbox" id="is_active" name="is_active" {{ old('is_active', $template->is_active) ? 'checked' : '' }}>
+                            <label class="form-check-label" for="is_active" style="font-size:13px;">Active (available for campaigns)</label>
                         </div>
                     </div>
 
-                    <!-- Submit Buttons -->
-                    <div class="d-flex justify-content-end gap-3">
-                        <a href="{{ route('email-templates.show', $template) }}" class="btn btn-outline-secondary">
-                            <i class="bi bi-x-circle me-2"></i>Cancel
-                        </a>
-                        <button type="submit" class="btn btn-warning btn-lg">
-                            <i class="bi bi-save me-2"></i>Update Template
-                        </button>
+                    <div class="d-flex justify-content-end gap-2">
+                        <a href="{{ route('email-templates.index') }}" class="btn btn-outline-primary">Cancel</a>
+                        <button type="submit" class="btn btn-primary">Update Template</button>
                     </div>
                 </form>
             </div>
         </div>
     </div>
-
-    <div class="col-lg-4">
-        <!-- Template Stats -->
-        <div class="card mb-4">
-            <div class="card-header">
-                <h6 class="card-title mb-0">
-                    <i class="bi bi-graph-up me-2"></i>Template Statistics
-                </h6>
-            </div>
-            <div class="card-body">
-                <div class="row g-3">
-                    <div class="col-6">
-                        <div class="text-center">
-                            <div class="fs-4 fw-bold text-primary">{{ $template->usage_count }}</div>
-                            <small class="text-muted">Times Used</small>
-                        </div>
-                    </div>
-                    <div class="col-6">
-                        <div class="text-center">
-                            <div class="fs-6 fw-bold text-info">
-                                {{ $template->last_used_at ? $template->last_used_at->format('M d, Y') : 'Never' }}
-                            </div>
-                            <small class="text-muted">Last Used</small>
-                        </div>
-                    </div>
-                </div>
-                <hr>
-                <div class="text-center">
-                    <small class="text-muted">
-                        <i class="bi bi-calendar me-1"></i>
-                        Created {{ $template->created_at->diffForHumans() }}
-                    </small>
-                </div>
-            </div>
-        </div>
-
-        <!-- Template Actions -->
-        <div class="card mb-4">
-            <div class="card-header">
-                <h6 class="card-title mb-0">
-                    <i class="bi bi-tools me-2"></i>Quick Actions
-                </h6>
-            </div>
-            <div class="card-body">
-                <div class="d-grid gap-2">
-                    <a href="{{ route('email-templates.show', $template) }}" class="btn btn-outline-info btn-sm">
-                        <i class="bi bi-eye me-2"></i>Preview Template
-                    </a>
-                    <form action="{{ route('email-templates.duplicate', $template) }}" method="POST" class="d-inline">
-                        @csrf
-                        <button type="submit" class="btn btn-outline-secondary btn-sm w-100">
-                            <i class="bi bi-files me-2"></i>Duplicate Template
-                        </button>
-                    </form>
-                    <form action="{{ route('email-templates.toggle-active', $template) }}" method="POST" class="d-inline">
-                        @csrf
-                        <button type="submit" class="btn btn-outline-{{ $template->is_active ? 'warning' : 'success' }} btn-sm w-100">
-                            <i class="bi bi-{{ $template->is_active ? 'pause' : 'play' }}-circle me-2"></i>
-                            {{ $template->is_active ? 'Deactivate' : 'Activate' }}
-                        </button>
-                    </form>
-                </div>
-            </div>
-        </div>
-
-        <!-- Preview Card -->
-        <div class="card">
-            <div class="card-header">
-                <h6 class="card-title mb-0">
-                    <i class="bi bi-eye me-2"></i>Live Preview
-                </h6>
-            </div>
-            <div class="card-body">
-                <div class="email-preview">
-                    <div class="mb-2">
-                        <strong>Subject:</strong>
-                        <div id="preview-subject" class="text-muted">{{ $template->subject }}</div>
-                    </div>
-                    <div>
-                        <strong>Content:</strong>
-                        <div id="preview-body" class="text-muted mt-2" style="max-height: 200px; overflow-y: auto;">
-                            {!! $template->body !!}
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
 </div>
+@endsection
+
+@push('styles')
+<link href="https://unpkg.com/grapesjs/dist/css/grapes.min.css" rel="stylesheet">
+<link href="https://unpkg.com/grapesjs-preset-newsletter/dist/grapesjs-preset-newsletter.min.css" rel="stylesheet">
+<style>
+    .gjs-one-bg { background-color: #0f172a; }
+    .gjs-two-color { color: rgba(255,255,255,0.7); }
+    .gjs-three-bg { background-color: #1e293b; color: #fff; }
+    .gjs-four-color, .gjs-four-color-h:hover { color: #94a3b8; }
+    #gjs { border: 1px solid #e2e8f0; border-radius: 8px; overflow: hidden; }
+</style>
+@endpush
 
 @push('scripts')
+<script src="https://unpkg.com/grapesjs"></script>
+<script src="https://unpkg.com/grapesjs-preset-newsletter"></script>
 <script>
 $(document).ready(function() {
-    // Initialize TinyMCE editor (only if CDN loaded successfully)
-    if (typeof tinymce !== 'undefined') {
-        tinymce.init({
-            selector: '#body',
-            plugins: 'advlist autolink lists link image charmap preview anchor searchreplace visualblocks code fullscreen insertdatetime media table help wordcount template emoticons',
-            toolbar: 'undo redo | blocks fontfamily fontsize | bold italic underline strikethrough | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent | forecolor backcolor | link image media table | emoticons template | removeformat code fullscreen | help',
-            menubar: false,
-            branding: false,
-            height: 350,
-            content_style: 'body { font-family: Plus Jakarta Sans, sans-serif; font-size: 14px; line-height: 1.6; }',
-            font_family_formats: 'Plus Jakarta Sans=Plus Jakarta Sans, sans-serif; Arial=arial,helvetica,sans-serif; Times New Roman=times new roman,times; Courier New=courier new,courier',
-            fontsize_formats: '8pt 10pt 12pt 14pt 16pt 18pt 24pt 36pt',
-            image_advtab: true,
-            link_context_toolbar: true,
-            setup: function (editor) {
-                editor.on('change', function () {
-                    editor.save();
-                    updatePreview();
-                });
-            }
+    let grapesEditor;
+
+    function initGrapesJS(html) {
+        if (grapesEditor) { let c = cleanHtml(html || ''); grapesEditor.setComponents(c.html); if (c.css) grapesEditor.setStyle(c.css); return; }
+        grapesEditor = grapesjs.init({
+            container: '#gjs',
+            height: '500px',
+            width: 'auto',
+            storageManager: false,
+            plugins: ['grapesjs-preset-newsletter'],
+            pluginsOpts: {
+                'grapesjs-preset-newsletter': {
+                    modalLabelImport: 'Paste HTML',
+                    cellStyle: { 'font-size':'14px','font-family':'Inter,Arial,sans-serif','color':'#0f172a' }
+                }
+            },
+            canvas: { styles: ['https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap'] },
         });
+        let c = cleanHtml(html || '');
+        if (c.html) { grapesEditor.setComponents(c.html); if (c.css) grapesEditor.setStyle(c.css); }
+        grapesEditor.on('component:update', sync);
+        grapesEditor.on('style:update', sync);
     }
 
-    // Helper: get email body content (works with or without TinyMCE)
-    function getEmailBody() {
-        if (typeof tinymce !== 'undefined' && tinymce.get('body')) {
-            return tinymce.get('body').getContent();
+    // Strip full HTML doc to body+styles for GrapesJS
+    function cleanHtml(raw) {
+        let h = raw || '', css = '';
+        const sm = h.match(/<style[^>]*>([\s\S]*?)<\/style>/gi);
+        if (sm) { css = sm.map(s => s.replace(/<\/?style[^>]*>/gi, '')).join('\n'); h = h.replace(/<style[^>]*>[\s\S]*?<\/style>/gi, ''); }
+        const bm = h.match(/<body[^>]*>([\s\S]*?)<\/body>/i);
+        if (bm) { h = bm[1].trim(); } else { h = h.replace(/<!DOCTYPE[^>]*>/gi, '').replace(/<html[^>]*>|<\/html>/gi, '').replace(/<head[^>]*>[\s\S]*?<\/head>/gi, ''); }
+        return { html: h.trim(), css: css };
+    }
+
+    function sync() {
+        if (!grapesEditor) return;
+        const h = grapesEditor.getHtml(), c = grapesEditor.getCss();
+        $('#body').val('<style>' + c + '</style>' + h);
+    }
+
+    function getContent() {
+        if (!grapesEditor) return $('#bodyCode').val() || '';
+        return '<style>' + grapesEditor.getCss() + '</style>' + grapesEditor.getHtml();
+    }
+
+    function setContent(html) {
+        let c = cleanHtml(html || '');
+        if (grapesEditor) { grapesEditor.setComponents(c.html); if (c.css) grapesEditor.setStyle(c.css); }
+        $('#bodyCode').val(html);
+        $('#body').val(html);
+    }
+
+    initGrapesJS($('#body').val() || '');
+    sync();
+    setInterval(sync, 2000);
+
+    $('input[name="editorMode"]').on('change', function() {
+        if ($('#codeMode').is(':checked')) {
+            $('#bodyCode').val(getContent());
+            $('#visualEditorContainer').addClass('d-none');
+            $('#codeEditorContainer').removeClass('d-none');
+        } else {
+            setContent($('#bodyCode').val());
+            $('#codeEditorContainer').addClass('d-none');
+            $('#visualEditorContainer').removeClass('d-none');
         }
-        return $('#body').val() || '';
-    }
-
-    // Live preview
-    function updatePreview() {
-        const subject = $('#subject').val() || 'Your subject will appear here';
-        const body = getEmailBody() || 'Your email content will appear here';
-
-        $('#preview-subject').text(subject);
-        $('#preview-body').html(body);
-    }
-
-    $('#subject').on('input keyup', updatePreview);
-
-    // Form validation
-    $('#templateForm').on('submit', function(e) {
-        const name = $('#name').val().trim();
-        const subject = $('#subject').val().trim();
-        const body = getEmailBody().trim();
-
-        if (!name || !subject || !body) {
-            e.preventDefault();
-            Swal.fire({
-                icon: 'error',
-                title: 'Required Fields Missing',
-                text: 'Please fill in all required fields (Name, Subject, and Content).',
-                confirmButtonColor: '#6366f1'
-            });
-            return false;
-        }
-
-        // Show loading
-        Swal.fire({
-            title: 'Updating Template...',
-            text: 'Please wait while we save your changes.',
-            allowOutsideClick: false,
-            didOpen: () => {
-                Swal.showLoading();
-            }
-        });
     });
 
-    // Duplicate template confirmation
-    $('form[action*="duplicate"]').on('submit', function(e) {
-        e.preventDefault();
-        const form = this;
+    $('#bodyCode').on('input', function() { $('#body').val($(this).val()); });
 
-        Swal.fire({
-            title: 'Duplicate Template?',
-            text: 'This will create a copy of this template with "(Copy)" added to the name.',
-            icon: 'question',
-            showCancelButton: true,
-            confirmButtonColor: '#6366f1',
-            cancelButtonColor: '#6b7280',
-            confirmButtonText: 'Yes, duplicate it!'
-        }).then((result) => {
-            if (result.isConfirmed) {
-                form.submit();
-            }
-        });
-    });
-
-    // Toggle template status confirmation
-    $('form[action*="toggle"]').on('submit', function(e) {
-        e.preventDefault();
-        const form = this;
-        const isActive = {{ $template->is_active ? 'true' : 'false' }};
-        const action = isActive ? 'deactivate' : 'activate';
-
-        Swal.fire({
-            title: `${action.charAt(0).toUpperCase() + action.slice(1)} Template?`,
-            text: isActive ?
-                'This template will be hidden from campaign selections.' :
-                'This template will be available for use in campaigns.',
-            icon: 'question',
-            showCancelButton: true,
-            confirmButtonColor: '#6366f1',
-            cancelButtonColor: '#6b7280',
-            confirmButtonText: `Yes, ${action} it!`
-        }).then((result) => {
-            if (result.isConfirmed) {
-                form.submit();
-            }
-        });
+    $('#templateForm').on('submit', function() {
+        if ($('#visualMode').is(':checked')) $('#body').val(getContent());
+        else $('#body').val($('#bodyCode').val());
     });
 });
 </script>
 @endpush
-@endsection

@@ -1,185 +1,54 @@
 @extends('layouts.app')
 
-@section('title', 'Email Templates - BES')
+@section('title', 'Email Templates - BulkMailer')
 
 @section('breadcrumb')
     <li class="breadcrumb-item"><a href="{{ route('home') }}">Dashboard</a></li>
-    <li class="breadcrumb-item">Email Marketing</li>
-    <li class="breadcrumb-item active">Saved Templates</li>
+    <li class="breadcrumb-item active">Email Templates</li>
 @endsection
 
 @section('content')
-<div class="page-header">
-    <div class="d-flex justify-content-between align-items-center">
-        <div>
-            <h1 class="page-title">
-                <i class="bi bi-bookmark text-info me-2"></i>Saved Email Templates
-            </h1>
-            <p class="page-subtitle">Create, manage and reuse your email templates for instant campaigns.</p>
-        </div>
-        <div class="d-flex gap-2">
-            <a href="{{ route('email-templates.create') }}" class="btn btn-primary">
-                <i class="bi bi-plus-circle me-2"></i>Create Template
-            </a>
-        </div>
+<div class="d-flex flex-wrap justify-content-between align-items-center mb-4" style="gap:12px;">
+    <div>
+        <h1 style="font-size:20px;font-weight:600;margin:0;letter-spacing:-0.3px;">Email Templates</h1>
+        <p style="font-size:13px;color:#64748b;margin:2px 0 0;">{{ $stats['total'] }} templates &middot; {{ $stats['active'] }} active &middot; {{ number_format($stats['total_usage']) }} uses</p>
     </div>
+    <a href="{{ route('email-templates.create') }}" class="btn btn-primary btn-sm">Create Template</a>
 </div>
 
-<!-- Success/Error Messages -->
 @if (session('success'))
-    <div class="alert alert-success d-flex align-items-center mb-4" role="alert">
-        <i class="bi bi-check-circle fs-4 me-3"></i>
-        <div>{{ session('success') }}</div>
-        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-    </div>
+    <div class="alert alert-success alert-dismissible fade show"><i class="bi bi-check-circle me-2"></i>{{ session('success') }}<button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>
 @endif
-
 @if (session('error'))
-    <div class="alert alert-danger d-flex align-items-center mb-4" role="alert">
-        <i class="bi bi-exclamation-triangle fs-4 me-3"></i>
-        <div>{{ session('error') }}</div>
-        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-    </div>
+    <div class="alert alert-danger alert-dismissible fade show"><i class="bi bi-exclamation-triangle me-2"></i>{{ session('error') }}<button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>
 @endif
 
-<!-- Stats Cards -->
-<div class="row mb-4">
-    <div class="col-md-4">
-        <div class="card bg-primary text-white">
-            <div class="card-body">
-                <div class="d-flex align-items-center">
-                    <div class="flex-shrink-0">
-                        <i class="bi bi-bookmark fs-2"></i>
-                    </div>
-                    <div class="flex-grow-1 ms-3">
-                        <div class="fs-4 fw-bold">{{ $stats['total'] }}</div>
-                        <div class="small">Total Templates</div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-    <div class="col-md-4">
-        <div class="card bg-success text-white">
-            <div class="card-body">
-                <div class="d-flex align-items-center">
-                    <div class="flex-shrink-0">
-                        <i class="bi bi-check-circle fs-2"></i>
-                    </div>
-                    <div class="flex-grow-1 ms-3">
-                        <div class="fs-4 fw-bold">{{ $stats['active'] }}</div>
-                        <div class="small">Active Templates</div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-    <div class="col-md-4">
-        <div class="card bg-info text-white">
-            <div class="card-body">
-                <div class="d-flex align-items-center">
-                    <div class="flex-shrink-0">
-                        <i class="bi bi-graph-up fs-2"></i>
-                    </div>
-                    <div class="flex-grow-1 ms-3">
-                        <div class="fs-4 fw-bold">{{ number_format($stats['total_usage']) }}</div>
-                        <div class="small">Total Usage</div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- Templates Grid -->
-<div class="row">
+<div class="row g-3">
     @forelse($templates as $template)
-    <div class="col-lg-6 col-xl-4 mb-4">
-        <div class="card h-100">
-            <div class="card-header d-flex justify-content-between align-items-center">
-                <h6 class="card-title mb-0">
-                    <i class="bi bi-file-earmark-text me-2"></i>{{ $template->name }}
-                </h6>
-                <div class="d-flex gap-1">
-                    {!! $template->status_badge !!}
+    <div class="col-lg-6 col-xl-4">
+        <div class="card">
+            <div class="card-body" style="padding:20px;">
+                <div class="d-flex justify-content-between align-items-start mb-3">
+                    <h6 style="font-size:14px;font-weight:600;color:#0f172a;margin:0;">{{ $template->name }}</h6>
+                    <span class="badge {{ $template->is_active ? 'bg-success' : 'bg-secondary' }}" style="font-size:10px;">{{ $template->is_active ? 'Active' : 'Inactive' }}</span>
                 </div>
-            </div>
-            <div class="card-body">
-                <div class="mb-3">
-                    <div class="text-muted small mb-1">
-                        <i class="bi bi-type me-1"></i>Subject
-                    </div>
-                    <div class="fw-medium">{{ \Str::limit($template->subject, 50) }}</div>
-                </div>
-
-                <div class="mb-3">
-                    <div class="text-muted small mb-1">
-                        <i class="bi bi-card-text me-1"></i>Content Preview
-                    </div>
-                    <div class="small text-muted">{{ $template->body_preview }}</div>
-                </div>
-
-                @if($template->description)
-                <div class="mb-3">
-                    <div class="text-muted small mb-1">
-                        <i class="bi bi-info-circle me-1"></i>Description
-                    </div>
-                    <div class="small">{{ $template->short_description }}</div>
-                </div>
-                @endif
-
-                <div class="row text-center">
-                    <div class="col-6">
-                        <div class="border-end">
-                            <div class="fw-bold text-primary">{{ number_format($template->usage_count) }}</div>
-                            <small class="text-muted">Times Used</small>
-                        </div>
-                    </div>
-                    <div class="col-6">
-                        <div class="fw-bold text-info">
-                            {{ $template->last_used_at ? $template->last_used_at->diffForHumans() : 'Never' }}
-                        </div>
-                        <small class="text-muted">Last Used</small>
-                    </div>
-                </div>
-            </div>
-            <div class="card-footer bg-transparent">
+                <div style="font-size:12px;color:#64748b;margin-bottom:2px;">Subject</div>
+                <div style="font-size:13px;color:#0f172a;margin-bottom:12px;">{{ Str::limit($template->subject, 55) }}</div>
+                <div style="font-size:12px;color:#94a3b8;line-height:1.5;margin-bottom:14px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;">{{ $template->body_preview }}</div>
                 <div class="d-flex gap-2 flex-wrap">
-                    <a href="{{ route('email-templates.show', $template) }}"
-                       class="btn btn-sm btn-outline-info" title="View Template">
-                        <i class="bi bi-eye me-1"></i>View
-                    </a>
-
-                    <a href="{{ route('email-templates.edit', $template) }}"
-                       class="btn btn-sm btn-outline-secondary" title="Edit Template">
-                        <i class="bi bi-pencil me-1"></i>Edit
-                    </a>
-
+                    <a href="{{ route('email-templates.show', $template) }}" class="btn btn-sm btn-outline-primary">View</a>
+                    <a href="{{ route('email-templates.edit', $template) }}" class="btn btn-sm btn-outline-primary">Edit</a>
                     <form action="{{ route('email-templates.duplicate', $template) }}" method="POST" class="d-inline">
                         @csrf
-                        <button type="submit" class="btn btn-sm btn-outline-primary" title="Duplicate Template">
-                            <i class="bi bi-files me-1"></i>Copy
-                        </button>
+                        <button class="btn btn-sm btn-outline-primary">Copy</button>
                     </form>
-
                     <form action="{{ route('email-templates.toggle-active', $template) }}" method="POST" class="d-inline">
                         @csrf
-                        <button type="submit"
-                                class="btn btn-sm btn-outline-{{ $template->is_active ? 'warning' : 'success' }}"
-                                title="{{ $template->is_active ? 'Deactivate' : 'Activate' }} Template">
-                            <i class="bi bi-{{ $template->is_active ? 'toggle-off' : 'toggle-on' }} me-1"></i>
-                            {{ $template->is_active ? 'Disable' : 'Enable' }}
-                        </button>
+                        <button class="btn btn-sm btn-outline-primary">{{ $template->is_active ? 'Disable' : 'Enable' }}</button>
                     </form>
-
                     <form action="{{ route('email-templates.destroy', $template) }}" method="POST" class="d-inline">
-                        @csrf
-                        @method('DELETE')
-                        <button type="submit" class="btn btn-sm btn-outline-danger"
-                                onclick="return confirm('Are you sure you want to delete this template? This action cannot be undone.')"
-                                title="Delete Template">
-                            <i class="bi bi-trash me-1"></i>Delete
-                        </button>
+                        @csrf @method('DELETE')
+                        <button class="btn btn-sm btn-outline-danger" onclick="return confirm('Delete this template?')">Delete</button>
                     </form>
                 </div>
             </div>
@@ -189,30 +58,11 @@
     <div class="col-12">
         <div class="card">
             <div class="card-body text-center py-5">
-                <div class="bg-light rounded-circle mx-auto mb-4" style="width: 100px; height: 100px; display: flex; align-items: center; justify-content: center;">
-                    <i class="bi bi-bookmark display-3 text-muted"></i>
-                </div>
-                <h5 class="text-muted mb-3">No Email Templates Found</h5>
-                <p class="text-muted mb-4">Create your first email template to get started with professional email campaigns.</p>
-                <a href="{{ route('email-templates.create') }}" class="btn btn-primary btn-lg">
-                    <i class="bi bi-plus-circle me-2"></i>Create Your First Template
-                </a>
+                <p style="font-size:14px;color:#94a3b8;margin-bottom:16px;">No templates yet.</p>
+                <a href="{{ route('email-templates.create') }}" class="btn btn-primary">Create Your First Template</a>
             </div>
         </div>
     </div>
     @endforelse
 </div>
-
-@push('scripts')
-<script>
-$(document).ready(function() {
-    // Animate cards on load
-    $('.card').each(function(index) {
-        $(this).css('opacity', '0').delay(index * 100).animate({
-            opacity: 1
-        }, 500);
-    });
-});
-</script>
-@endpush
 @endsection

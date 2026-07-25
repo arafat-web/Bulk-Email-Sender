@@ -8,115 +8,70 @@
 @endsection
 
 @section('content')
-<div class="container-fluid">
-    <div class="row">
-        <div class="col-12">
-            <div class="d-flex justify-content-between align-items-center mb-4">
-                <div>
-                    <h1 class="h3 mb-0 text-white">Contact Tags</h1>
-                    <p class="text-light mb-0">Organize your contacts with custom tags</p>
-                </div>
-                <a href="{{ route('tags.create') }}" class="btn btn-light">
-                    <i class="bi bi-plus-circle me-2"></i>Create Tag
-                </a>
-            </div>
-
-            <div class="card bg-white/10 backdrop-blur-sm border-0">
-                <div class="card-body">
-                    @if($tags->count() > 0)
-                        <div class="row g-3">
-                            @foreach($tags as $tag)
-                                <div class="col-md-6 col-lg-4">
-                                    <div class="card bg-white/5 border-0 h-100">
-                                        <div class="card-body">
-                                            <div class="d-flex justify-content-between align-items-start mb-3">
-                                                <div class="flex-grow-1">
-                                                    <h5 class="card-title mb-2">
-                                                        <span class="badge fs-6" style="background-color: {{ $tag->color }};">
-                                                            {{ $tag->name }}
-                                                        </span>
-                                                    </h5>
-                                                    @if($tag->description)
-                                                        <p class="card-text text-muted small mb-0">{{ $tag->description }}</p>
-                                                    @endif
-                                                </div>
-                                                <div class="dropdown">
-                                                    <button class="btn btn-sm btn-outline-light dropdown-toggle" type="button" data-bs-toggle="dropdown">
-                                                        <i class="bi bi-three-dots"></i>
-                                                    </button>
-                                                    <ul class="dropdown-menu dropdown-menu-end">
-                                                        <li>
-                                                            <a class="dropdown-item" href="{{ route('tags.edit', $tag) }}">
-                                                                <i class="bi bi-pencil me-2"></i>Edit
-                                                            </a>
-                                                        </li>
-                                                        <li>
-                                                            <a class="dropdown-item" href="{{ route('contacts.index', ['tag' => $tag->id]) }}">
-                                                                <i class="bi bi-people me-2"></i>View Contacts
-                                                            </a>
-                                                        </li>
-                                                        <li><hr class="dropdown-divider"></li>
-                                                        <li>
-                                                            <button class="dropdown-item text-danger" onclick="deleteTag({{ $tag->id }})">
-                                                                <i class="bi bi-trash me-2"></i>Delete
-                                                            </button>
-                                                        </li>
-                                                    </ul>
-                                                </div>
-                                            </div>
-
-                                            <div class="d-flex justify-content-between align-items-center">
-                                                <div class="text-muted small">
-                                                    <i class="bi bi-people me-1"></i>
-                                                    {{ $tag->contacts_count }} contact{{ $tag->contacts_count != 1 ? 's' : '' }}
-                                                </div>
-                                                <div class="text-muted small">
-                                                    Created {{ $tag->created_at->diffForHumans() }}
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            @endforeach
-                        </div>
-                    @else
-                        <div class="text-center py-5">
-                            <i class="bi bi-tags display-1 text-muted"></i>
-                            <h5 class="text-muted mt-3">No tags created yet</h5>
-                            <p class="text-muted">Create tags to organize your email contacts efficiently.</p>
-                            <div class="mt-3">
-                                <a href="{{ route('tags.create') }}" class="btn btn-primary">
-                                    <i class="bi bi-plus-circle me-2"></i>Create Your First Tag
-                                </a>
-                            </div>
-                        </div>
-                    @endif
-                </div>
-            </div>
-        </div>
+<div class="d-flex flex-wrap justify-content-between align-items-center mb-3" style="gap:12px;">
+    <div>
+        <h1 style="font-size:20px;font-weight:600;margin:0;letter-spacing:-0.3px;">Contact Tags</h1>
+        <p style="font-size:13px;color:#64748b;margin:2px 0 0;">{{ $tags->count() }} tags</p>
     </div>
+    <a href="{{ route('tags.create') }}" class="btn btn-primary btn-sm">Create Tag</a>
 </div>
 
-<!-- Delete Tag Modal -->
-<div class="modal fade" id="deleteTagModal" tabindex="-1">
-    <div class="modal-dialog">
-        <div class="modal-content bg-dark">
-            <div class="modal-header border-secondary">
-                <h5 class="modal-title text-white">Delete Tag</h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-            </div>
-            <div class="modal-body text-white">
-                <p>Are you sure you want to delete this tag?</p>
-                <div class="alert alert-warning">
-                    <i class="bi bi-exclamation-triangle me-2"></i>
-                    This will remove the tag from all associated contacts. This action cannot be undone.
+<div class="mb-3">
+    <input type="text" id="tagSearch" class="form-control" placeholder="Search tags..." style="max-width:320px;">
+</div>
+
+@if($tags->count() > 0)
+    <div class="row g-3" id="tagsGrid">
+        @foreach($tags as $tag)
+            <div class="col-md-6 col-lg-4" data-tag-name="{{ strtolower($tag->name) }}">
+                <div class="card">
+                    <div class="card-body" style="padding:20px;">
+                        <div class="d-flex justify-content-between align-items-start mb-3">
+                            <span class="badge" style="background-color:{{ $tag->color }};color:#fff;font-size:13px;padding:6px 12px;">{{ $tag->name }}</span>
+                            <div class="d-flex gap-1">
+                                <a href="{{ route('tags.edit', $tag) }}" class="btn btn-sm btn-outline-primary" title="Edit"><i class="bi bi-pencil"></i></a>
+                                <button class="btn btn-sm btn-outline-danger" title="Delete" onclick="deleteTag({{ $tag->id }})"><i class="bi bi-trash"></i></button>
+                            </div>
+                        </div>
+                        @if($tag->description)
+                            <p style="font-size:13px;color:#64748b;margin-bottom:12px;">{{ $tag->description }}</p>
+                        @endif
+                        <div class="d-flex justify-content-between" style="font-size:12px;color:#94a3b8;">
+                            <span>{{ $tag->contacts_count }} contact{{ $tag->contacts_count != 1 ? 's' : '' }}</span>
+                            <span>{{ $tag->created_at->diffForHumans() }}</span>
+                        </div>
+                    </div>
                 </div>
             </div>
-            <div class="modal-footer border-secondary">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                <form id="deleteTagForm" method="POST" style="display: inline;">
-                    @csrf
-                    @method('DELETE')
+        @endforeach
+    </div>
+@else
+    <div class="card">
+        <div class="card-body text-center py-5">
+            <p style="font-size:14px;color:#94a3b8;margin-bottom:16px;">No tags yet.</p>
+            <a href="{{ route('tags.create') }}" class="btn btn-primary btn-sm">Create Your First Tag</a>
+        </div>
+    </div>
+@endif
+
+<!-- Delete Modal -->
+<div class="modal fade" id="deleteTagModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Delete Tag</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure you want to delete this tag?</p>
+                <div class="alert alert-warning" style="font-size:13px;">
+                    This will remove the tag from all associated contacts. This cannot be undone.
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline-primary" data-bs-dismiss="modal">Cancel</button>
+                <form id="deleteTagForm" method="POST" style="display:inline;">
+                    @csrf @method('DELETE')
                     <button type="submit" class="btn btn-danger">Delete Tag</button>
                 </form>
             </div>
@@ -125,33 +80,21 @@
 </div>
 @endsection
 
-@push('styles')
-<style>
-    .card {
-        transition: transform 0.2s ease-in-out;
-    }
-
-    .card:hover {
-        transform: translateY(-2px);
-    }
-
-    .badge {
-        font-size: 0.875rem;
-    }
-</style>
-@endpush
-
 @push('scripts')
 <script>
 let deleteTagModalInstance = null;
-
 function deleteTag(tagId) {
-    const form = document.getElementById('deleteTagForm');
-    form.action = `{{ route('tags.index') }}/${tagId}`;
-    if (!deleteTagModalInstance) {
-        deleteTagModalInstance = new bootstrap.Modal(document.getElementById('deleteTagModal'));
-    }
+    document.getElementById('deleteTagForm').action = '{{ route('tags.index') }}/' + tagId;
+    if (!deleteTagModalInstance) deleteTagModalInstance = new bootstrap.Modal(document.getElementById('deleteTagModal'));
     deleteTagModalInstance.show();
 }
+
+// Client-side tag search
+document.getElementById('tagSearch').addEventListener('input', function() {
+    var q = this.value.toLowerCase();
+    document.querySelectorAll('#tagsGrid > [data-tag-name]').forEach(function(el) {
+        el.style.display = el.dataset.tagName.indexOf(q) !== -1 ? '' : 'none';
+    });
+});
 </script>
 @endpush

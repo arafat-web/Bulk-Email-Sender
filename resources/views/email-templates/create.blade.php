@@ -1,323 +1,130 @@
 @extends('layouts.app')
 
-@section('title', 'Create Template - BES')
+@section('title', 'Create Template - BulkMailer')
 
 @section('breadcrumb')
     <li class="breadcrumb-item"><a href="{{ route('home') }}">Dashboard</a></li>
-    <li class="breadcrumb-item"><a href="{{ route('email-templates.index') }}">Saved Templates</a></li>
-    <li class="breadcrumb-item active">Create Template</li>
+    <li class="breadcrumb-item"><a href="{{ route('email-templates.index') }}">Templates</a></li>
+    <li class="breadcrumb-item active">Create</li>
 @endsection
 
 @section('content')
-<div class="page-header">
-    <div class="d-flex justify-content-between align-items-center">
-        <div>
-            <h1 class="page-title">
-                <i class="bi bi-plus-circle text-primary me-2"></i>Create Email Template
-            </h1>
-            <p class="page-subtitle">Create a reusable email template for your marketing campaigns.</p>
-        </div>
-        <div class="d-flex gap-2">
-            <a href="{{ route('email-templates.index') }}" class="btn btn-outline-secondary">
-                <i class="bi bi-arrow-left me-2"></i>Back to Templates
-            </a>
-        </div>
+<div class="d-flex flex-wrap justify-content-between align-items-center mb-4" style="gap:12px;">
+    <div>
+        <h1 style="font-size:20px;font-weight:600;margin:0;letter-spacing:-0.3px;">Create Email Template</h1>
+        <p style="font-size:13px;color:#64748b;margin:2px 0 0;">Design a reusable template for your campaigns.</p>
     </div>
+    <a href="{{ route('email-templates.index') }}" class="btn btn-outline-primary btn-sm">Back to Templates</a>
 </div>
 
-<!-- Error Messages -->
 @if ($errors->any())
-    <div class="alert alert-danger mb-4">
-        <div class="d-flex align-items-center mb-2">
-            <i class="bi bi-exclamation-triangle fs-4 me-3"></i>
-            <strong>Please fix the following errors:</strong>
-        </div>
-        <ul class="mb-0 ms-4">
-            @foreach ($errors->all() as $error)
-                <li>{{ $error }}</li>
-            @endforeach
+    <div class="alert alert-danger">
+        <strong>Please fix the following errors:</strong>
+        <ul class="mb-0 mt-1 ps-3">
+            @foreach ($errors->all() as $error)<li>{{ $error }}</li>@endforeach
         </ul>
     </div>
 @endif
 
-<div class="row">
-    <div class="col-12">
+<div class="row g-3">
+    <div class="col-12 col-lg-8">
         <div class="card">
-            <div class="card-header">
-                <div class="d-flex justify-content-between align-items-center">
-                    <h5 class="card-title mb-0">
-                        <i class="bi bi-file-earmark-plus me-2"></i>Template Details
-                    </h5>
-                    <button type="button" class="btn btn-outline-primary btn-sm" data-bs-toggle="modal" data-bs-target="#guidelinesModal">
-                        <i class="bi bi-lightbulb me-1"></i>View Guidelines
-                    </button>
-                </div>
-            </div>
+            <div class="card-header"><h5 class="card-title">Template Content</h5></div>
             <div class="card-body">
                 <form action="{{ route('email-templates.store') }}" method="POST" id="templateForm">
                     @csrf
-
-                    <!-- Template Name -->
-                    <div class="mb-4">
-                        <label for="name" class="form-label">
-                            <i class="bi bi-tag me-2"></i>Template Name
-                            <span class="text-danger">*</span>
-                        </label>
-                        <input type="text" class="form-control @error('name') is-invalid @enderror"
-                               id="name" name="name" value="{{ old('name') }}"
-                               placeholder="Enter template name" required>
-                        @error('name')
-                            <div class="invalid-feedback">{{ $message }}</div>
-                        @enderror
-                        <div class="form-text">
-                            <i class="bi bi-info-circle me-1"></i>
-                            Choose a descriptive name for easy identification.
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-6">
+                            <label for="name" class="form-label">Template Name <span style="color:#ef4444;">*</span></label>
+                            <input type="text" class="form-control @error('name') is-invalid @enderror" id="name" name="name" value="{{ old('name') }}" placeholder="e.g. Welcome Email" required>
+                            @error('name')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                        </div>
+                        <div class="col-md-6">
+                            <label for="subject" class="form-label">Email Subject <span style="color:#ef4444;">*</span></label>
+                            <input type="text" class="form-control @error('subject') is-invalid @enderror" id="subject" name="subject" value="{{ old('subject') }}" placeholder="Subject line" required>
+                            @error('subject')<div class="invalid-feedback">{{ $message }}</div>@enderror
                         </div>
                     </div>
 
-                    <!-- Template Description -->
-                    <div class="mb-4">
-                        <label for="description" class="form-label">
-                            <i class="bi bi-card-text me-2"></i>Description
-                        </label>
-                        <textarea class="form-control @error('description') is-invalid @enderror"
-                                  id="description" name="description" rows="3"
-                                  placeholder="Brief description of this template (optional)">{{ old('description') }}</textarea>
-                        @error('description')
-                            <div class="invalid-feedback">{{ $message }}</div>
-                        @enderror
+                    <div class="mb-3">
+                        <label for="description" class="form-label">Description</label>
+                        <input type="text" class="form-control" id="description" name="description" value="{{ old('description') }}" placeholder="Brief description (optional)">
                     </div>
 
-                    <!-- Email Subject -->
-                    <div class="mb-4">
-                        <label for="subject" class="form-label">
-                            <i class="bi bi-type me-2"></i>Email Subject
-                            <span class="text-danger">*</span>
-                        </label>
-                        <input type="text" class="form-control @error('subject') is-invalid @enderror"
-                               id="subject" name="subject" value="{{ old('subject') }}"
-                               placeholder="Enter email subject line" required>
-                        @error('subject')
-                            <div class="invalid-feedback">{{ $message }}</div>
-                        @enderror
-                    </div>
-
-                    <!-- Editor Mode Toggle -->
                     <div class="mb-3">
                         <div class="btn-group" role="group">
                             <input type="radio" class="btn-check" name="editorMode" id="visualMode" checked autocomplete="off">
-                            <label class="btn btn-outline-primary" for="visualMode">
-                                <i class="bi bi-palette me-1"></i>Visual Designer
-                            </label>
-
+                            <label class="btn btn-outline-primary" for="visualMode"><i class="bi bi-palette me-1"></i>Visual Designer</label>
                             <input type="radio" class="btn-check" name="editorMode" id="codeMode" autocomplete="off">
-                            <label class="btn btn-outline-primary" for="codeMode">
-                                <i class="bi bi-code-slash me-1"></i>HTML/CSS Code
-                            </label>
+                            <label class="btn btn-outline-primary" for="codeMode"><i class="bi bi-code-slash me-1"></i>HTML Code</label>
                         </div>
-                        <small class="text-muted ms-2">Choose your preferred editing mode</small>
                     </div>
 
-                    <!-- Email Body - Visual Designer -->
-                    <div class="mb-4" id="visualEditorContainer">
-                        <label class="form-label">
-                            <i class="bi bi-brush me-2"></i>Email Design
-                            <span class="text-danger">*</span>
-                        </label>
-                        <div id="gjs" style="height: 0px;"></div>
+                    <div class="mb-3" id="visualEditorContainer">
+                        <label class="form-label">Email Body <span style="color:#ef4444;">*</span></label>
+                        <div id="gjs"></div>
                         <textarea id="body" name="body" class="form-control d-none" required>{{ old('body') }}</textarea>
-                        @error('body')
-                            <div class="invalid-feedback d-block">{{ $message }}</div>
-                        @enderror
+                        @error('body')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
                     </div>
 
-                    <!-- Email Body - Code Editor -->
-                    <div class="mb-4 d-none" id="codeEditorContainer">
-                        <label for="bodyCode" class="form-label">
-                            <i class="bi bi-code-square me-2"></i>HTML/CSS Code
-                            <span class="text-danger">*</span>
-                        </label>
-                        <textarea id="bodyCode" class="form-control font-monospace @error('body') is-invalid @enderror"
-                                  rows="20" placeholder="Enter your HTML/CSS code here..." style="font-size: 13px;">{{ old('body') }}</textarea>
-                        <div class="form-text">
-                            <i class="bi bi-info-circle me-1"></i>
-                            Full HTML/CSS support. Use inline styles for best email client compatibility.
-                        </div>
+                    <div class="mb-3 d-none" id="codeEditorContainer">
+                        <label for="bodyCode" class="form-label">HTML Code <span style="color:#ef4444;">*</span></label>
+                        <textarea id="bodyCode" class="form-control font-monospace @error('body') is-invalid @enderror" rows="18" placeholder="Enter your HTML code..." style="font-size:13px;">{{ old('body') }}</textarea>
                     </div>
 
-                    <!-- Template Status -->
-                    <div class="mb-4">
+                    <div class="mb-3">
                         <div class="form-check">
-                            <input class="form-check-input" type="checkbox" id="is_active" name="is_active"
-                                   {{ old('is_active') ? 'checked' : 'checked' }}>
-                            <label class="form-check-label" for="is_active">
-                                <i class="bi bi-check-circle me-2"></i>Active Template
-                            </label>
-                        </div>
-                        <div class="form-text">
-                            <i class="bi bi-info-circle me-1"></i>
-                            Active templates can be used in campaigns. Inactive templates are hidden.
+                            <input class="form-check-input" type="checkbox" id="is_active" name="is_active" checked>
+                            <label class="form-check-label" for="is_active" style="font-size:13px;">Active (available for campaigns)</label>
                         </div>
                     </div>
 
-                    <!-- Submit Buttons -->
-                    <div class="d-flex justify-content-end gap-3">
-                        <a href="{{ route('email-templates.index') }}" class="btn btn-outline-secondary">
-                            <i class="bi bi-x-circle me-2"></i>Cancel
-                        </a>
-                        <button type="submit" class="btn btn-primary btn-lg">
-                            <i class="bi bi-save me-2"></i>Create Template
-                        </button>
-</div>
-
-<!-- Guidelines Modal -->
-<div class="modal fade" id="guidelinesModal" tabindex="-1" aria-labelledby="guidelinesModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-lg">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="guidelinesModalLabel">
-                    <i class="bi bi-lightbulb me-2 text-primary"></i>Template Guidelines & Best Practices
-                </h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-                <div class="row">
-                    <div class="col-md-6">
-                        <h6 class="fw-bold mb-3">
-                            <i class="bi bi-check-circle text-success me-2"></i>Best Practices
-                        </h6>
-                        <div class="d-flex mb-3">
-                            <div class="flex-shrink-0">
-                                <i class="bi bi-check-circle text-success"></i>
-                            </div>
-                            <div class="flex-grow-1 ms-2">
-                                <strong>Clear Template Names</strong>
-                                <p class="text-muted small mb-0">Use descriptive names for easy identification</p>
-                            </div>
-                        </div>
-                        <div class="d-flex mb-3">
-                            <div class="flex-shrink-0">
-                                <i class="bi bi-check-circle text-success"></i>
-                            </div>
-                            <div class="flex-grow-1 ms-2">
-                                <strong>Compelling Subjects</strong>
-                                <p class="text-muted small mb-0">Write subject lines that grab attention</p>
-                            </div>
-                        </div>
-                        <div class="d-flex mb-3">
-                            <div class="flex-shrink-0">
-                                <i class="bi bi-check-circle text-success"></i>
-                            </div>
-                            <div class="flex-grow-1 ms-2">
-                                <strong>Concise Content</strong>
-                                <p class="text-muted small mb-0">Keep emails focused and easy to read</p>
-                            </div>
-                        </div>
-                        <div class="d-flex">
-                            <div class="flex-shrink-0">
-                                <i class="bi bi-check-circle text-success"></i>
-                            </div>
-                            <div class="flex-grow-1 ms-2">
-                                <strong>Test First</strong>
-                                <p class="text-muted small mb-0">Always test before sending campaigns</p>
-                            </div>
-                        </div>
+                    <div class="d-flex justify-content-end gap-2">
+                        <a href="{{ route('email-templates.index') }}" class="btn btn-outline-primary">Cancel</a>
+                        <button type="submit" class="btn btn-primary">Save Template</button>
                     </div>
-                    <div class="col-md-6">
-                        <h6 class="fw-bold mb-3">
-                            <i class="bi bi-code-slash text-primary me-2"></i>Email Design Tips
-                        </h6>
-                        <div class="d-flex mb-3">
-                            <div class="flex-shrink-0">
-                                <i class="bi bi-info-circle text-primary"></i>
-                            </div>
-                            <div class="flex-grow-1 ms-2">
-                                <strong>Use Tables</strong>
-                                <p class="text-muted small mb-0">Tables ensure better email client compatibility</p>
-                            </div>
-                        </div>
-                        <div class="d-flex mb-3">
-                            <div class="flex-shrink-0">
-                                <i class="bi bi-info-circle text-primary"></i>
-                            </div>
-                            <div class="flex-grow-1 ms-2">
-                                <strong>Inline Styles</strong>
-                                <p class="text-muted small mb-0">Use inline CSS for best rendering</p>
-                            </div>
-                        </div>
-                        <div class="d-flex mb-3">
-                            <div class="flex-shrink-0">
-                                <i class="bi bi-info-circle text-primary"></i>
-                            </div>
-                            <div class="flex-grow-1 ms-2">
-                                <strong>Mobile Responsive</strong>
-                                <p class="text-muted small mb-0">Design for mobile-first viewing</p>
-                            </div>
-                        </div>
-                        <div class="d-flex">
-                            <div class="flex-shrink-0">
-                                <i class="bi bi-info-circle text-primary"></i>
-                            </div>
-                            <div class="flex-grow-1 ms-2">
-                                <strong>Alt Text</strong>
-                                <p class="text-muted small mb-0">Add alt text to all images</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <hr class="my-4">
-
-                <div class="alert alert-info mb-0">
-                    <h6 class="alert-heading">
-                        <i class="bi bi-palette me-2"></i>Visual Designer Tips
-                    </h6>
-                    <ul class="mb-0 small">
-                        <li>Drag components from the left panel onto the canvas</li>
-                        <li>Select elements to customize styles in the right panel</li>
-                     7  <li>Use pre-built blocks for faster design</li>
-                        <li>Switch to code mode for advanced HTML/CSS editing</li>
-                        <li>Preview on different devices using the toolbar</li>
-                    </ul>
-                </div>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-primary" data-bs-dismiss="modal">
-                    <i class="bi bi-check-circle me-1"></i>Got it!
-                </button   <strong>Content:</strong>
-                        <div id="preview-body" class="text-muted mt-2" style="max-height: 200px; overflow-y: auto;">
-                            Your email content will appear here
-                        </div>
-                    </div>
-                </div>
+                </form>
             </div>
         </div>
     </div>
+
+    <div class="col-12 col-lg-4">
+        <div class="card mb-3">
+            <div class="card-header"><h5 class="card-title">Tips</h5></div>
+            <div class="card-body" style="font-size:13px;">
+                <ul class="list-unstyled mb-0" style="display:flex;flex-direction:column;gap:8px;">
+                    <li style="display:flex;gap:8px;align-items:flex-start;"><span style="color:#16a34a;">&#10003;</span> Drag blocks from the right panel to build your email</li>
+                    <li style="display:flex;gap:8px;align-items:flex-start;"><span style="color:#16a34a;">&#10003;</span> Click any element to edit text or styles</li>
+                    <li style="display:flex;gap:8px;align-items:flex-start;"><span style="color:#16a34a;">&#10003;</span> Use inline styles for email client compatibility</li>
+                    <li style="display:flex;gap:8px;align-items:flex-start;"><span style="color:#16a34a;">&#10003;</span> Toggle device preview to check mobile layout</li>
+                </ul>
+            </div>
+        </div>
+
+        <a href="https://grapesjs.com/docs/" target="_blank" rel="noopener" style="text-decoration:none;">
+            <div style="background:#0f172a;border-radius:10px;padding:16px 18px;display:flex;align-items:center;gap:12px;transition:opacity 0.15s;">
+                <div style="width:32px;height:32px;background:rgba(255,255,255,0.1);border-radius:6px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+                </div>
+                <div style="flex:1;min-width:0;">
+                    <div style="font-size:13px;font-weight:600;color:#fff;">GrapesJS Documentation</div>
+                    <div style="font-size:11px;color:#94a3b8;">Learn all builder features &rarr;</div>
+                </div>
+            </div>
+        </a>
+    </div>
 </div>
+@endsection
 
 @push('styles')
 <link href="https://unpkg.com/grapesjs/dist/css/grapes.min.css" rel="stylesheet">
 <link href="https://unpkg.com/grapesjs-preset-newsletter/dist/grapesjs-preset-newsletter.min.css" rel="stylesheet">
 <style>
-    .gjs-one-bg {
-        background-color: #1e293b;
-    }
-    .gjs-two-color {
-        color: rgba(255, 255, 255, 0.7);
-    }
-    .gjs-three-bg {
-        background-color: #334155;
-        color: white;
-    }
-    .gjs-four-color,
-    .gjs-four-color-h:hover {
-        color: #6366f1;
-    }
-    #gjs {
-        border: 2px solid #e2e8f0;
-        border-radius: 8px;
-        overflow: hidden;
-    }
+    .gjs-one-bg { background-color: #0f172a; }
+    .gjs-two-color { color: rgba(255,255,255,0.7); }
+    .gjs-three-bg { background-color: #1e293b; color: #fff; }
+    .gjs-four-color, .gjs-four-color-h:hover { color: #94a3b8; }
+    #gjs { border: 1px solid #e2e8f0; border-radius: 8px; overflow: hidden; }
 </style>
 @endpush
 
@@ -326,85 +133,80 @@
 <script src="https://unpkg.com/grapesjs-preset-newsletter"></script>
 <script>
 $(document).ready(function() {
-    // Initialize TinyMCE editor (only if CDN loaded successfully)
-    if (typeof tinymce !== 'undefined') {
-        tinymce.init({
-            selector: '#body',
-            plugins: 'advlist autolink lists link image charmap preview anchor searchreplace visualblocks code fullscreen insertdatetime media table help wordcount template emoticons',
-            toolbar: 'undo redo | blocks fontfamily fontsize | bold italic underline strikethrough | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent | forecolor backcolor | link image media table | emoticons template | removeformat code fullscreen | help',
-            menubar: false,
-            branding: false,
-            height: 350,
-            content_style: 'body { font-family: Plus Jakarta Sans, sans-serif; font-size: 14px; line-height: 1.6; }',
-            font_family_formats: 'Plus Jakarta Sans=Plus Jakarta Sans, sans-serif; Arial=arial,helvetica,sans-serif; Times New Roman=times new roman,times; Courier New=courier new,courier',
-            fontsize_formats: '8pt 10pt 12pt 14pt 16pt 18pt 24pt 36pt',
-            image_advtab: true,
-            link_context_toolbar: true,
-            setup: function (editor) {
-                editor.on('change', function () {
-                    editor.save();
-                    updatePreview();
-                });
-            }
+    let grapesEditor;
+
+    function initGrapesJS(html) {
+        if (grapesEditor) { let c = cleanHtml(html || ''); grapesEditor.setComponents(c.html); if (c.css) grapesEditor.setStyle(c.css); return; }
+        grapesEditor = grapesjs.init({
+            container: '#gjs',
+            height: '500px',
+            width: 'auto',
+            storageManager: false,
+            plugins: ['grapesjs-preset-newsletter'],
+            pluginsOpts: {
+                'grapesjs-preset-newsletter': {
+                    modalLabelImport: 'Paste HTML',
+                    cellStyle: { 'font-size':'14px','font-family':'Inter,Arial,sans-serif','color':'#0f172a' }
+                }
+            },
+            canvas: { styles: ['https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap'] },
         });
+        let c = cleanHtml(html || '');
+        if (c.html) { grapesEditor.setComponents(c.html); if (c.css) grapesEditor.setStyle(c.css); }
+        grapesEditor.on('component:update', sync);
+        grapesEditor.on('style:update', sync);
     }
 
-    // Helper: get email body content (works with or without TinyMCE)
-    function getEmailBody() {
-        if (typeof tinymce !== 'undefined' && tinymce.get('body')) {
-            return tinymce.get('body').getContent();
-        }
-        return $('#body').val() || '';
+    // Strip full HTML doc to body+styles for GrapesJS
+    function cleanHtml(raw) {
+        let h = raw || '', css = '';
+        const sm = h.match(/<style[^>]*>([\s\S]*?)<\/style>/gi);
+        if (sm) { css = sm.map(s => s.replace(/<\/?style[^>]*>/gi, '')).join('\n'); h = h.replace(/<style[^>]*>[\s\S]*?<\/style>/gi, ''); }
+        const bm = h.match(/<body[^>]*>([\s\S]*?)<\/body>/i);
+        if (bm) { h = bm[1].trim(); } else { h = h.replace(/<!DOCTYPE[^>]*>/gi, '').replace(/<html[^>]*>|<\/html>/gi, '').replace(/<head[^>]*>[\s\S]*?<\/head>/gi, ''); }
+        return { html: h.trim(), css: css };
     }
 
-    // Live preview
-    function updatePreview() {
-        const subject = $('#subject').val() || 'Your subject will appear here';
-        const body = getEmailBody() || 'Your email content will appear here';
-
-        $('#preview-subject').text(subject);
-        $('#preview-body').html(body);
+    function sync() {
+        if (!grapesEditor) return;
+        const h = grapesEditor.getHtml(), c = grapesEditor.getCss();
+        $('#body').val('<style>' + c + '</style>' + h);
     }
 
-    $('#subject').on('input keyup', updatePreview);
+    function getContent() {
+        if (!grapesEditor) return $('#bodyCode').val() || '';
+        return '<style>' + grapesEditor.getCss() + '</style>' + grapesEditor.getHtml();
+    }
 
-    // Form validation
-    $('#templateForm').on('submit', function(e) {
-        // Ensure content is synced before submission
-        if ($('#visualMode').is(':checked') && editor) {
-            const html = editor.getHtml();
-            const css = editor.getCss();
-            $('#body').val(`<style>${css}</style>${html}`);
+    function setContent(html) {
+        let c = cleanHtml(html || '');
+        if (grapesEditor) { grapesEditor.setComponents(c.html); if (c.css) grapesEditor.setStyle(c.css); }
+        $('#bodyCode').val(html);
+        $('#body').val(html);
+    }
+
+    initGrapesJS($('#body').val() || '');
+    sync();
+    setInterval(sync, 2000);
+
+    $('input[name="editorMode"]').on('change', function() {
+        if ($('#codeMode').is(':checked')) {
+            $('#bodyCode').val(getContent());
+            $('#visualEditorContainer').addClass('d-none');
+            $('#codeEditorContainer').removeClass('d-none');
         } else {
-            $('#body').val($('#bodyCode').val());
+            setContent($('#bodyCode').val());
+            $('#codeEditorContainer').addClass('d-none');
+            $('#visualEditorContainer').removeClass('d-none');
         }
+    });
 
-        const name = $('#name').val().trim();
-        const subject = $('#subject').val().trim();
-        const body = getEmailBody().trim();
+    $('#bodyCode').on('input', function() { $('#body').val($(this).val()); });
 
-        if (!name || !subject || !body) {
-            e.preventDefault();
-            Swal.fire({
-                icon: 'error',
-                title: 'Required Fields Missing',
-                text: 'Please fill in all required fields (Name, Subject, and Content).',
-                confirmButtonColor: '#6366f1'
-            });
-            return false;
-        }
-
-        // Show loading
-        Swal.fire({
-            title: 'Creating Template...',
-            text: 'Please wait while we save your template.',
-            allowOutsideClick: false,
-            didOpen: () => {
-                Swal.showLoading();
-            }
-        });
+    $('#templateForm').on('submit', function() {
+        if ($('#visualMode').is(':checked')) $('#body').val(getContent());
+        else $('#body').val($('#bodyCode').val());
     });
 });
 </script>
 @endpush
-@endsection

@@ -3,25 +3,15 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta name="description" content="Bulk Email Sender - Professional Email Marketing Solution">
-    <meta name="author" content="Arafat Hossain">
-    <title>Login - Bulk Email Sender</title>
+    <title>Login &mdash; Bulk Email Sender</title>
 
-    <!-- Bootstrap 5 CSS -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-    <!-- Bootstrap Icons -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
     <!-- Google Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
 
     <style>
         :root {
-            --primary-color: #667eea;
-            --primary-dark: #5a6fd8;
-            --secondary-color: #764ba2;
-            --gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            --shadow: 0 15px 35px rgba(102, 126, 234, 0.1);
-            --border-radius: 15px;
+            --dark: #0f172a;
+            --light: #f1f5f9;
         }
 
         * {
@@ -31,405 +21,252 @@
         }
 
         body {
-            font-family: 'Poppins', sans-serif;
-            background: var(--gradient);
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--light);
+            color: var(--dark);
             min-height: 100vh;
             display: flex;
             align-items: center;
             justify-content: center;
-            position: relative;
-            overflow-x: hidden;
+            -webkit-font-smoothing: antialiased;
         }
 
-        body::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 1000"><polygon fill="%23ffffff08" points="0,1000 1000,0 1000,1000"/></svg>');
-            z-index: 1;
-        }
-
-        .login-container {
-            position: relative;
-            z-index: 2;
+        .login-wrap {
             width: 100%;
-            max-width: 450px;
-            padding: 20px;
+            max-width: 400px;
+            padding: 24px;
         }
 
-        .login-card {
-            background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(20px);
-            border-radius: var(--border-radius);
-            box-shadow: var(--shadow);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            overflow: hidden;
-            transition: transform 0.3s ease;
+        /* ── Material card ── */
+        .card {
+            background: #fff;
+            border-radius: 16px;
+            padding: 40px 32px 36px;
+            box-shadow:
+                0 1px 3px rgba(15, 23, 42, 0.06),
+                0 8px 24px rgba(15, 23, 42, 0.06);
         }
 
-        .login-card:hover {
-            transform: translateY(-5px);
+        .card-header {
+            margin-bottom: 32px;
         }
 
-        .login-header {
-            padding: 40px 40px 20px;
-            text-align: center;
-            border-bottom: 1px solid rgba(0, 0, 0, 0.05);
-        }
-
-        .logo-container {
-            margin-bottom: 30px;
-        }
-
-        .logo-icon {
-            width: 70px;
-            height: 70px;
-            background: var(--gradient);
-            border-radius: 50%;
-            display: flex;
+        .card-header .brand {
+            display: inline-flex;
             align-items: center;
             justify-content: center;
-            margin: 0 auto 20px;
-            box-shadow: 0 10px 25px rgba(102, 126, 234, 0.3);
-        }
-
-        .logo-icon i {
-            font-size: 35px;
-            color: white;
-        }
-
-        .app-title {
-            font-size: 28px;
-            font-weight: 700;
-            color: #2d3436;
-            margin-bottom: 10px;
-            background: var(--gradient);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-        }
-
-        .app-subtitle {
-            color: #636e72;
-            font-size: 14px;
-            font-weight: 400;
-            margin-bottom: 0;
-        }
-
-        .welcome-text {
-            font-size: 24px;
-            font-weight: 600;
-            color: #2d3436;
-            margin-bottom: 8px;
-        }
-
-        .welcome-subtitle {
-            color: #636e72;
-            font-size: 15px;
-            font-weight: 400;
-        }
-
-        .login-body {
-            padding: 30px 40px 40px;
-        }
-
-        .form-floating {
+            width: 40px;
+            height: 40px;
+            background: var(--dark);
+            border-radius: 10px;
             margin-bottom: 20px;
         }
 
-        .form-floating .form-control {
-            height: 60px;
-            padding: 20px 16px 8px;
-            border: 2px solid #e9ecef;
-            border-radius: 12px;
-            font-size: 16px;
-            transition: all 0.3s ease;
-            background: rgba(255, 255, 255, 0.8);
+        .card-header .brand svg {
+            width: 20px;
+            height: 20px;
+            color: #fff;
         }
 
-        .form-floating .form-control:focus {
-            border-color: var(--primary-color);
-            box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
-            background: white;
-        }
-
-        .form-floating label {
-            padding: 20px 16px 8px;
-            color: #6c757d;
-            font-weight: 500;
-        }
-
-        .input-group-text {
-            background: transparent;
-            border: 2px solid #e9ecef;
-            border-left: none;
-            border-radius: 0 12px 12px 0;
-        }
-
-        .btn-login {
-            width: 100%;
-            height: 55px;
-            background: var(--gradient);
-            border: none;
-            border-radius: 12px;
-            font-size: 16px;
+        .card-header h1 {
+            font-size: 20px;
             font-weight: 600;
-            color: white;
-            transition: all 0.3s ease;
-            margin-top: 10px;
-            position: relative;
-            overflow: hidden;
+            letter-spacing: -0.3px;
+            margin-bottom: 4px;
         }
 
-        .btn-login::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: -100%;
+        .card-header p {
+            font-size: 13px;
+            color: #64748b;
+        }
+
+        /* ── Form ── */
+        .form-group {
+            margin-bottom: 18px;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 13px;
+            font-weight: 500;
+            margin-bottom: 6px;
+            color: #334155;
+        }
+
+        .form-group input {
             width: 100%;
-            height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
-            transition: left 0.5s;
+            height: 46px;
+            padding: 0 14px;
+            font-size: 14px;
+            font-family: inherit;
+            color: var(--dark);
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 10px;
+            outline: none;
+            transition: border-color 0.2s, box-shadow 0.2s;
         }
 
-        .btn-login:hover::before {
-            left: 100%;
+        .form-group input:focus {
+            border-color: var(--dark);
+            box-shadow: 0 0 0 3px rgba(15, 23, 42, 0.06);
+            background: #fff;
         }
 
-        .btn-login:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
-        }
-
-        .btn-login:active {
-            transform: translateY(0);
+        .form-group input.is-invalid {
+            border-color: #ef4444;
         }
 
         .invalid-feedback {
-            font-size: 13px;
+            font-size: 12px;
+            color: #ef4444;
+            margin-top: 5px;
+        }
+
+        .btn {
+            width: 100%;
+            height: 46px;
+            font-size: 14px;
             font-weight: 500;
-            margin-top: 8px;
+            font-family: inherit;
+            color: #fff;
+            background: var(--dark);
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            margin-top: 6px;
+            transition: opacity 0.15s, transform 0.1s;
         }
 
-        .login-footer {
-            padding: 20px 40px 30px;
+        .btn:hover {
+            opacity: 0.92;
+        }
+
+        .btn:active {
+            transform: scale(0.98);
+        }
+
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .card-footer {
+            margin-top: 32px;
             text-align: center;
-            border-top: 1px solid rgba(0, 0, 0, 0.05);
-            background: rgba(248, 249, 250, 0.5);
+            font-size: 12px;
+            color: #94a3b8;
         }
 
-        .footer-link {
-            color: var(--primary-color);
+        .card-footer a {
+            color: var(--dark);
             text-decoration: none;
             font-weight: 500;
-            transition: color 0.3s ease;
         }
 
-        .footer-link:hover {
-            color: var(--primary-dark);
-        }
-
-        .copyright {
-            color: #6c757d;
-            font-size: 13px;
-            margin-top: 10px;
-        }
-
-        .floating-shapes {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            pointer-events: none;
-            z-index: 1;
-        }
-
-        .shape {
-            position: absolute;
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 50%;
-            animation: float 6s ease-in-out infinite;
-        }
-
-        .shape:nth-child(1) {
-            width: 60px;
-            height: 60px;
-            top: 10%;
-            left: 10%;
-            animation-delay: 0s;
-        }
-
-        .shape:nth-child(2) {
-            width: 80px;
-            height: 80px;
-            top: 70%;
-            right: 10%;
-            animation-delay: 2s;
-        }
-
-        .shape:nth-child(3) {
-            width: 40px;
-            height: 40px;
-            top: 30%;
-            right: 20%;
-            animation-delay: 4s;
-        }
-
-        @keyframes float {
-            0%, 100% { transform: translateY(0px) rotate(0deg); }
-            50% { transform: translateY(-20px) rotate(180deg); }
-        }
-
-        @media (max-width: 576px) {
-            .login-header, .login-body, .login-footer {
-                padding-left: 25px;
-                padding-right: 25px;
-            }
-
-            .app-title {
-                font-size: 24px;
-            }
-
-            .welcome-text {
-                font-size: 20px;
-            }
+        .card-footer a:hover {
+            text-decoration: underline;
         }
 
         .loading {
             display: none;
+            align-items: center;
+            gap: 8px;
         }
 
-        .loading .spinner-border {
-            width: 20px;
-            height: 20px;
-            margin-right: 10px;
+        .spinner {
+            width: 16px;
+            height: 16px;
+            border: 2px solid rgba(255,255,255,0.3);
+            border-top-color: #fff;
+            border-radius: 50%;
+            animation: spin 0.6s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
         }
     </style>
 </head>
 
 <body>
-    <div class="floating-shapes">
-        <div class="shape"></div>
-        <div class="shape"></div>
-        <div class="shape"></div>
-    </div>
-
-    <div class="login-container">
-        <div class="login-card">
-            <div class="login-header">
-                <div class="logo-container">
-                    <div class="logo-icon">
-                        <i class="bi bi-envelope-paper"></i>
-                    </div>
-                    <h1 class="app-title">Bulk Email Sender</h1>
-                    <p class="app-subtitle">Professional Email Marketing Solution</p>
+    <div class="login-wrap">
+        <div class="card">
+            <div class="card-header">
+                <div class="brand">
+                    <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
+                    </svg>
                 </div>
-                <h2 class="welcome-text">Welcome Back!</h2>
-                <p class="welcome-subtitle">Please sign in to your account</p>
+                <h1>Sign in</h1>
+                <p>Enter your credentials to continue</p>
             </div>
 
-            <div class="login-body">
-                <form action="{{ route('login') }}" method="POST" id="loginForm">
-                    @csrf
+            <form action="{{ route('login') }}" method="POST" id="loginForm">
+                @csrf
 
-                    <div class="form-floating mb-3">
-                        <input type="email"
-                               class="form-control @error('email') is-invalid @enderror"
-                               id="email"
-                               name="email"
-                               value="{{ old('email') }}"
-                               placeholder="name@example.com"
-                               required
-                               autocomplete="email"
-                               autofocus>
-                        <label for="email"><i class="bi bi-envelope me-2"></i>Email Address</label>
-                        @error('email')
-                            <div class="invalid-feedback">
-                                <i class="bi bi-exclamation-triangle me-1"></i>{{ $message }}
-                            </div>
-                        @enderror
-                    </div>
+                <div class="form-group">
+                    <label for="email">Email</label>
+                    <input type="email"
+                           id="email"
+                           name="email"
+                           value="{{ old('email') }}"
+                           class="@error('email') is-invalid @enderror"
+                           placeholder="you@example.com"
+                           required
+                           autocomplete="email"
+                           autofocus>
+                    @error('email')
+                        <div class="invalid-feedback">{{ $message }}</div>
+                    @enderror
+                </div>
 
-                    <div class="form-floating mb-3">
-                        <input type="password"
-                               class="form-control @error('password') is-invalid @enderror"
-                               id="password"
-                               name="password"
-                               placeholder="Password"
-                               required
-                               autocomplete="current-password">
-                        <label for="password"><i class="bi bi-lock me-2"></i>Password</label>
-                        @error('password')
-                            <div class="invalid-feedback">
-                                <i class="bi bi-exclamation-triangle me-1"></i>{{ $message }}
-                            </div>
-                        @enderror
-                    </div>
+                <div class="form-group">
+                    <label for="password">Password</label>
+                    <input type="password"
+                           id="password"
+                           name="password"
+                           class="@error('password') is-invalid @enderror"
+                           placeholder="Enter your password"
+                           required
+                           autocomplete="current-password">
+                    @error('password')
+                        <div class="invalid-feedback">{{ $message }}</div>
+                    @enderror
+                </div>
 
-                    <button type="submit" class="btn btn-login" id="loginBtn">
-                        <span class="btn-text">
-                            <i class="bi bi-box-arrow-in-right me-2"></i>Sign In
-                        </span>
-                        <span class="loading">
-                            <span class="spinner-border spinner-border-sm" role="status"></span>
-                            Signing in...
-                        </span>
-                    </button>
-                </form>
-            </div>
+                <button type="submit" class="btn" id="loginBtn">
+                    <span class="btn-text">Sign in</span>
+                    <span class="loading">
+                        <span class="spinner"></span>
+                        Signing in&hellip;
+                    </span>
+                </button>
+            </form>
 
-            <div class="login-footer">
-                <p class="mb-0">
+            <div class="card-footer">
+                <p>
                     Developed by
-                    <a href="https://facebook.com/arafathossain000" target="_blank" class="footer-link">
-                        <i class="bi bi-person-circle me-1"></i>Arafat Hossain
-                    </a>
+                    <a href="https://facebook.com/arafathossain000" target="_blank">Arafat Hossain</a>
                 </p>
-                <p class="copyright">{{ date('Y') }} © All Rights Reserved</p>
+                <p style="margin-top:4px;">{{ date('Y') }} &copy; All Rights Reserved</p>
             </div>
         </div>
     </div>
 
-    <!-- Bootstrap 5 JS -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-
     <script>
-        // Clear localStorage
         localStorage.removeItem('instructionUnderstood');
 
-        // Form submission with loading state
-        document.getElementById('loginForm').addEventListener('submit', function() {
+        document.getElementById('loginForm').addEventListener('submit', function () {
             const btn = document.getElementById('loginBtn');
-            const btnText = btn.querySelector('.btn-text');
-            const loading = btn.querySelector('.loading');
-
-            btnText.style.display = 'none';
-            loading.style.display = 'inline-flex';
+            btn.querySelector('.btn-text').style.display = 'none';
+            btn.querySelector('.loading').style.display = 'inline-flex';
             btn.disabled = true;
-        });
-
-        // Add floating animation to shapes
-        document.addEventListener('DOMContentLoaded', function() {
-            const shapes = document.querySelectorAll('.shape');
-            shapes.forEach((shape, index) => {
-                shape.style.animationDuration = (4 + index * 2) + 's';
-            });
-        });
-
-        // Focus effect for form inputs
-        const inputs = document.querySelectorAll('.form-control');
-        inputs.forEach(input => {
-            input.addEventListener('focus', function() {
-                this.parentElement.style.transform = 'translateY(-2px)';
-            });
-
-            input.addEventListener('blur', function() {
-                this.parentElement.style.transform = 'translateY(0)';
-            });
         });
     </script>
 </body>
