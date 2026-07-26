@@ -87,6 +87,10 @@ class SendEmailJob implements ShouldQueue
             EmailContact::where('email', $this->email)
                 ->update(['last_emailed_at' => now()]);
 
+            // Increment emails_sent counter
+            $emailAccount->increment('emails_sent');
+            $emailAccount->update(['last_used_at' => now()]);
+
             // Log successful send (only for debugging if needed)
             if (config('app.debug')) {
                 Log::info("Email sent successfully", [

@@ -70,6 +70,10 @@ class SendIndividualEmailJob implements ShouldQueue
                 $this->updateContactsLastEmailed([$recipient]);
             }
 
+            // Increment emails_sent counter
+            $this->emailAccount->increment('emails_sent');
+            $this->emailAccount->update(['last_used_at' => now()]);
+
         } catch (\Exception $e) {
             \Log::error('Individual email sending failed: ' . $e->getMessage(), [
                 'email_account' => $this->emailAccount->email,
