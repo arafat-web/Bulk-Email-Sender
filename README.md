@@ -15,9 +15,9 @@
   <circle cx="95" cy="35" r="1" fill="white" opacity="0.4"/>
 </svg>
   
-  <h1>🚀 Bulk Email Sender v2.0</h1>
+  <h1>🚀 Bulk Email Sender v2.1</h1>
   
-  <p><strong>Professional Laravel-based email marketing solution with advanced contact management</strong></p>
+  <p><strong>Professional Laravel-based email marketing solution with drag-and-drop email builder</strong></p>
   
   <p>
     <img src="https://img.shields.io/badge/Laravel-10.x-red?style=for-the-badge&logo=laravel" alt="Laravel">
@@ -27,9 +27,8 @@
   </p>
   
   <p>
-    <img src="https://img.shields.io/github/stars/arafat-web/Bulk-Email-Sender?style=for-the-badge" alt="Stars">
-    <img src="https://img.shields.io/github/issues/arafat-web/Bulk-Email-Sender?style=for-the-badge" alt="Issues">
-    <img src="https://img.shields.io/github/forks/arafat-web/Bulk-Email-Sender?style=for-the-badge" alt="Forks">
+    <img src="https://img.shields.io/badge/version-2.1-blue?style=for-the-badge" alt="Version">
+    <img src="https://img.shields.io/badge/GrapesJS-Drag%20%26%20Drop-orange?style=for-the-badge" alt="GrapesJS">
   </p>
 </div>
 
@@ -37,16 +36,16 @@
 
 ## ✨ Features
 
-**What's New in v2.0:**
-- 👥 **Contact Management** - Complete contact database with tags and categories
-- 📧 **Individual Emails** - Send personalized emails to specific contacts  
-- 🏷️ **Tag System** - Organize and target contacts with custom tags
-- 📊 **Excel Import/Export** - Seamlessly import contacts from CSV/Excel files
-- 🎨 **Modern UI** - Clean, responsive design with breadcrumb navigation
-- � **Queue System** - Background email processing with Laravel Queues
+**What's New in v2.1:**
+- 🎨 **Minimal 2-Color Design** — Clean, modern UI with dark slate & light gray palette
+- 🧩 **Drag & Drop Email Builder** — Visual GrapesJS editor for building emails without coding
+- 📧 **Modern Email Templates** — 6 professionally designed HTML email templates
+- 🔍 **Client-side Search** — Instant filtering across contacts and tags
+- 📱 **Fully Responsive** — Mobile-first design on every page
+- 📊 **Email Stats Tracking** — Sent counter, last-used timestamps per account
 
 **Core Features:**
-- ✅ Bulk email sending with HTML templates
+- ✅ Bulk email sending with drag-and-drop HTML builder
 - ✅ Contact management with tagging system
 - ✅ Excel/CSV import and export
 - ✅ Email validation and verification

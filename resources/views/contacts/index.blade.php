@@ -203,7 +203,6 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 });
-</script>
 
 let deleteModalInstance = null;
 
