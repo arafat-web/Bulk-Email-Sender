@@ -201,8 +201,8 @@ class ContactController extends Controller
             'action' => 'required|in:delete,add_tag,remove_tag,change_status',
             'contacts' => 'required|array',
             'contacts.*' => 'exists:email_contacts,id',
-            'tag_id' => 'required_if:action,add_tag,remove_tag|exists:contact_tags,id',
-            'status' => 'required_if:action,change_status|in:active,inactive,bounced,unsubscribed'
+            'tag_id' => 'required_if:action,add_tag,remove_tag|nullable|exists:contact_tags,id',
+            'status' => 'required_if:action,change_status|nullable|in:active,inactive,bounced,unsubscribed'
         ]);
 
         if ($validator->fails()) {
@@ -233,6 +233,7 @@ class ContactController extends Controller
 
             case 'change_status':
                 EmailContact::whereIn('id', $request->contacts)
+                    ->where('user_id', Auth::id())
                     ->update(['status' => $request->status]);
                 return back()->with('success', 'Status updated for selected contacts.');
         }
