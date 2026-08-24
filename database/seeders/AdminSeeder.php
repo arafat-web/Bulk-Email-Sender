@@ -2,9 +2,9 @@
 
 namespace Database\Seeders;
 
+use DB;
 use Hash;
 use Illuminate\Database\Seeder;
-use DB;
 
 class AdminSeeder extends Seeder
 {

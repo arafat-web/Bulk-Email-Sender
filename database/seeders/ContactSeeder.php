@@ -2,10 +2,10 @@
 
 namespace Database\Seeders;
 
-use Illuminate\Database\Seeder;
 use App\Models\ContactTag;
 use App\Models\EmailContact;
 use App\Models\User;
+use Illuminate\Database\Seeder;
 
 class ContactSeeder extends Seeder
 {
@@ -17,8 +17,9 @@ class ContactSeeder extends Seeder
         // Get the first user (admin)
         $user = User::first();
 
-        if (!$user) {
+        if (! $user) {
             $this->command->warn('No users found. Please create a user first.');
+
             return;
         }
 
@@ -28,32 +29,32 @@ class ContactSeeder extends Seeder
                 'name' => 'VIP Customers',
                 'color' => '#dc3545',
                 'description' => 'High-value customers requiring special attention',
-                'user_id' => $user->id
+                'user_id' => $user->id,
             ],
             [
                 'name' => 'Newsletter Subscribers',
                 'color' => '#0d6efd',
                 'description' => 'Users subscribed to our newsletter',
-                'user_id' => $user->id
+                'user_id' => $user->id,
             ],
             [
                 'name' => 'Prospects',
                 'color' => '#ffc107',
                 'description' => 'Potential customers we are following up with',
-                'user_id' => $user->id
+                'user_id' => $user->id,
             ],
             [
                 'name' => 'Partners',
                 'color' => '#198754',
                 'description' => 'Business partners and affiliates',
-                'user_id' => $user->id
+                'user_id' => $user->id,
             ],
             [
                 'name' => 'Support Contacts',
                 'color' => '#6610f2',
                 'description' => 'Technical support and customer service contacts',
-                'user_id' => $user->id
-            ]
+                'user_id' => $user->id,
+            ],
         ];
 
         foreach ($tags as $tagData) {
@@ -73,7 +74,7 @@ class ContactSeeder extends Seeder
                 'phone' => '+1 (555) 123-4567',
                 'notes' => 'Lead developer at ABC Corp. Interested in our enterprise solutions.',
                 'status' => 'active',
-                'tags' => ['VIP Customers', 'Newsletter Subscribers']
+                'tags' => ['VIP Customers', 'Newsletter Subscribers'],
             ],
             [
                 'email' => 'jane.smith@techstartup.com',
@@ -83,7 +84,7 @@ class ContactSeeder extends Seeder
                 'phone' => '+1 (555) 987-6543',
                 'notes' => 'CTO of growing startup. Looking for scalable email solutions.',
                 'status' => 'active',
-                'tags' => ['Prospects', 'Newsletter Subscribers']
+                'tags' => ['Prospects', 'Newsletter Subscribers'],
             ],
             [
                 'email' => 'mike.wilson@globalcorp.com',
@@ -93,7 +94,7 @@ class ContactSeeder extends Seeder
                 'phone' => '+1 (555) 456-7890',
                 'notes' => 'Marketing director. Runs large email campaigns.',
                 'status' => 'active',
-                'tags' => ['VIP Customers', 'Partners']
+                'tags' => ['VIP Customers', 'Partners'],
             ],
             [
                 'email' => 'sarah.johnson@consulting.com',
@@ -103,7 +104,7 @@ class ContactSeeder extends Seeder
                 'phone' => '+1 (555) 321-9876',
                 'notes' => 'Independent consultant specializing in email marketing.',
                 'status' => 'active',
-                'tags' => ['Partners', 'Newsletter Subscribers']
+                'tags' => ['Partners', 'Newsletter Subscribers'],
             ],
             [
                 'email' => 'support@helpdesk.com',
@@ -113,8 +114,8 @@ class ContactSeeder extends Seeder
                 'phone' => '+1 (555) 111-2222',
                 'notes' => 'Support team contact for integration issues.',
                 'status' => 'active',
-                'tags' => ['Support Contacts']
-            ]
+                'tags' => ['Support Contacts'],
+            ],
         ];
 
         foreach ($contacts as $contactData) {
@@ -127,7 +128,7 @@ class ContactSeeder extends Seeder
             );
 
             // Attach tags
-            if (!empty($tagNames)) {
+            if (! empty($tagNames)) {
                 $tagIds = ContactTag::where('user_id', $user->id)
                     ->whereIn('name', $tagNames)
                     ->pluck('id')

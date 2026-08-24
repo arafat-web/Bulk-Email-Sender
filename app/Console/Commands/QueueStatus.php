@@ -27,7 +27,7 @@ class QueueStatus extends Command
     public function handle()
     {
         $queueConnection = config('queue.default');
-        
+
         $this->info('═══════════════════════════════════════════════');
         $this->info('   QUEUE STATUS - Bulk Email Sender');
         $this->info('═══════════════════════════════════════════════');
@@ -35,16 +35,17 @@ class QueueStatus extends Command
 
         // Queue connection info
         $this->line("<fg=cyan>Queue Connection:</> <fg=yellow>{$queueConnection}</>");
-        
+
         if ($queueConnection === 'sync') {
-            $this->line("<fg=green>Mode:</> Synchronous (Instant sending, no worker needed)");
+            $this->line('<fg=green>Mode:</> Synchronous (Instant sending, no worker needed)');
             $this->newLine();
             $this->comment('💡 Emails are sent immediately. To enable queue, set QUEUE_CONNECTION=database in .env');
+
             return 0;
         }
 
         if ($queueConnection === 'database') {
-            $this->line("<fg=green>Mode:</> Asynchronous (Queue worker required)");
+            $this->line('<fg=green>Mode:</> Asynchronous (Queue worker required)');
             $this->newLine();
 
             // Check pending jobs
@@ -52,13 +53,13 @@ class QueueStatus extends Command
             $failedJobs = DB::table('failed_jobs')->count();
 
             $this->line("<fg=cyan>Pending Jobs:</> <fg=yellow>{$pendingJobs}</>");
-            $this->line("<fg=cyan>Failed Jobs:</> " . ($failedJobs > 0 ? "<fg=red>{$failedJobs}</>" : "<fg=green>0</>"));
-            
+            $this->line('<fg=cyan>Failed Jobs:</> '.($failedJobs > 0 ? "<fg=red>{$failedJobs}</>" : '<fg=green>0</>'));
+
             $this->newLine();
 
             if ($pendingJobs > 0) {
                 $this->warn("⚠️  You have {$pendingJobs} pending job(s) in the queue.");
-                $this->comment("Run: php artisan queue:work --queue=emails,default");
+                $this->comment('Run: php artisan queue:work --queue=emails,default');
             } else {
                 $this->info('✓ Queue is empty.');
             }
@@ -66,8 +67,8 @@ class QueueStatus extends Command
             if ($failedJobs > 0) {
                 $this->newLine();
                 $this->error("✗ You have {$failedJobs} failed job(s).");
-                $this->comment("View failed jobs: php artisan queue:failed");
-                $this->comment("Retry failed jobs: php artisan queue:retry all");
+                $this->comment('View failed jobs: php artisan queue:failed');
+                $this->comment('Retry failed jobs: php artisan queue:retry all');
             }
 
             $this->newLine();
