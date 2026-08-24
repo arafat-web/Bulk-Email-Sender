@@ -15,9 +15,9 @@
   <circle cx="95" cy="35" r="1" fill="white" opacity="0.4"/>
 </svg>
   
-  <h1>🚀 Bulk Email Sender v2.1</h1>
+  <h1>🚀 Bulk Email Sender v2.2</h1>
   
-  <p><strong>Professional Laravel-based email marketing solution with drag-and-drop email builder</strong></p>
+  <p><strong>Professional Laravel-based email marketing solution with rich HTML editor</strong></p>
   
   <p>
     <img src="https://img.shields.io/badge/Laravel-10.x-red?style=for-the-badge&logo=laravel" alt="Laravel">
@@ -28,7 +28,7 @@
   
   <p>
     <img src="https://img.shields.io/badge/version-2.1-blue?style=for-the-badge" alt="Version">
-    <img src="https://img.shields.io/badge/GrapesJS-Drag%20%26%20Drop-orange?style=for-the-badge" alt="GrapesJS">
+    <img src="https://img.shields.io/badge/TinyMCE-Rich%20Editor-orange?style=for-the-badge" alt="TinyMCE">
   </p>
 </div>
 
@@ -38,14 +38,15 @@
 
 **What's New in v2.1:**
 - 🎨 **Minimal 2-Color Design** — Clean, modern UI with dark slate & light gray palette
-- 🧩 **Drag & Drop Email Builder** — Visual GrapesJS editor for building emails without coding
+- 📝 **Rich Text Email Editor** — TinyMCE-powered WYSIWYG editor with formatting, images & tables
 - 📧 **Modern Email Templates** — 6 professionally designed HTML email templates
-- 🔍 **Client-side Search** — Instant filtering across contacts and tags
+- 🔍 **Smart Search** — Server-side search across email/name/company/phone/notes/tags + tag/status filters
+- ☑️ **Bulk Select** — Only this page (20) vs All filtered (server-side, 10k cap) with safe bulk tag/status/delete
 - 📱 **Fully Responsive** — Mobile-first design on every page
-- 📊 **Email Stats Tracking** — Sent counter, last-used timestamps per account
+- 📊 **Split Stats** — Dashboard Campaign/Individual/Total Sent cards, chunked queue, after_commit safety
 
 **Core Features:**
-- ✅ Bulk email sending with drag-and-drop HTML builder
+- ✅ Bulk email sending with rich HTML editor
 - ✅ Contact management with tagging system
 - ✅ Excel/CSV import and export
 - ✅ Email validation and verification
@@ -91,39 +92,26 @@
    MAIL_ENCRYPTION=tls
    ```
 
-4. **Queue setup (Choose one option)**
+4. **Queue setup (default: database)**
 
-   **Option A: Instant Mode (Default - No Queue Worker)**
-   ```bash
-   # In .env file:
-   QUEUE_CONNECTION=sync
-   
-   # Start application
-   php artisan serve
-   ```
-   ✅ Emails send immediately  
-   ✅ No queue worker needed  
-   ⚠️ Slower for large campaigns
+   The app now defaults to `QUEUE_CONNECTION=database` (with `CACHE_DRIVER=database`, `SESSION_DRIVER=database`). On first install the new `cache/sessions/job_batches` tables are created via migrations.
 
-   **Option B: Queue Mode (Recommended for Production)**
    ```bash
-   # In .env file:
-   QUEUE_CONNECTION=database
-   
-   # Start application
    php artisan serve
-   
    # In a separate terminal, start queue worker:
    php artisan queue:work --queue=emails,default
    ```
    ✅ Fast campaign creation  
    ✅ Better for bulk emails  
-   ✅ Automatic retries  
+   ✅ Automatic retries & after_commit safety  
    📖 See [QUEUE-SETUP.md](QUEUE-SETUP.md) for details
+
+   Legacy sync mode: set `QUEUE_CONNECTION=sync` to send immediately without a worker (slower, no retries).
 
 5. **Check queue status anytime**
    ```bash
    php artisan queue:status
+   php artisan queue:failed
    ```
 
 **Default Login:** `admin@email.com` / `12345678`
@@ -177,7 +165,7 @@
 1. Go to "Contacts" → "Add Contact" for individual entries
 2. Use "Import Contacts" for bulk CSV/Excel uploads
 3. Organize contacts with tags
-4. Export contact lists when needed
+4. Use **Search** (email/name/company/phone/notes/tag) + tag/status filters; **Select** → `Only this page (20)` vs `All filtered (up to 10k)` for bulk `Tag/Status/Delete` (server-side, user-scoped)
 
 ### 🏷️ **Tag System**
 1. Create tags in "Contact Tags" section  
@@ -185,7 +173,22 @@
 3. Send targeted emails to specific tag groups
 4. Filter contacts by tags for better management
 
+### 📊 **Dashboard**
+- Top row: **Total Campaigns / Campaign Emails / Individual Emails / Total Sent** (equal height/width cards)
+- Second row: **Total Contacts / Active Contacts / Contact Tags / Emails Today**
+- `Emails Sent = Campaign (OneTimeSender) + Individual (EmailAccount)` — individual sends via queue now surface correctly
+- `Recent Campaigns` pulls `OneTimeSender` (instant campaigns); individual sends counted via `EmailAccount.emails_sent`
+
 ---
+
+## 🔒 Security Hardening
+- EmailAccount `store/update` uses `$validated` (no `is_default/is_active/emails_sent` mass-assign)
+- `TempMailAddress` scoped by `user_id` + `chunkById` for instant campaigns; bulk delete scoped `where user_id`
+- `EmailAccount::getSmtpPasswordAttribute` handles legacy plaintext with `DecryptException` fallback & warning log
+- `SendIndividualEmailJob` per-recipient send (no `To` leak), `IndividualMail` encrypted password via accessor
+- Routes throttled: `instant.campaign.import 5/min`, `individual-emails.send 10/min`
+- `SecurityHeaders` middleware (`X-Frame-Options`, `X-Content-Type-Options`, HSTS in prod)
+- `queue.after_commit=true` prevents jobs before DB commit; `psr/simple-cache` + `cache/sessions/job_batches` migrations
 
 ## 🤝 Contributing
 
