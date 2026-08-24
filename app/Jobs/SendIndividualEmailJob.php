@@ -2,24 +2,28 @@
 
 namespace App\Jobs;
 
+use App\Mail\IndividualMail;
+use App\Models\EmailAccount;
+use App\Models\EmailContact;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Facades\Mail;
-use App\Models\EmailAccount;
-use App\Models\EmailContact;
-use App\Mail\IndividualMail;
 
 class SendIndividualEmailJob implements ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
     protected $emailAccount;
+
     protected $recipients;
+
     protected $subject;
+
     protected $body;
+
     protected $isBulk;
 
     /**
@@ -46,7 +50,7 @@ class SendIndividualEmailJob implements ShouldQueue
                 'mail.mailers.smtp.port' => $this->emailAccount->smtp_port,
                 'mail.mailers.smtp.username' => $this->emailAccount->smtp_username ?: $this->emailAccount->email,
                 'mail.mailers.smtp.password' => $this->emailAccount->smtp_password,
-                'mail.mailers.smtp.encryption' => $this->emailAccount->smtp_encryption,
+                'mail.mailers.smtp.encryption' => $this->emailAccount->smtp_encryption === 'none' ? null : $this->emailAccount->smtp_encryption,
                 'mail.from.address' => $this->emailAccount->email,
                 'mail.from.name' => $this->emailAccount->from_name ?? 'BulkMailer',
             ]);
@@ -55,31 +59,37 @@ class SendIndividualEmailJob implements ShouldQueue
             app('mail.manager')->purge('smtp');
 
             if ($this->isBulk) {
-                // Send bulk email
-                Mail::to($this->recipients)
-                    ->send(new IndividualMail($this->subject, $this->body));
-
-                // Update last_emailed_at for all recipients
-                $this->updateContactsLastEmailed($this->recipients);
+                // Send bulk as individual messages to avoid exposing recipients to each other
+                $recipients = is_array($this->recipients) ? $this->recipients : [$this->recipients];
+                $sentCount = 0;
+                foreach ($recipients as $recipient) {
+                    if (! filter_var($recipient, FILTER_VALIDATE_EMAIL)) {
+                        continue;
+                    }
+                    Mail::to($recipient)->send(new IndividualMail($this->subject, $this->body));
+                    $sentCount++;
+                }
+                $this->updateContactsLastEmailed($recipients);
+                // Increment by actual number of emails sent
+                if ($sentCount > 0) {
+                    $this->emailAccount->increment('emails_sent', $sentCount);
+                }
+                $this->emailAccount->update(['last_used_at' => now()]);
             } else {
                 // Send individual email
                 $recipient = is_array($this->recipients) ? $this->recipients[0] : $this->recipients;
                 Mail::to($recipient)->send(new IndividualMail($this->subject, $this->body));
-
-                // Update last_emailed_at for the recipient
                 $this->updateContactsLastEmailed([$recipient]);
+                $this->emailAccount->increment('emails_sent');
+                $this->emailAccount->update(['last_used_at' => now()]);
             }
 
-            // Increment emails_sent counter
-            $this->emailAccount->increment('emails_sent');
-            $this->emailAccount->update(['last_used_at' => now()]);
-
         } catch (\Exception $e) {
-            \Log::error('Individual email sending failed: ' . $e->getMessage(), [
+            \Log::error('Individual email sending failed: '.$e->getMessage(), [
                 'email_account' => $this->emailAccount->email,
                 'smtp_host' => $this->emailAccount->smtp_host,
                 'smtp_port' => $this->emailAccount->smtp_port,
-                'error' => $e->getMessage()
+                'error' => $e->getMessage(),
             ]);
             throw $e;
         }
@@ -90,7 +100,7 @@ class SendIndividualEmailJob implements ShouldQueue
      */
     public function failed(\Throwable $exception): void
     {
-        \Log::error('Individual email job failed: ' . $exception->getMessage());
+        \Log::error('Individual email job failed: '.$exception->getMessage());
     }
 
     /**
@@ -105,7 +115,7 @@ class SendIndividualEmailJob implements ShouldQueue
                 ->update(['last_emailed_at' => now()]);
 
         } catch (\Exception $e) {
-            \Log::warning('Failed to update contact last_emailed_at: ' . $e->getMessage());
+            \Log::warning('Failed to update contact last_emailed_at: '.$e->getMessage());
         }
     }
 }

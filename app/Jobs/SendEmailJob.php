@@ -6,28 +6,31 @@ use App\Mail\SendMail;
 use App\Models\EmailAccount;
 use App\Models\EmailContact;
 use App\Models\OneTimeSender;
+use Exception;
 use Illuminate\Bus\Queueable;
-use Illuminate\Contracts\Queue\ShouldBeUnique;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
-use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Log;
-use Exception;
+use Illuminate\Support\Facades\Mail;
 
 class SendEmailJob implements ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
     protected $email;
+
     protected $mailData;
 
     // Job retry settings
     public $tries = 3;
+
     public $maxExceptions = 3;
+
     public $backoff = [60, 300, 900]; // 1 min, 5 min, 15 min
+
     public $timeout = 120; // 2 minutes timeout
 
     public function __construct($email, $mailData)
@@ -43,8 +46,9 @@ class SendEmailJob implements ShouldQueue
     {
         try {
             // Validate email address
-            if (!filter_var($this->email, FILTER_VALIDATE_EMAIL)) {
-                Log::warning("Invalid email address skipped in job: " . $this->email);
+            if (! filter_var($this->email, FILTER_VALIDATE_EMAIL)) {
+                Log::warning('Invalid email address skipped in job: '.$this->email);
+
                 return;
             }
 
@@ -55,11 +59,11 @@ class SendEmailJob implements ShouldQueue
                 $emailAccount = EmailAccount::find($this->mailData['email_account_id']);
             }
 
-            if (!$emailAccount) {
+            if (! $emailAccount) {
                 $emailAccount = EmailAccount::getDefault();
             }
 
-            if (!$emailAccount || !$emailAccount->is_active) {
+            if (! $emailAccount || ! $emailAccount->is_active) {
                 throw new Exception('No active email account available for sending emails.');
             }
 
@@ -91,23 +95,26 @@ class SendEmailJob implements ShouldQueue
             $emailAccount->increment('emails_sent');
             $emailAccount->update(['last_used_at' => now()]);
 
+            // Track sent in campaign
+            $this->updateCampaignStats('sent');
+
             // Log successful send (only for debugging if needed)
             if (config('app.debug')) {
-                Log::info("Email sent successfully", [
+                Log::info('Email sent successfully', [
                     'to' => $this->email,
                     'subject' => $this->mailData['subject'] ?? 'No subject',
-                    'account' => $emailAccount->name
+                    'account' => $emailAccount->name,
                 ]);
             }
 
         } catch (Exception $e) {
             // Log the error with context
-            Log::error("Failed to send email", [
+            Log::error('Failed to send email', [
                 'to' => $this->email,
                 'subject' => $this->mailData['subject'] ?? 'No subject',
                 'attempt' => $this->attempts(),
                 'error' => $e->getMessage(),
-                'account_id' => $this->mailData['email_account_id'] ?? null
+                'account_id' => $this->mailData['email_account_id'] ?? null,
             ]);
 
             // Update campaign status if this is the final attempt
@@ -125,11 +132,11 @@ class SendEmailJob implements ShouldQueue
      */
     public function failed(Exception $exception): void
     {
-        Log::error("Email job finally failed after all retries", [
+        Log::error('Email job finally failed after all retries', [
             'to' => $this->email,
             'subject' => $this->mailData['subject'] ?? 'No subject',
             'error' => $exception->getMessage(),
-            'attempts' => $this->attempts()
+            'attempts' => $this->attempts(),
         ]);
 
         $this->updateCampaignStats('failed');
@@ -152,9 +159,9 @@ class SendEmailJob implements ShouldQueue
                 }
             }
         } catch (Exception $e) {
-            Log::error("Failed to update campaign stats", [
+            Log::error('Failed to update campaign stats', [
                 'campaign_id' => $this->mailData['campaign_id'] ?? null,
-                'error' => $e->getMessage()
+                'error' => $e->getMessage(),
             ]);
         }
     }
