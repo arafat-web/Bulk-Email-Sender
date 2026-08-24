@@ -71,10 +71,29 @@
     <input type="hidden" name="action" id="bulkAction">
     <input type="hidden" name="tag_id" id="bulkTagId">
     <input type="hidden" name="status" id="bulkStatus">
+    <input type="hidden" name="bulk_all_filtered" id="bulkAllFiltered" value="0">
+    <input type="hidden" name="bulk_search" id="bulkSearch" value="{{ request('search') }}">
+    <input type="hidden" name="bulk_tag" id="bulkTag" value="{{ request('tag') }}">
+    <input type="hidden" name="bulk_status" id="bulkStatusFilter" value="{{ request('status') }}">
 
     <div class="card">
         <div class="card-header" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;">
-            <h5 class="card-title">Contacts</h5>
+            <div class="d-flex align-items-center gap-3">
+                <h5 class="card-title mb-0">Contacts</h5>
+                @if($contacts->count() > 0)
+                    <div class="dropdown" id="selectDropdown">
+                        <button class="btn btn-outline-secondary btn-sm dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false" id="selectDropdownBtn">
+                            Select
+                        </button>
+                        <ul class="dropdown-menu" style="font-size:13px;">
+                            <li><button type="button" class="dropdown-item" onclick="selectPage()">Only this page ({{ $contacts->count() }})</button></li>
+                            <li><button type="button" class="dropdown-item" onclick="selectAllFiltered()">All filtered ({{ number_format($filteredCount) }})</button></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><button type="button" class="dropdown-item" onclick="clearSelection()">Clear selection</button></li>
+                        </ul>
+                    </div>
+                @endif
+            </div>
             <div class="d-flex align-items-center gap-2 flex-wrap">
                 <span id="selectedCount" style="font-size:12px;color:#64748b;display:none;">0 selected</span>
                 <button type="button" class="btn btn-outline-primary btn-sm" onclick="setBulkAction('add_tag')" id="btnAddTag" disabled>Add Tag</button>
@@ -82,6 +101,11 @@
                 <button type="button" class="btn btn-outline-primary btn-sm" onclick="setBulkAction('change_status')" id="btnStatus" disabled>Change Status</button>
                 <button type="button" class="btn btn-outline-danger btn-sm" onclick="setBulkAction('delete')" id="btnDelete" disabled>Delete Selected</button>
             </div>
+        </div>
+        <div id="selectAllBanner" class="alert alert-info d-none mb-0 rounded-0 py-2 px-3" style="font-size:12px;border-left:0;border-right:0;border-top:0;">
+            <span id="bannerText"></span>
+            <button type="button" class="btn btn-sm btn-outline-primary ms-2 py-0 px-2" id="bannerActionBtn" style="font-size:11px;"></button>
+            <button type="button" class="btn btn-sm btn-link ms-1 py-0 px-1" onclick="clearSelection()" style="font-size:11px;text-decoration:none;">Clear</button>
         </div>
         <div class="card-body p-0">
             @if($contacts->count() > 0)
@@ -182,38 +206,127 @@
 
 @push('scripts')
 <script>
+const FILTERED_COUNT = {{ $filteredCount }};
+const FILTER_QUERY = @json(request()->only(['search','tag','status']));
+
+let isAllFiltered = false;
+
+function getVisibleCheckboxes() {
+    return document.querySelectorAll('.contact-checkbox');
+}
+
+function getVisibleCheckedCount() {
+    return document.querySelectorAll('.contact-checkbox:checked').length;
+}
+
+function getTotalSelectedCount() {
+    return isAllFiltered ? FILTERED_COUNT : getVisibleCheckedCount();
+}
+
+function updateBanner() {
+    const banner = document.getElementById('selectAllBanner');
+    const text = document.getElementById('bannerText');
+    const btn = document.getElementById('bannerActionBtn');
+    const visible = getVisibleCheckboxes().length;
+    const checked = getVisibleCheckedCount();
+
+    if (isAllFiltered) {
+        banner.classList.remove('d-none');
+        text.textContent = 'All ' + FILTERED_COUNT.toLocaleString() + ' filtered contacts selected.';
+        btn.textContent = 'Clear selection';
+        btn.onclick = clearSelection;
+        if (FILTERED_COUNT > 10000) {
+            text.textContent += ' (first 10,000 will be processed)';
+        }
+    } else if (visible > 0 && checked === visible && FILTERED_COUNT > visible) {
+        banner.classList.remove('d-none');
+        text.textContent = 'All ' + visible + ' on this page selected.';
+        btn.textContent = 'Select all ' + FILTERED_COUNT.toLocaleString() + ' filtered';
+        btn.onclick = selectAllFiltered;
+    } else {
+        banner.classList.add('d-none');
+    }
+}
+
+function updateBulkState() {
+    var n = getTotalSelectedCount();
+    var has = n > 0;
+    const el = document.getElementById('selectedCount');
+    if (el) { el.style.display = has ? 'inline' : 'none'; el.textContent = n + ' selected'; }
+    ['btnAddTag','btnRemoveTag','btnStatus','btnDelete'].forEach(id => {
+        const b = document.getElementById(id);
+        if (b) b.disabled = !has;
+    });
+    document.getElementById('bulkAllFiltered').value = isAllFiltered ? '1' : '0';
+    updateBanner();
+}
+
+function selectPage() {
+    isAllFiltered = false;
+    getVisibleCheckboxes().forEach(cb => cb.checked = true);
+    const header = document.getElementById('selectAll');
+    if (header) { header.checked = true; header.indeterminate = false; }
+    updateBulkState();
+}
+
+function clearSelection() {
+    isAllFiltered = false;
+    getVisibleCheckboxes().forEach(cb => cb.checked = false);
+    const header = document.getElementById('selectAll');
+    if (header) { header.checked = false; header.indeterminate = false; }
+    updateBulkState();
+}
+
+async function selectAllFiltered() {
+    // Server-side mode: no need to fetch IDs; bulkAction will resolve from filters
+    isAllFiltered = true;
+    getVisibleCheckboxes().forEach(cb => cb.checked = true);
+    const header = document.getElementById('selectAll');
+    if (header) { header.checked = true; header.indeterminate = false; }
+    updateBulkState();
+    // Optionally validate count via ids endpoint (for capped warning)
+    try {
+        const params = new URLSearchParams(FILTER_QUERY);
+        const res = await fetch('{{ route('contacts.ids') }}?' + params.toString(), { headers: { 'Accept': 'application/json' } });
+        if (res.ok) {
+            const data = await res.json();
+            if (data.capped) {
+                document.getElementById('bannerText').textContent = 'All ' + data.total.toLocaleString() + ' filtered contacts — first 10,000 will be processed.';
+            }
+        }
+    } catch (e) {}
+}
+
 document.addEventListener('DOMContentLoaded', function() {
     const selectAllCheckbox = document.getElementById('selectAll');
-    const contactCheckboxes = document.querySelectorAll('.contact-checkbox');
+    const contactCheckboxes = getVisibleCheckboxes();
 
-    function getCheckedCount() {
-        return document.querySelectorAll('.contact-checkbox:checked').length;
+    if (selectAllCheckbox) {
+        selectAllCheckbox.addEventListener('change', function() {
+            // "Select all" header checkbox only toggles this page; use dropdown for all-filtered
+            contactCheckboxes.forEach(cb => cb.checked = this.checked);
+            // If unchecking header while "all filtered" was active, clear extra
+            if (!this.checked && extraIds.size > 0) extraIds.clear();
+            updateBulkState();
+        });
     }
-
-    function updateBulkState() {
-        var n = getCheckedCount();
-        var has = n > 0;
-        document.getElementById('selectedCount').style.display = has ? 'inline' : 'none';
-        document.getElementById('selectedCount').textContent = n + ' selected';
-        document.getElementById('btnAddTag').disabled = !has;
-        document.getElementById('btnRemoveTag').disabled = !has;
-        document.getElementById('btnStatus').disabled = !has;
-        document.getElementById('btnDelete').disabled = !has;
-    }
-
-    selectAllCheckbox.addEventListener('change', function() {
-        contactCheckboxes.forEach(cb => cb.checked = this.checked);
-        updateBulkState();
-    });
 
     contactCheckboxes.forEach(cb => {
         cb.addEventListener('change', function() {
-            var checked = getCheckedCount();
-            selectAllCheckbox.checked = checked === contactCheckboxes.length;
-            selectAllCheckbox.indeterminate = checked > 0 && checked < contactCheckboxes.length;
+            var checked = getVisibleCheckedCount();
+            if (selectAllCheckbox) {
+                selectAllCheckbox.checked = checked === contactCheckboxes.length && contactCheckboxes.length > 0;
+                selectAllCheckbox.indeterminate = checked > 0 && checked < contactCheckboxes.length;
+            }
+            // If user manually unchecks while all-filtered active, drop to page-only mode
+            if (extraIds.size > 0 && checked < contactCheckboxes.length) {
+                // keep extras but reflect partial; banner stays "all selected" until clear
+            }
             updateBulkState();
         });
     });
+
+    updateBulkState();
 });
 
 let deleteModalInstance = null;
@@ -225,12 +338,12 @@ function deleteContact(contactId) {
 }
 
 function setBulkAction(action) {
-    const checked = document.querySelectorAll('.contact-checkbox:checked');
-    if (checked.length === 0) { alert('Please select at least one contact.'); return; }
+    const total = getTotalSelectedCount();
+    if (total === 0) { alert('Please select at least one contact.'); return; }
     document.getElementById('bulkAction').value = action;
 
     if (action === 'delete') {
-        if (confirm('Are you sure you want to delete ' + checked.length + ' contact(s)?')) {
+        if (confirm('Are you sure you want to delete ' + total + ' contact(s)?')) {
             document.getElementById('bulkActionForm').submit();
         }
     } else if (action === 'add_tag' || action === 'remove_tag') {

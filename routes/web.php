@@ -1,14 +1,16 @@
 <?php
 
-use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\HomeController;
-use App\Http\Controllers\InstantCampaignController;
-use App\Http\Controllers\EmailAccountController;
-use App\Http\Controllers\EmailTemplateController;
-use App\Http\Controllers\ProfileController;
-use App\Http\Controllers\IndividualEmailController;
 use App\Http\Controllers\ContactController;
 use App\Http\Controllers\ContactTagController;
+use App\Http\Controllers\EmailAccountController;
+use App\Http\Controllers\EmailTemplateController;
+use App\Http\Controllers\HomeController;
+use App\Http\Controllers\IndividualEmailController;
+use App\Http\Controllers\InstantCampaignController;
+use App\Http\Controllers\ProfileController;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Route;
+
 /*
 |--------------------------------------------------------------------------
 | Web Routes
@@ -31,7 +33,7 @@ Route::middleware('auth')->group(function () {
     // Dashboard & Home Routes
     Route::get('/', [HomeController::class, 'index'])->name('home');
     Route::get('/instant/campaign', [InstantCampaignController::class, 'create'])->name('instant.campaign.create');
-    Route::post('/instant/campaign', [InstantCampaignController::class, 'import'])->name('instant.campaign.import');
+    Route::post('/instant/campaign', [InstantCampaignController::class, 'import'])->middleware('throttle:5,1')->name('instant.campaign.import');
     Route::get('/saved/templates', [HomeController::class, 'savedTemplates'])->name('saved.templates');
 
     // Email Account Management Routes
@@ -54,13 +56,14 @@ Route::middleware('auth')->group(function () {
 
     // Individual Email Routes
     Route::get('/individual-emails', [IndividualEmailController::class, 'create'])->name('individual-emails.create');
-    Route::post('/individual-emails/send', [IndividualEmailController::class, 'send'])->name('individual-emails.send');
-    Route::post('/individual-emails/validate', [IndividualEmailController::class, 'validateEmails'])->name('individual-emails.validate');
+    Route::post('/individual-emails/send', [IndividualEmailController::class, 'send'])->middleware('throttle:10,1')->name('individual-emails.send');
+    Route::post('/individual-emails/validate', [IndividualEmailController::class, 'validateEmails'])->middleware('throttle:30,1')->name('individual-emails.validate');
 
     // Contact Management Routes
     Route::get('/contacts/import/form', [ContactController::class, 'importForm'])->name('contacts.import.form');
     Route::post('/contacts/import', [ContactController::class, 'import'])->name('contacts.import');
     Route::post('/contacts/bulk-action', [ContactController::class, 'bulkAction'])->name('contacts.bulk-action');
+    Route::get('/contacts/ids', [ContactController::class, 'ids'])->name('contacts.ids');
     Route::resource('contacts', ContactController::class);
 
     // Contact Tag Management Routes

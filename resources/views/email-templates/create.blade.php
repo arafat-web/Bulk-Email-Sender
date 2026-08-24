@@ -52,24 +52,9 @@
                     </div>
 
                     <div class="mb-3">
-                        <div class="btn-group" role="group">
-                            <input type="radio" class="btn-check" name="editorMode" id="visualMode" checked autocomplete="off">
-                            <label class="btn btn-outline-primary" for="visualMode"><i class="bi bi-palette me-1"></i>Visual Designer</label>
-                            <input type="radio" class="btn-check" name="editorMode" id="codeMode" autocomplete="off">
-                            <label class="btn btn-outline-primary" for="codeMode"><i class="bi bi-code-slash me-1"></i>HTML Code</label>
-                        </div>
-                    </div>
-
-                    <div class="mb-3" id="visualEditorContainer">
-                        <label class="form-label">Email Body <span style="color:#ef4444;">*</span></label>
-                        <div id="gjs"></div>
-                        <textarea id="body" name="body" class="form-control d-none" required>{{ old('body') }}</textarea>
+                        <label for="body" class="form-label">Email Body <span style="color:#ef4444;">*</span></label>
+                        <textarea id="body" name="body" class="form-control @error('body') is-invalid @enderror" rows="14">{{ old('body') }}</textarea>
                         @error('body')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
-                    </div>
-
-                    <div class="mb-3 d-none" id="codeEditorContainer">
-                        <label for="bodyCode" class="form-label">HTML Code <span style="color:#ef4444;">*</span></label>
-                        <textarea id="bodyCode" class="form-control font-monospace @error('body') is-invalid @enderror" rows="18" placeholder="Enter your HTML code..." style="font-size:13px;">{{ old('body') }}</textarea>
                     </div>
 
                     <div class="mb-3">
@@ -93,120 +78,34 @@
             <div class="card-header"><h5 class="card-title">Tips</h5></div>
             <div class="card-body" style="font-size:13px;">
                 <ul class="list-unstyled mb-0" style="display:flex;flex-direction:column;gap:8px;">
-                    <li style="display:flex;gap:8px;align-items:flex-start;"><span style="color:#16a34a;">&#10003;</span> Drag blocks from the right panel to build your email</li>
-                    <li style="display:flex;gap:8px;align-items:flex-start;"><span style="color:#16a34a;">&#10003;</span> Click any element to edit text or styles</li>
-                    <li style="display:flex;gap:8px;align-items:flex-start;"><span style="color:#16a34a;">&#10003;</span> Use inline styles for email client compatibility</li>
-                    <li style="display:flex;gap:8px;align-items:flex-start;"><span style="color:#16a34a;">&#10003;</span> Toggle device preview to check mobile layout</li>
+                    <li style="display:flex;gap:8px;align-items:flex-start;"><span style="color:#16a34a;">&#10003;</span> Use the rich text editor to format with colors, fonts and styling</li>
+                    <li style="display:flex;gap:8px;align-items:flex-start;"><span style="color:#16a34a;">&#10003;</span> Insert images, tables and links via the toolbar</li>
+                    <li style="display:flex;gap:8px;align-items:flex-start;"><span style="color:#16a34a;">&#10003;</span> Use View Source (&lt;&gt;) to edit raw HTML</li>
+                    <li style="display:flex;gap:8px;align-items:flex-start;"><span style="color:#16a34a;">&#10003;</span> Preview on mobile before saving</li>
                 </ul>
             </div>
         </div>
-
-        <a href="https://grapesjs.com/docs/" target="_blank" rel="noopener" style="text-decoration:none;">
-            <div style="background:#0f172a;border-radius:10px;padding:16px 18px;display:flex;align-items:center;gap:12px;transition:opacity 0.15s;">
-                <div style="width:32px;height:32px;background:rgba(255,255,255,0.1);border-radius:6px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
-                </div>
-                <div style="flex:1;min-width:0;">
-                    <div style="font-size:13px;font-weight:600;color:#fff;">GrapesJS Documentation</div>
-                    <div style="font-size:11px;color:#94a3b8;">Learn all builder features &rarr;</div>
-                </div>
-            </div>
-        </a>
     </div>
 </div>
 @endsection
 
-@push('styles')
-<link href="https://unpkg.com/grapesjs/dist/css/grapes.min.css" rel="stylesheet">
-<link href="https://unpkg.com/grapesjs-preset-newsletter/dist/grapesjs-preset-newsletter.min.css" rel="stylesheet">
-<style>
-    .gjs-one-bg { background-color: #0f172a; }
-    .gjs-two-color { color: rgba(255,255,255,0.7); }
-    .gjs-three-bg { background-color: #1e293b; color: #fff; }
-    .gjs-four-color, .gjs-four-color-h:hover { color: #94a3b8; }
-    #gjs { border: 1px solid #e2e8f0; border-radius: 8px; overflow: hidden; }
-</style>
-@endpush
-
 @push('scripts')
-<script src="https://unpkg.com/grapesjs"></script>
-<script src="https://unpkg.com/grapesjs-preset-newsletter"></script>
 <script>
 $(document).ready(function() {
-    let grapesEditor;
-
-    function initGrapesJS(html) {
-        if (grapesEditor) { let c = cleanHtml(html || ''); grapesEditor.setComponents(c.html); if (c.css) grapesEditor.setStyle(c.css); return; }
-        grapesEditor = grapesjs.init({
-            container: '#gjs',
-            height: '500px',
-            width: 'auto',
-            storageManager: false,
-            plugins: ['grapesjs-preset-newsletter'],
-            pluginsOpts: {
-                'grapesjs-preset-newsletter': {
-                    modalLabelImport: 'Paste HTML',
-                    cellStyle: { 'font-size':'14px','font-family':'Inter,Arial,sans-serif','color':'#0f172a' }
-                }
-            },
-            canvas: { styles: ['https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap'] },
+    if (typeof tinymce !== 'undefined') {
+        tinymce.init({ selector: '#body', height: 420, menubar: false, branding: false,
+            plugins: 'advlist autolink lists link image charmap preview anchor searchreplace visualblocks code fullscreen insertdatetime media table help wordcount',
+            toolbar: 'undo redo | blocks fontfamily fontsize | bold italic underline | alignleft aligncenter alignright | bullist numlist | link image table | code preview fullscreen | removeformat',
+            content_style: 'body { font-family: Inter, sans-serif; font-size: 14px; }',
+            setup: function(ed){ ed.on('change', function(){ ed.save(); }); }
         });
-        let c = cleanHtml(html || '');
-        if (c.html) { grapesEditor.setComponents(c.html); if (c.css) grapesEditor.setStyle(c.css); }
-        grapesEditor.on('component:update', sync);
-        grapesEditor.on('style:update', sync);
     }
-
-    // Strip full HTML doc to body+styles for GrapesJS
-    function cleanHtml(raw) {
-        let h = raw || '', css = '';
-        const sm = h.match(/<style[^>]*>([\s\S]*?)<\/style>/gi);
-        if (sm) { css = sm.map(s => s.replace(/<\/?style[^>]*>/gi, '')).join('\n'); h = h.replace(/<style[^>]*>[\s\S]*?<\/style>/gi, ''); }
-        const bm = h.match(/<body[^>]*>([\s\S]*?)<\/body>/i);
-        if (bm) { h = bm[1].trim(); } else { h = h.replace(/<!DOCTYPE[^>]*>/gi, '').replace(/<html[^>]*>|<\/html>/gi, '').replace(/<head[^>]*>[\s\S]*?<\/head>/gi, ''); }
-        return { html: h.trim(), css: css };
-    }
-
-    function sync() {
-        if (!grapesEditor) return;
-        const h = grapesEditor.getHtml(), c = grapesEditor.getCss();
-        $('#body').val('<style>' + c + '</style>' + h);
-    }
-
-    function getContent() {
-        if (!grapesEditor) return $('#bodyCode').val() || '';
-        return '<style>' + grapesEditor.getCss() + '</style>' + grapesEditor.getHtml();
-    }
-
-    function setContent(html) {
-        let c = cleanHtml(html || '');
-        if (grapesEditor) { grapesEditor.setComponents(c.html); if (c.css) grapesEditor.setStyle(c.css); }
-        $('#bodyCode').val(html);
-        $('#body').val(html);
-    }
-
-    initGrapesJS($('#body').val() || '');
-    sync();
-    setInterval(sync, 2000);
-
-    $('input[name="editorMode"]').on('change', function() {
-        if ($('#codeMode').is(':checked')) {
-            $('#bodyCode').val(getContent());
-            $('#visualEditorContainer').addClass('d-none');
-            $('#codeEditorContainer').removeClass('d-none');
-        } else {
-            setContent($('#bodyCode').val());
-            $('#codeEditorContainer').addClass('d-none');
-            $('#visualEditorContainer').removeClass('d-none');
-        }
-    });
-
-    $('#bodyCode').on('input', function() { $('#body').val($(this).val()); });
-
-    $('#templateForm').on('submit', function() {
-        if ($('#visualMode').is(':checked')) $('#body').val(getContent());
-        else $('#body').val($('#bodyCode').val());
+    $('#templateForm').on('submit', function(e){
+        if (typeof tinymce !== 'undefined' && tinymce.get('body')) tinymce.get('body').save();
+        if (!$('#body').val().replace(/<[^>]*>/g,'').trim()) { e.preventDefault(); Swal.fire({icon:'error',title:'Missing email body',text:'Please enter template content.'}); return false; }
     });
 });
 </script>
 @endpush
+
+

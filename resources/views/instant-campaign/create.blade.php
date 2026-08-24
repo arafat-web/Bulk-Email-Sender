@@ -92,34 +92,10 @@
                     </div>
 
                     <div class="mb-3">
-                        <div class="btn-group" role="group">
-                            <input type="radio" class="btn-check" name="editorMode" id="visualMode" checked autocomplete="off">
-                            <label class="btn btn-outline-primary" for="visualMode">
-                                <i class="bi bi-palette me-1"></i>Visual Designer
-                            </label>
-                            <input type="radio" class="btn-check" name="editorMode" id="codeMode" autocomplete="off">
-                            <label class="btn btn-outline-primary" for="codeMode">
-                                <i class="bi bi-code-slash me-1"></i>HTML Code
-                            </label>
-                        </div>
-                    </div>
-
-                    <div class="mb-3" id="visualEditorContainer">
-                        <label class="form-label">Email Body <span style="color:#ef4444;">*</span></label>
-                        <div id="gjs"></div>
-                        <textarea id="body" name="body" class="form-control d-none">{{ old('body', $selectedTemplate ? $selectedTemplate->body : '') }}</textarea>
+                        <label for="body" class="form-label">Email Body <span style="color:#ef4444;">*</span></label>
+                        <textarea id="body" name="body" class="form-control @error('body') is-invalid @enderror" rows="14">{{ old('body', $selectedTemplate ? $selectedTemplate->body : '') }}</textarea>
                         @error('body')
                             <div class="invalid-feedback d-block">{{ $message }}</div>
-                        @enderror
-                    </div>
-
-                    <div class="mb-3 d-none" id="codeEditorContainer">
-                        <label for="bodyCode" class="form-label">HTML Code <span style="color:#ef4444;">*</span></label>
-                        <textarea id="bodyCode" class="form-control font-monospace @error('body') is-invalid @enderror"
-                                  rows="18" placeholder="Enter your HTML code..."
-                                  style="font-size:13px;">{{ old('body', $selectedTemplate ? $selectedTemplate->body : '') }}</textarea>
-                        @error('body')
-                            <div class="invalid-feedback">{{ $message }}</div>
                         @enderror
                     </div>
 
@@ -222,18 +198,7 @@
 @endsection
 
 @push('styles')
-<link href="https://unpkg.com/grapesjs/dist/css/grapes.min.css" rel="stylesheet">
-<link href="https://unpkg.com/grapesjs-preset-newsletter/dist/grapesjs-preset-newsletter.min.css" rel="stylesheet">
 <style>
-    .gjs-one-bg { background-color: #0f172a; }
-    .gjs-two-color { color: rgba(255,255,255,0.7); }
-    .gjs-three-bg { background-color: #1e293b; color: #fff; }
-    .gjs-four-color, .gjs-four-color-h:hover { color: #94a3b8; }
-    #gjs {
-        border: 1px solid #e2e8f0;
-        border-radius: 8px;
-        overflow: hidden;
-    }
     /* Template cards */
     .tpl-card {
         background: #fff;
@@ -298,134 +263,14 @@
 @endpush
 
 @push('scripts')
-<script src="https://unpkg.com/grapesjs"></script>
-<script src="https://unpkg.com/grapesjs-preset-newsletter"></script>
 <script>
 $(document).ready(function() {
 
-    // ── GrapesJS Drag & Drop Builder ──
-    let grapesEditor;
+    // ── TinyMCE ──
+    function getBody(){ if (typeof tinymce!=='undefined' && tinymce.get('body')) return tinymce.get('body').getContent(); return $('#body').val()||''; }
+    function setBody(h){ if (typeof tinymce!=='undefined' && tinymce.get('body')) tinymce.get('body').setContent(h||''); else $('#body').val(h||''); }
+    if (typeof tinymce!=='undefined') tinymce.init({ selector:'#body', height: 420, menubar:false, branding:false, plugins:'advlist autolink lists link image charmap preview anchor searchreplace visualblocks code fullscreen insertdatetime media table help wordcount', toolbar:'undo redo | blocks fontfamily fontsize | bold italic underline | alignleft aligncenter alignright | bullist numlist | link image table | code preview fullscreen | removeformat', content_style:'body { font-family: Inter, sans-serif; font-size: 14px; }', setup:function(ed){ ed.on('change', function(){ ed.save(); }); } });
 
-    function initGrapesJS(initialHtml) {
-        if (grapesEditor) {
-            // Clean and re-load
-            let clean = cleanHtmlForGrapes(initialHtml || '');
-            grapesEditor.setComponents(clean.html);
-            if (clean.css) grapesEditor.setStyle(clean.css);
-            return;
-        }
-
-        grapesEditor = grapesjs.init({
-            container: '#gjs',
-            height: '500px',
-            width: 'auto',
-            storageManager: false,
-            plugins: ['grapesjs-preset-newsletter'],
-            pluginsOpts: {
-                'grapesjs-preset-newsletter': {
-                    modalLabelImport: 'Paste your HTML here',
-                    importPlaceholder: '<table><tr><td>Your HTML here</td></tr></table>',
-                    cellStyle: {
-                        'font-size': '14px',
-                        'font-family': 'Inter, Arial, sans-serif',
-                        'color': '#0f172a',
-                    },
-                }
-            },
-            canvas: {
-                styles: [
-                    'https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap'
-                ],
-            },
-        });
-
-        // Load initial content (cleaned)
-        let clean = cleanHtmlForGrapes(initialHtml || '');
-        if (clean.html) {
-            grapesEditor.setComponents(clean.html);
-            if (clean.css) grapesEditor.setStyle(clean.css);
-        }
-
-        // Sync to hidden textarea on change
-        grapesEditor.on('component:update', syncGrapesToTextarea);
-        grapesEditor.on('style:update', syncGrapesToTextarea);
-    }
-
-    // Helper: strip full HTML doc to get body+styles for GrapesJS
-    function cleanHtmlForGrapes(raw) {
-        let html = raw || '';
-        let css = '';
-
-        // Extract <style> blocks
-        const styleMatches = html.match(/<style[^>]*>([\s\S]*?)<\/style>/gi);
-        if (styleMatches) {
-            css = styleMatches.map(s => s.replace(/<\/?style[^>]*>/gi, '')).join('\n');
-            html = html.replace(/<style[^>]*>[\s\S]*?<\/style>/gi, '');
-        }
-
-        // Strip full doc wrapper
-        const bodyMatch = html.match(/<body[^>]*>([\s\S]*?)<\/body>/i);
-        if (bodyMatch) {
-            html = bodyMatch[1].trim();
-        } else {
-            html = html.replace(/<!DOCTYPE[^>]*>/gi, '');
-            html = html.replace(/<html[^>]*>|<\/html>/gi, '');
-            html = html.replace(/<head[^>]*>[\s\S]*?<\/head>/gi, '');
-        }
-        return { html: html.trim(), css: css };
-    }
-
-    function syncGrapesToTextarea() {
-        if (!grapesEditor) return;
-        const html = grapesEditor.getHtml();
-        const css = grapesEditor.getCss();
-        $('#body').val('<style>' + css + '</style>' + html);
-    }
-
-    function getGrapesContent() {
-        if (!grapesEditor) return $('#bodyCode').val() || $('#body').val() || '';
-        const html = grapesEditor.getHtml();
-        const css = grapesEditor.getCss();
-        return '<style>' + css + '</style>' + html;
-    }
-
-    function setGrapesContent(htmlContent) {
-        let clean = cleanHtmlForGrapes(htmlContent || '');
-        if (grapesEditor) {
-            grapesEditor.setComponents(clean.html);
-            if (clean.css) grapesEditor.setStyle(clean.css);
-        }
-        $('#bodyCode').val(htmlContent);
-        $('#body').val(htmlContent);
-    }
-
-    // ── Initialize the builder ──
-    const initialBody = $('#body').val() || '';
-    initGrapesJS(initialBody);
-    if (initialBody) syncGrapesToTextarea();
-
-    // Ensure hidden textarea is always in sync
-    setInterval(syncGrapesToTextarea, 2000);
-
-    // ── Visual / Code mode toggle ──
-    $('input[name="editorMode"]').on('change', function() {
-        if ($('#codeMode').is(':checked')) {
-            // Switch to code mode: sync GrapesJS → textarea, then hide visual
-            $('#bodyCode').val(getGrapesContent());
-            $('#visualEditorContainer').addClass('d-none');
-            $('#codeEditorContainer').removeClass('d-none');
-        } else {
-            // Switch to visual mode: load code into GrapesJS
-            setGrapesContent($('#bodyCode').val());
-            $('#codeEditorContainer').addClass('d-none');
-            $('#visualEditorContainer').removeClass('d-none');
-        }
-    });
-
-    // Sync code editor changes back to hidden textarea
-    $('#bodyCode').on('input', function() {
-        $('#body').val($(this).val());
-    });
 
     // ── Base64 decode helper ──
     function decodeBase64(str) {
@@ -444,9 +289,7 @@ $(document).ready(function() {
         const opt = $(this).find('option:selected');
         if (!opt.val()) return;
         $('#subject').val(opt.data('subject'));
-        setGrapesContent(decodeBase64(opt.data('body')));
-        // Ensure visual mode
-        $('#visualMode').prop('checked', true).trigger('change');
+        setBody(decodeBase64(opt.data('body')));
     });
 
     // ── Quick template buttons ──
@@ -454,18 +297,12 @@ $(document).ready(function() {
         const btn = $(this);
         $('#template_select').val(btn.data('template-id'));
         $('#subject').val(btn.data('subject'));
-        setGrapesContent(decodeBase64(btn.data('body')));
-        $('#visualMode').prop('checked', true).trigger('change');
+        setBody(decodeBase64(btn.data('body')));
     });
 
     // ── Form submission ──
     $('#campaignForm').on('submit', function(e) {
-        // Sync content from active mode
-        if ($('#visualMode').is(':checked')) {
-            $('#body').val(getGrapesContent());
-        } else {
-            $('#body').val($('#bodyCode').val());
-        }
+        if (typeof tinymce!=='undefined' && tinymce.get('body')) tinymce.get('body').save();
 
         const file = $('#file')[0].files[0];
         const subject = $('#subject').val().trim();
@@ -515,7 +352,7 @@ $(document).ready(function() {
     // ── Reset ──
     $('#resetForm').on('click', function() {
         $('#template_select').val('');
-        setGrapesContent('');
+        setBody('');
     });
 
     // ── Pre-loaded template notification ──

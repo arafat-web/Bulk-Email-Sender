@@ -20,35 +20,39 @@
 
 <!-- Stat cards -->
 <div class="row g-3 mb-4">
-    <div class="col-lg-3 col-md-6">
-        <div class="card">
-            <div class="card-body" style="padding:20px;">
+    <div class="col-6 col-md-3 d-flex">
+        <div class="card flex-fill d-flex flex-column">
+            <div class="card-body d-flex flex-column" style="padding:18px 20px;">
                 <div style="font-size:12px;color:#64748b;font-weight:500;margin-bottom:8px;">Total Campaigns</div>
                 <div style="font-size:28px;font-weight:600;color:#0f172a;">{{ $total_time }}</div>
+                <div style="font-size:11px;color:transparent;margin-top:4px;user-select:none;">—</div>
             </div>
         </div>
     </div>
-    <div class="col-lg-3 col-md-6">
-        <div class="card">
-            <div class="card-body" style="padding:20px;">
-                <div style="font-size:12px;color:#64748b;font-weight:500;margin-bottom:8px;">Emails Sent</div>
+    <div class="col-6 col-md-3 d-flex">
+        <div class="card flex-fill d-flex flex-column">
+            <div class="card-body d-flex flex-column" style="padding:18px 20px;">
+                <div style="font-size:12px;color:#64748b;font-weight:500;margin-bottom:8px;">Campaign Emails</div>
+                <div style="font-size:28px;font-weight:600;color:#0f172a;">{{ number_format($campaign_sent ?? 0) }}</div>
+                <div style="font-size:11px;color:#94a3b8;margin-top:4px;">via Instant Campaign</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-md-3 d-flex">
+        <div class="card flex-fill d-flex flex-column" style="border-color:#e2e8f0;">
+            <div class="card-body d-flex flex-column" style="padding:18px 20px;">
+                <div style="font-size:12px;color:#64748b;font-weight:500;margin-bottom:8px;">Individual Emails</div>
+                <div style="font-size:28px;font-weight:600;color:#0f172a;">{{ number_format($individual_sent ?? 0) }}</div>
+                <div style="font-size:11px;color:#94a3b8;margin-top:4px;">via Individual send</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-md-3 d-flex">
+        <div class="card flex-fill d-flex flex-column">
+            <div class="card-body d-flex flex-column" style="padding:18px 20px;">
+                <div style="font-size:12px;color:#64748b;font-weight:500;margin-bottom:8px;">Total Sent</div>
                 <div style="font-size:28px;font-weight:600;color:#0f172a;">{{ number_format($total_sent) }}</div>
-            </div>
-        </div>
-    </div>
-    <div class="col-lg-3 col-md-6">
-        <div class="card">
-            <div class="card-body" style="padding:20px;">
-                <div style="font-size:12px;color:#64748b;font-weight:500;margin-bottom:8px;">System Users</div>
-                <div style="font-size:28px;font-weight:600;color:#0f172a;">{{ $total_user }}</div>
-            </div>
-        </div>
-    </div>
-    <div class="col-lg-3 col-md-6">
-        <div class="card">
-            <div class="card-body" style="padding:20px;">
-                <div style="font-size:12px;color:#64748b;font-weight:500;margin-bottom:8px;">Email Accounts</div>
-                <div style="font-size:28px;font-weight:600;color:#0f172a;">{{ $total_email_accounts ?? 0 }}</div>
+                <div style="font-size:11px;color:#94a3b8;margin-top:4px;">Campaigns + Individual</div>
             </div>
         </div>
     </div>

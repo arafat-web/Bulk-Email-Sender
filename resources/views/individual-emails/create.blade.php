@@ -113,24 +113,16 @@
             <div class="card mb-3">
                 <div class="card-header" style="display:flex;align-items:center;justify-content:space-between;">
                     <h5 class="card-title">Email Content</h5>
-                    <div class="d-flex gap-2">
-                        <div class="btn-group btn-group-sm">
-                            <input type="radio" class="btn-check" name="editorMode" id="visualMode" checked autocomplete="off">
-                            <label class="btn btn-outline-primary" for="visualMode">Design</label>
-                            <input type="radio" class="btn-check" name="editorMode" id="codeMode" autocomplete="off">
-                            <label class="btn btn-outline-primary" for="codeMode">HTML</label>
+                    @if($templates->count() > 0)
+                        <div class="dropdown">
+                            <button class="btn btn-outline-primary btn-sm dropdown-toggle" type="button" data-bs-toggle="dropdown">Templates</button>
+                            <ul class="dropdown-menu">
+                                @foreach($templates as $template)
+                                    <li><a class="dropdown-item template-option" href="#" data-subject="{{ $template->subject }}" data-body="{{ base64_encode($template->body) }}">{{ $template->name }}</a></li>
+                                @endforeach
+                            </ul>
                         </div>
-                        @if($templates->count() > 0)
-                            <div class="dropdown">
-                                <button class="btn btn-outline-primary btn-sm dropdown-toggle" type="button" data-bs-toggle="dropdown">Templates</button>
-                                <ul class="dropdown-menu">
-                                    @foreach($templates as $template)
-                                        <li><a class="dropdown-item template-option" href="#" data-subject="{{ $template->subject }}" data-body="{{ base64_encode($template->body) }}">{{ $template->name }}</a></li>
-                                    @endforeach
-                                </ul>
-                            </div>
-                        @endif
-                    </div>
+                    @endif
                 </div>
                 <div class="card-body">
                     <div class="mb-3">
@@ -138,15 +130,10 @@
                         <input type="text" class="form-control @error('subject') is-invalid @enderror" id="subject" name="subject" value="{{ old('subject') }}" placeholder="Email subject" required>
                         @error('subject')<div class="invalid-feedback">{{ $message }}</div>@enderror
                     </div>
-                    <div class="mb-3" id="visualEditorContainer">
-                        <label class="form-label">Email Body <span style="color:#ef4444;">*</span></label>
-                        <div id="gjs"></div>
-                        <textarea id="body" name="body" class="form-control d-none" required>{{ old('body') }}</textarea>
+                    <div class="mb-3">
+                        <label for="body" class="form-label">Email Body <span style="color:#ef4444;">*</span></label>
+                        <textarea id="body" name="body" class="form-control @error('body') is-invalid @enderror" rows="14">{{ old('body') }}</textarea>
                         @error('body')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
-                    </div>
-                    <div class="mb-3 d-none" id="codeEditorContainer">
-                        <label for="bodyCode" class="form-label">HTML Code <span style="color:#ef4444;">*</span></label>
-                        <textarea id="bodyCode" class="form-control font-monospace @error('body') is-invalid @enderror" rows="14" style="font-size:13px;">{{ old('body') }}</textarea>
                     </div>
                 </div>
             </div>
@@ -181,67 +168,18 @@
 </div>
 @endsection
 
-@push('styles')
-<link href="https://unpkg.com/grapesjs/dist/css/grapes.min.css" rel="stylesheet">
-<link href="https://unpkg.com/grapesjs-preset-newsletter/dist/grapesjs-preset-newsletter.min.css" rel="stylesheet">
-<style>
-    .gjs-one-bg { background-color: #0f172a; }
-    .gjs-two-color { color: rgba(255,255,255,0.7); }
-    .gjs-three-bg { background-color: #1e293b; color: #fff; }
-    .gjs-four-color, .gjs-four-color-h:hover { color: #94a3b8; }
-    #gjs { border: 1px solid #e2e8f0; border-radius: 8px; overflow: hidden; }
-</style>
-@endpush
-
 @push('scripts')
-<script src="https://unpkg.com/grapesjs"></script>
-<script src="https://unpkg.com/grapesjs-preset-newsletter"></script>
 <script>
 $(document).ready(function() {
-    // ── GrapesJS ──
-    let grapesEditor;
-
-    function cleanHtml(raw) {
-        let h = raw || '', css = '';
-        var sm = h.match(/<style[^>]*>([\s\S]*?)<\/style>/gi);
-        if (sm) { css = sm.map(function(s) { return s.replace(/<\/?style[^>]*>/gi, ''); }).join('\n'); h = h.replace(/<style[^>]*>[\s\S]*?<\/style>/gi, ''); }
-        var bm = h.match(/<body[^>]*>([\s\S]*?)<\/body>/i);
-        if (bm) { h = bm[1].trim(); } else { h = h.replace(/<!DOCTYPE[^>]*>/gi, '').replace(/<html[^>]*>|<\/html>/gi, '').replace(/<head[^>]*>[\s\S]*?<\/head>/gi, ''); }
-        return { html: h.trim(), css: css };
-    }
-
-    function initGrapesJS(html) {
-        if (grapesEditor) { var c = cleanHtml(html || ''); grapesEditor.setComponents(c.html); if (c.css) grapesEditor.setStyle(c.css); return; }
-        grapesEditor = grapesjs.init({
-            container: '#gjs', height: '400px', width: 'auto', storageManager: false,
-            plugins: ['grapesjs-preset-newsletter'],
-            pluginsOpts: { 'grapesjs-preset-newsletter': { modalLabelImport: 'Paste HTML', cellStyle: { 'font-size':'14px','font-family':'Inter,Arial,sans-serif','color':'#0f172a' } } },
-            canvas: { styles: ['https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap'] },
-        });
-        var c = cleanHtml(html || '');
-        if (c.html) { grapesEditor.setComponents(c.html); if (c.css) grapesEditor.setStyle(c.css); }
-        grapesEditor.on('component:update', sync); grapesEditor.on('style:update', sync);
-    }
-    function sync() { if (!grapesEditor) return; $('#body').val('<style>' + grapesEditor.getCss() + '</style>' + grapesEditor.getHtml()); }
-    function getContent() { if (!grapesEditor) return $('#bodyCode').val() || ''; return '<style>' + grapesEditor.getCss() + '</style>' + grapesEditor.getHtml(); }
-    function setContent(html) { var c = cleanHtml(html || ''); if (grapesEditor) { grapesEditor.setComponents(c.html); if (c.css) grapesEditor.setStyle(c.css); } $('#bodyCode').val(html); $('#body').val(html); }
-
-    initGrapesJS($('#body').val() || '');
-    sync(); setInterval(sync, 2000);
-
-    $('input[name="editorMode"]').on('change', function() {
-        if ($('#codeMode').is(':checked')) { $('#bodyCode').val(getContent()); $('#visualEditorContainer').addClass('d-none'); $('#codeEditorContainer').removeClass('d-none'); }
-        else { setContent($('#bodyCode').val()); $('#codeEditorContainer').addClass('d-none'); $('#visualEditorContainer').removeClass('d-none'); }
-    });
-    $('#bodyCode').on('input', function() { $('#body').val($(this).val()); });
-
+    function getContent(){ if(typeof tinymce!=='undefined' && tinymce.get('body')) return tinymce.get('body').getContent(); return $('#body').val()||''; }
+    function setContent(html){ if(typeof tinymce!=='undefined' && tinymce.get('body')) tinymce.get('body').setContent(html||''); else $('#body').val(html||''); }
+    if(typeof tinymce!=='undefined') tinymce.init({ selector:'#body', height: 400, menubar:false, branding:false, plugins:'advlist autolink lists link image charmap preview anchor searchreplace visualblocks code fullscreen insertdatetime media table help wordcount', toolbar:'undo redo | blocks fontfamily fontsize | bold italic underline | alignleft aligncenter alignright | bullist numlist | link image table | code preview fullscreen | removeformat', content_style:'body { font-family: Inter, sans-serif; font-size: 14px; }', setup:function(ed){ ed.on('change', function(){ ed.save(); }); } });
     function decodeBase64(s) { try { return new TextDecoder('utf-8').decode(new Uint8Array([...atob(s)].map(function(c) { return c.charCodeAt(0); }))); } catch(e) { try { return atob(s); } catch(e2) { return s; } } }
 
     $('.template-option').on('click', function(e) {
         e.preventDefault();
         $('#subject').val($(this).data('subject'));
         setContent(decodeBase64($(this).data('body')));
-        $('#visualMode').prop('checked', true).trigger('change');
     });
 
     // ── Email validation ──
@@ -262,7 +200,11 @@ $(document).ready(function() {
     });
 
     $('#individualEmailForm').on('submit', function(e) {
-        e.preventDefault(); if (typeof tinymce !== 'undefined' && tinymce.get('body')) tinymce.get('body').save();
+        e.preventDefault();
+        // Sync TinyMCE -> textarea and validate client-side (bypass native required on hidden textarea)
+        if (typeof tinymce !== 'undefined' && tinymce.get('body')) tinymce.get('body').save();
+        var bodyContent = getContent().replace(/<[^>]*>/g,'').trim();
+        if (!bodyContent) { Swal.fire({ icon:'error', title:'Missing email body', text:'Please enter email content.' }); return; }
         var fd = new FormData(this); fd.set('body', getContent());
         Swal.fire({ title: 'Sending...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
         $.ajax({ url: $(this).attr('action'), method: 'POST', data: fd, processData: false, contentType: false,
