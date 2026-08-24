@@ -20,14 +20,14 @@
   <p><strong>Professional Laravel-based email marketing solution with rich HTML editor</strong></p>
   
   <p>
-    <img src="https://img.shields.io/badge/Laravel-10.x-red?style=for-the-badge&logo=laravel" alt="Laravel">
+    <img src="https://img.shields.io/badge/Laravel-10.50-red?style=for-the-badge&logo=laravel" alt="Laravel">
     <img src="https://img.shields.io/badge/PHP-8.1+-blue?style=for-the-badge&logo=php" alt="PHP">
     <img src="https://img.shields.io/badge/Bootstrap-5.x-purple?style=for-the-badge&logo=bootstrap" alt="Bootstrap">
     <img src="https://img.shields.io/badge/License-MIT-green?style=for-the-badge" alt="License">
   </p>
   
   <p>
-    <img src="https://img.shields.io/badge/version-2.1-blue?style=for-the-badge" alt="Version">
+    <img src="https://img.shields.io/badge/version-2.2-blue?style=for-the-badge" alt="Version">
     <img src="https://img.shields.io/badge/TinyMCE-Rich%20Editor-orange?style=for-the-badge" alt="TinyMCE">
   </p>
 </div>
@@ -36,7 +36,7 @@
 
 ## ✨ Features
 
-**What's New in v2.1:**
+**What's New in v2.2:**
 - 🎨 **Minimal 2-Color Design** — Clean, modern UI with dark slate & light gray palette
 - 📝 **Rich Text Email Editor** — TinyMCE-powered WYSIWYG editor with formatting, images & tables
 - 📧 **Modern Email Templates** — 6 professionally designed HTML email templates
@@ -57,9 +57,9 @@
 
 ## �🛠️ Prerequisites
 
-- **PHP**: 8.1+
+- **PHP**: 8.1+ (tested on 8.4)
 - **Composer**: Latest version
-- **Laravel**: 10.x
+- **Laravel**: 10.50.3 (L11 upgrade deferred)
 - **Database**: MySQL 5.7+ or PostgreSQL 10+
 - **SMTP Server**: Gmail, SendGrid, Mailgun, etc.
 

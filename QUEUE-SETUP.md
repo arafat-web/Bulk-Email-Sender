@@ -2,32 +2,10 @@
 
 ## Queue Modes
 
-This application supports two queue modes:
+This application defaults to database queue. Sync mode is kept as a legacy fallback.
 
-### 1. Sync Mode (Default - No Queue Worker Needed)
-Emails are sent immediately when campaigns are created.
-
-**Pros:**
-- No queue worker needed
-- Simple setup
-- Works immediately
-
-**Cons:**
-- Slower for large campaigns
-- Can timeout on huge batches
-- No retry mechanism
-
-**Setup:**
-```bash
-# In .env file
-QUEUE_CONNECTION=sync
-```
-
-No additional commands needed. Just create campaigns and emails will send immediately.
-
----
-
-### 2. Database Queue Mode (Recommended for Production)
+### 1. Database Queue Mode (Default - Recommended)
+Emails are queued in the database and processed by a background worker.
 Emails are queued in the database and processed by a background worker.
 
 **Pros:**
@@ -91,15 +69,38 @@ Press `Ctrl+C` in the terminal running the queue worker.
 
 ---
 
+---
+
+### 2. Sync Mode (Legacy Fallback - No Queue Worker Needed)
+Emails are sent immediately when campaigns are created.
+
+**Pros:**
+- No queue worker needed
+- Simple setup
+
+**Cons:**
+- Slower for large campaigns
+- Can timeout on huge batches
+- No retry mechanism, after_commit not enforced
+
+**Setup:**
+```bash
+# In .env file
+QUEUE_CONNECTION=sync
+```
+
+---
+
 ## Switching Between Modes
 
 You can switch at any time:
 
-1. **To enable queue (recommended):**
+1. **To enable queue (default):**
    - Set `QUEUE_CONNECTION=database` in `.env`
+   - Set `CACHE_DRIVER=database` and `SESSION_DRIVER=database` (required for fresh installs / migrations)
    - Run `php artisan queue:work`
 
-2. **To disable queue (instant mode):**
+2. **To disable queue (legacy):**
    - Set `QUEUE_CONNECTION=sync` in `.env`
    - No worker needed
 
