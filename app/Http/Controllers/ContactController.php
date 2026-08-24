@@ -2,14 +2,14 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\EmailContact;
-use App\Models\ContactTag;
 use App\Imports\ContactsImport;
+use App\Models\ContactTag;
+use App\Models\EmailContact;
+use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
 use Maatwebsite\Excel\Facades\Excel;
-use Exception;
 
 class ContactController extends Controller
 {
@@ -38,9 +38,10 @@ class ContactController extends Controller
         }
 
         $contacts = $query->paginate(20);
+        $filteredCount = (clone $query)->count();
         $tags = ContactTag::where('user_id', Auth::id())->get();
 
-        return view('contacts.index', compact('contacts', 'tags'));
+        return view('contacts.index', compact('contacts', 'tags', 'filteredCount'));
     }
 
     /**
@@ -49,6 +50,7 @@ class ContactController extends Controller
     public function create()
     {
         $tags = ContactTag::where('user_id', Auth::id())->get();
+
         return view('contacts.create', compact('tags'));
     }
 
@@ -65,7 +67,7 @@ class ContactController extends Controller
             'company' => 'nullable|string|max:255',
             'notes' => 'nullable|string',
             'tags' => 'nullable|array',
-            'tags.*' => 'exists:contact_tags,id'
+            'tags.*' => 'exists:contact_tags,id',
         ]);
 
         if ($validator->fails()) {
@@ -79,7 +81,7 @@ class ContactController extends Controller
             'phone' => $request->phone,
             'company' => $request->company,
             'notes' => $request->notes,
-            'user_id' => Auth::id()
+            'user_id' => Auth::id(),
         ]);
 
         if ($request->filled('tags')) {
@@ -95,6 +97,7 @@ class ContactController extends Controller
     public function show(EmailContact $contact)
     {
         $this->authorize('view', $contact);
+
         return view('contacts.show', compact('contact'));
     }
 
@@ -105,6 +108,7 @@ class ContactController extends Controller
     {
         $this->authorize('update', $contact);
         $tags = ContactTag::where('user_id', Auth::id())->get();
+
         return view('contacts.edit', compact('contact', 'tags'));
     }
 
@@ -116,7 +120,7 @@ class ContactController extends Controller
         $this->authorize('update', $contact);
 
         $validator = Validator::make($request->all(), [
-            'email' => 'required|email|unique:email_contacts,email,' . $contact->id,
+            'email' => 'required|email|unique:email_contacts,email,'.$contact->id,
             'first_name' => 'nullable|string|max:255',
             'last_name' => 'nullable|string|max:255',
             'phone' => 'nullable|string|max:20',
@@ -124,7 +128,7 @@ class ContactController extends Controller
             'notes' => 'nullable|string',
             'status' => 'required|in:active,inactive,bounced,unsubscribed',
             'tags' => 'nullable|array',
-            'tags.*' => 'exists:contact_tags,id'
+            'tags.*' => 'exists:contact_tags,id',
         ]);
 
         if ($validator->fails()) {
@@ -132,7 +136,7 @@ class ContactController extends Controller
         }
 
         $contact->update($request->only([
-            'email', 'first_name', 'last_name', 'phone', 'company', 'notes', 'status'
+            'email', 'first_name', 'last_name', 'phone', 'company', 'notes', 'status',
         ]));
 
         $contact->tags()->sync($request->tags ?? []);
@@ -147,6 +151,7 @@ class ContactController extends Controller
     {
         $this->authorize('delete', $contact);
         $contact->delete();
+
         return redirect()->route('contacts.index')->with('success', 'Contact deleted successfully.');
     }
 
@@ -156,6 +161,7 @@ class ContactController extends Controller
     public function importForm()
     {
         $tags = ContactTag::where('user_id', Auth::id())->get();
+
         return view('contacts.import', compact('tags'));
     }
 
@@ -167,7 +173,7 @@ class ContactController extends Controller
         $validator = Validator::make($request->all(), [
             'file' => 'required|file|mimes:xlsx,xls,csv|max:10240', // 10MB max
             'tags' => 'nullable|array',
-            'tags.*' => 'exists:contact_tags,id'
+            'tags.*' => 'exists:contact_tags,id',
         ]);
 
         if ($validator->fails()) {
@@ -188,53 +194,133 @@ class ContactController extends Controller
 
             return redirect()->route('contacts.index')->with('success', $message);
         } catch (Exception $e) {
-            return back()->with('error', 'Import failed: ' . $e->getMessage());
+            return back()->with('error', 'Import failed: '.$e->getMessage());
         }
     }
 
     /**
-     * Bulk actions for contacts.
+     * Return filtered contact IDs as JSON (for select-all across pages). Capped to 10k.
+     */
+    public function ids(Request $request)
+    {
+        $query = EmailContact::where('user_id', Auth::id());
+        if ($request->filled('search')) {
+            $query->search($request->search);
+        }
+        if ($request->filled('tag')) {
+            $query->withTag($request->tag);
+        }
+        if ($request->filled('status')) {
+            $query->where('status', $request->status);
+        }
+
+        $total = (clone $query)->count();
+        $ids = $query->limit(10000)->pluck('id');
+
+        return response()->json(['ids' => $ids, 'count' => $ids->count(), 'total' => $total, 'capped' => $total > 10000]);
+    }
+
+    /**
+     * Bulk actions for contacts. Supports select-all across pages via bulk_all_filtered flag.
      */
     public function bulkAction(Request $request)
     {
         $validator = Validator::make($request->all(), [
             'action' => 'required|in:delete,add_tag,remove_tag,change_status',
-            'contacts' => 'required|array',
+            'contacts' => 'nullable|array',
             'contacts.*' => 'exists:email_contacts,id',
-            'tag_id' => 'required_if:action,add_tag,remove_tag|nullable|exists:contact_tags,id',
-            'status' => 'required_if:action,change_status|nullable|in:active,inactive,bounced,unsubscribed'
+            'bulk_all_filtered' => 'nullable|boolean',
+            'bulk_search' => 'nullable|string|max:255',
+            'bulk_tag' => 'nullable|exists:contact_tags,id',
+            'bulk_status' => 'nullable|in:active,inactive,bounced,unsubscribed',
+            'tag_id' => 'nullable|exists:contact_tags,id',
+            'status' => 'nullable|in:active,inactive,bounced,unsubscribed',
         ]);
+
+        // Custom required checks (cannot use required_if with scoped exists easily)
+        if ($request->boolean('bulk_all_filtered')) {
+            // when bulk_all_filtered, contacts may be empty; we resolve server-side
+        } else {
+            if (empty($request->contacts)) {
+                return back()->withErrors(['contacts' => 'Please select at least one contact.']);
+            }
+        }
+        if (in_array($request->action, ['add_tag', 'remove_tag']) && empty($request->tag_id)) {
+            return back()->withErrors(['tag_id' => 'Please select a tag.']);
+        }
+        if ($request->action === 'change_status' && empty($request->status)) {
+            return back()->withErrors(['status' => 'Please select a status.']);
+        }
 
         if ($validator->fails()) {
             return back()->withErrors($validator);
         }
 
-        $contacts = EmailContact::whereIn('id', $request->contacts)
+        // Resolve target IDs: either posted contacts[] or all filtered (server-side) to avoid max_input_vars
+        $targetIds = null;
+        if ($request->boolean('bulk_all_filtered')) {
+            $q = EmailContact::where('user_id', Auth::id());
+            if ($request->filled('bulk_search')) {
+                $q->search($request->bulk_search);
+            }
+            if ($request->filled('bulk_tag')) {
+                $q->withTag($request->bulk_tag);
+            }
+            if ($request->filled('bulk_status')) {
+                $q->where('status', $request->bulk_status);
+            }
+            $targetIds = $q->limit(10000)->pluck('id');
+            if ($targetIds->isEmpty()) {
+                return back()->with('error', 'No contacts match the current filters.');
+            }
+        } else {
+            $targetIds = collect($request->contacts ?? []);
+        }
+
+        // Ensure tag ownership if tagging
+        if (in_array($request->action, ['add_tag', 'remove_tag']) && $request->filled('tag_id')) {
+            $ownsTag = ContactTag::where('id', $request->tag_id)->where('user_id', Auth::id())->exists();
+            if (! $ownsTag) {
+                return back()->withErrors(['tag_id' => 'Invalid tag selected.']);
+            }
+        }
+
+        $contacts = EmailContact::whereIn('id', $targetIds)
             ->where('user_id', Auth::id())
             ->get();
+
+        if ($contacts->isEmpty()) {
+            return back()->with('error', 'No contacts found for this selection.');
+        }
 
         switch ($request->action) {
             case 'delete':
                 $count = $contacts->count();
-                EmailContact::whereIn('id', $request->contacts)->delete();
+                EmailContact::whereIn('id', $contacts->pluck('id'))
+                    ->where('user_id', Auth::id())
+                    ->delete();
+
                 return back()->with('success', "{$count} contacts deleted successfully.");
 
             case 'add_tag':
                 foreach ($contacts as $contact) {
                     $contact->tags()->syncWithoutDetaching([$request->tag_id]);
                 }
+
                 return back()->with('success', 'Tag added to selected contacts.');
 
             case 'remove_tag':
                 foreach ($contacts as $contact) {
                     $contact->tags()->detach($request->tag_id);
                 }
+
                 return back()->with('success', 'Tag removed from selected contacts.');
 
             case 'change_status':
-                EmailContact::whereIn('id', $request->contacts)
+                EmailContact::whereIn('id', $contacts->pluck('id'))
                     ->where('user_id', Auth::id())
                     ->update(['status' => $request->status]);
+
                 return back()->with('success', 'Status updated for selected contacts.');
         }
     }

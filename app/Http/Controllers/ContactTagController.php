@@ -36,9 +36,9 @@ class ContactTagController extends Controller
     public function store(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'name' => 'required|string|max:255|unique:contact_tags,name,NULL,id,user_id,' . Auth::id(),
+            'name' => 'required|string|max:255|unique:contact_tags,name,NULL,id,user_id,'.Auth::id(),
             'color' => 'required|string|regex:/^#[0-9A-Fa-f]{6}$/',
-            'description' => 'nullable|string'
+            'description' => 'nullable|string',
         ]);
 
         if ($validator->fails()) {
@@ -49,7 +49,7 @@ class ContactTagController extends Controller
             'name' => $request->name,
             'color' => $request->color,
             'description' => $request->description,
-            'user_id' => Auth::id()
+            'user_id' => Auth::id(),
         ]);
 
         return redirect()->route('tags.index')->with('success', 'Tag created successfully.');
@@ -61,6 +61,7 @@ class ContactTagController extends Controller
     public function edit(ContactTag $tag)
     {
         $this->authorize('update', $tag);
+
         return view('tags.edit', compact('tag'));
     }
 
@@ -72,9 +73,9 @@ class ContactTagController extends Controller
         $this->authorize('update', $tag);
 
         $validator = Validator::make($request->all(), [
-            'name' => 'required|string|max:255|unique:contact_tags,name,' . $tag->id . ',id,user_id,' . Auth::id(),
+            'name' => 'required|string|max:255|unique:contact_tags,name,'.$tag->id.',id,user_id,'.Auth::id(),
             'color' => 'required|string|regex:/^#[0-9A-Fa-f]{6}$/',
-            'description' => 'nullable|string'
+            'description' => 'nullable|string',
         ]);
 
         if ($validator->fails()) {
@@ -93,6 +94,7 @@ class ContactTagController extends Controller
     {
         $this->authorize('delete', $tag);
         $tag->delete();
+
         return redirect()->route('tags.index')->with('success', 'Tag deleted successfully.');
     }
 }

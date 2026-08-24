@@ -2,14 +2,13 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Mail;
-use Illuminate\Support\Facades\Validator;
-use App\Models\EmailAccount;
-use App\Models\EmailTemplate;
-use App\Models\EmailContact;
-use App\Models\ContactTag;
 use App\Jobs\SendIndividualEmailJob;
+use App\Models\ContactTag;
+use App\Models\EmailAccount;
+use App\Models\EmailContact;
+use App\Models\EmailTemplate;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Validator;
 
 class IndividualEmailController extends Controller
 {
@@ -42,14 +41,14 @@ class IndividualEmailController extends Controller
             'recipients' => 'required|string',
             'subject' => 'required|string|max:255',
             'body' => 'required|string',
-            'send_type' => 'required|in:individual,bulk'
+            'send_type' => 'required|in:individual,bulk',
         ]);
 
         if ($validator->fails()) {
             return response()->json([
                 'success' => false,
                 'message' => 'Validation failed',
-                'errors' => $validator->errors()
+                'errors' => $validator->errors(),
             ], 422);
         }
 
@@ -60,7 +59,7 @@ class IndividualEmailController extends Controller
             return response()->json([
                 'success' => false,
                 'message' => 'No valid email addresses found.',
-                'errors' => ['recipients' => ['Please provide at least one valid email address.']]
+                'errors' => ['recipients' => ['Please provide at least one valid email address.']],
             ], 422);
         }
 
@@ -89,11 +88,11 @@ class IndividualEmailController extends Controller
                     'total_emails' => count($validEmails),
                     'valid_emails' => count($validEmails),
                     'invalid_emails' => count($invalidEmails),
-                    'send_type' => $request->send_type
-                ]
+                    'send_type' => $request->send_type,
+                ],
             ];
 
-            if (!empty($invalidEmails)) {
+            if (! empty($invalidEmails)) {
                 $response['invalid_emails'] = $invalidEmails;
             }
 
@@ -102,7 +101,7 @@ class IndividualEmailController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'Failed to queue emails: ' . $e->getMessage()
+                'message' => 'Failed to queue emails: '.$e->getMessage(),
             ], 500);
         }
     }
@@ -117,7 +116,9 @@ class IndividualEmailController extends Controller
 
         foreach ($emails as $email) {
             $email = trim($email);
-            if (empty($email)) continue;
+            if (empty($email)) {
+                continue;
+            }
 
             if (filter_var($email, FILTER_VALIDATE_EMAIL)) {
                 $valid[] = $email;
@@ -128,7 +129,7 @@ class IndividualEmailController extends Controller
 
         return [
             'valid' => array_unique($valid),
-            'invalid' => array_unique($invalid)
+            'invalid' => array_unique($invalid),
         ];
     }
 
@@ -140,7 +141,7 @@ class IndividualEmailController extends Controller
             'valid_count' => count($emailList['valid']),
             'invalid_count' => count($emailList['invalid']),
             'valid_emails' => $emailList['valid'],
-            'invalid_emails' => $emailList['invalid']
+            'invalid_emails' => $emailList['invalid'],
         ]);
     }
 }

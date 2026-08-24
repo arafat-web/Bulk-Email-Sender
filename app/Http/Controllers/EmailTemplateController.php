@@ -63,7 +63,7 @@ class EmailTemplateController extends Controller
         } catch (\Exception $e) {
             Log::error('Failed to create email template', [
                 'error' => $e->getMessage(),
-                'user_id' => auth()->id()
+                'user_id' => auth()->id(),
             ]);
 
             return back()->withInput()
@@ -77,6 +77,7 @@ class EmailTemplateController extends Controller
     public function show(EmailTemplate $emailTemplate)
     {
         $template = $emailTemplate;
+
         return view('email-templates.show', compact('template'));
     }
 
@@ -86,6 +87,7 @@ class EmailTemplateController extends Controller
     public function edit(EmailTemplate $emailTemplate)
     {
         $template = $emailTemplate;
+
         return view('email-templates.edit', compact('template'));
     }
 
@@ -95,7 +97,7 @@ class EmailTemplateController extends Controller
     public function update(Request $request, EmailTemplate $emailTemplate)
     {
         $request->validate([
-            'name' => 'required|string|max:255|unique:email_templates,name,' . $emailTemplate->id,
+            'name' => 'required|string|max:255|unique:email_templates,name,'.$emailTemplate->id,
             'subject' => 'required|string|max:500',
             'body' => 'required|string',
             'description' => 'nullable|string|max:1000',
@@ -117,7 +119,7 @@ class EmailTemplateController extends Controller
             Log::error('Failed to update email template', [
                 'template_id' => $emailTemplate->id,
                 'error' => $e->getMessage(),
-                'user_id' => auth()->id()
+                'user_id' => auth()->id(),
             ]);
 
             return back()->withInput()
@@ -141,7 +143,7 @@ class EmailTemplateController extends Controller
             Log::error('Failed to delete email template', [
                 'template_id' => $emailTemplate->id,
                 'error' => $e->getMessage(),
-                'user_id' => auth()->id()
+                'user_id' => auth()->id(),
             ]);
 
             return back()->with('error', 'Failed to delete template. Please try again.');
@@ -154,16 +156,17 @@ class EmailTemplateController extends Controller
     public function toggleActive(EmailTemplate $emailTemplate)
     {
         try {
-            $emailTemplate->update(['is_active' => !$emailTemplate->is_active]);
+            $emailTemplate->update(['is_active' => ! $emailTemplate->is_active]);
 
             $status = $emailTemplate->is_active ? 'activated' : 'deactivated';
+
             return back()->with('success', "Template '{$emailTemplate->name}' {$status} successfully!");
 
         } catch (\Exception $e) {
             Log::error('Failed to toggle template status', [
                 'template_id' => $emailTemplate->id,
                 'error' => $e->getMessage(),
-                'user_id' => auth()->id()
+                'user_id' => auth()->id(),
             ]);
 
             return back()->with('error', 'Failed to update template status.');
@@ -177,19 +180,19 @@ class EmailTemplateController extends Controller
     {
         try {
             $newTemplate = $emailTemplate->replicate();
-            $newTemplate->name = $emailTemplate->name . ' (Copy)';
+            $newTemplate->name = $emailTemplate->name.' (Copy)';
             $newTemplate->usage_count = 0;
             $newTemplate->last_used_at = null;
             $newTemplate->save();
 
             return redirect()->route('email-templates.edit', $newTemplate)
-                ->with('success', "Template duplicated successfully! You can now edit the copy.");
+                ->with('success', 'Template duplicated successfully! You can now edit the copy.');
 
         } catch (\Exception $e) {
             Log::error('Failed to duplicate email template', [
                 'template_id' => $emailTemplate->id,
                 'error' => $e->getMessage(),
-                'user_id' => auth()->id()
+                'user_id' => auth()->id(),
             ]);
 
             return back()->with('error', 'Failed to duplicate template.');
@@ -201,7 +204,7 @@ class EmailTemplateController extends Controller
      */
     public function getTemplate(EmailTemplate $emailTemplate)
     {
-        if (!$emailTemplate->is_active) {
+        if (! $emailTemplate->is_active) {
             return response()->json(['error' => 'Template is not active'], 400);
         }
 

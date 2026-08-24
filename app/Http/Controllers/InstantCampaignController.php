@@ -4,18 +4,15 @@ namespace App\Http\Controllers;
 
 use App\Imports\ImportData;
 use App\Jobs\SendEmailJob;
-use App\Mail\SendMail;
-use App\Models\OneTimeSender;
-use App\Models\TempMailAddress;
 use App\Models\EmailAccount;
 use App\Models\EmailTemplate;
-use Illuminate\Http\Request;
-use Illuminate\Support\Sleep;
-use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\DB;
-use Maatwebsite\Excel\Facades\Excel;
-use Mail;
+use App\Models\OneTimeSender;
+use App\Models\TempMailAddress;
 use Exception;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
+use Maatwebsite\Excel\Facades\Excel;
 
 class InstantCampaignController extends Controller
 {
@@ -41,7 +38,7 @@ class InstantCampaignController extends Controller
             // Check if there's a default email account configured
             $defaultEmailAccount = EmailAccount::getDefault();
 
-            if (!$defaultEmailAccount) {
+            if (! $defaultEmailAccount) {
                 return back()->with('error', 'No default email account configured. Please add and configure an email account first.');
             }
 
@@ -63,8 +60,8 @@ class InstantCampaignController extends Controller
                 'template_id.exists' => 'Selected template not found.',
             ]);
 
-            // Clear any existing temporary data
-            TempMailAddress::truncate();
+            // Clear any existing temporary data for this user only (scoped delete, not global truncate)
+            TempMailAddress::forUser(auth()->id())->delete();
 
             // Track template usage if a template was used
             $usedTemplate = null;
@@ -80,19 +77,21 @@ class InstantCampaignController extends Controller
 
             try {
                 // Import the Excel file
-                Excel::import(new ImportData, $request->file('file'));
+                Excel::import(new ImportData(auth()->id()), $request->file('file'));
 
-                $emailCount = TempMailAddress::count();
+                $emailCount = TempMailAddress::forUser(auth()->id())->count();
 
                 if ($emailCount === 0) {
                     DB::rollBack();
+
                     return back()->with('error', 'No valid email addresses found in the uploaded file. Please ensure email addresses are in the 3rd column (Column C).');
                 }
 
                 // Check for reasonable limits (prevent abuse)
                 if ($emailCount > 10000) {
                     DB::rollBack();
-                    return back()->with('error', 'Too many email addresses (' . number_format($emailCount) . '). Maximum allowed is 10,000 per campaign.');
+
+                    return back()->with('error', 'Too many email addresses ('.number_format($emailCount).'). Maximum allowed is 10,000 per campaign.');
                 }
 
                 // Create campaign record
@@ -111,67 +110,64 @@ class InstantCampaignController extends Controller
                     'campaign_id' => $campaign->id,
                 ];
 
-                // Dispatch email jobs in batches to prevent memory issues
-                $emailAddresses = TempMailAddress::all(['email']);
+                // Dispatch email jobs using query chunk (avoids loading all 10k into memory)
                 $batchSize = 100;
-                $totalBatches = ceil($emailCount / $batchSize);
+                $totalBatches = (int) ceil($emailCount / $batchSize);
 
-                Log::info("Starting instant campaign", [
+                Log::info('Starting instant campaign', [
                     'campaign_id' => $campaign->id,
                     'total_emails' => $emailCount,
                     'batches' => $totalBatches,
-                    'email_account' => $defaultEmailAccount->name
+                    'email_account' => $defaultEmailAccount->name,
                 ]);
 
                 $queueConnection = config('queue.default');
-                $useDelay = $queueConnection !== 'sync'; // Only use delay if not in sync mode
+                $useDelay = $queueConnection !== 'sync';
 
-                foreach ($emailAddresses->chunk($batchSize) as $batch) {
-                    foreach ($batch as $email) {
-                        if (filter_var($email->email, FILTER_VALIDATE_EMAIL)) {
-                            $job = SendEmailJob::dispatch($email->email, $mailData);
-                            
-                            // Only apply queue name and delay if using async queue
-                            if ($useDelay) {
-                                $job->onQueue('emails')->delay(rand(1, 5));
-                            }
-                        } else {
-                            Log::warning("Invalid email address skipped: " . $email->email);
+                TempMailAddress::forUser(auth()->id())->select('id', 'email')->chunkById(500, function ($rows) use ($mailData, $useDelay) {
+                    foreach ($rows as $row) {
+                        if (! filter_var($row->email, FILTER_VALIDATE_EMAIL)) {
+                            Log::warning('Invalid email address skipped: '.$row->email);
+                            continue;
+                        }
+                        $job = SendEmailJob::dispatch($row->email, $mailData);
+                        if ($useDelay) {
+                            $job->onQueue('emails')->delay(rand(1, 5));
                         }
                     }
-                }
+                });
 
                 // Update campaign status
                 $campaign->update(['status' => 'queued']);
 
-                // Update the email account usage statistics
-                $defaultEmailAccount->increment('emails_sent', $emailCount);
+                // Touch last_used_at now; emails_sent is incremented per-job in SendEmailJob
+                // to avoid double-counting (previously incremented here AND per job)
                 $defaultEmailAccount->update(['last_used_at' => now()]);
 
                 DB::commit();
 
-                // Clear temporary data
-                TempMailAddress::truncate();
+                // Clear temporary data for this user only
+                TempMailAddress::forUser(auth()->id())->delete();
 
                 return back()->with([
-                    'message' => 'Success! Instant campaign launched successfully using "' . $defaultEmailAccount->name . '". ' . number_format($emailCount) . ' emails have been queued for delivery.',
+                    'message' => 'Success! Instant campaign launched successfully using "'.$defaultEmailAccount->name.'". '.number_format($emailCount).' emails have been queued for delivery.',
                 ]);
 
             } catch (Exception $e) {
                 DB::rollBack();
-                Log::error("Failed to process instant campaign", [
+                Log::error('Failed to process instant campaign', [
                     'error' => $e->getMessage(),
                     'file' => $request->file->getClientOriginalName(),
-                    'user_id' => auth()->id()
+                    'user_id' => auth()->id(),
                 ]);
 
                 return back()->with('error', 'Failed to process the campaign. Please check your file format and try again.');
             }
 
         } catch (Exception $e) {
-            Log::error("Instant campaign validation failed", [
+            Log::error('Instant campaign validation failed', [
                 'error' => $e->getMessage(),
-                'user_id' => auth()->id()
+                'user_id' => auth()->id(),
             ]);
 
             return back()->with('error', 'An unexpected error occurred. Please try again.');

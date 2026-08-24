@@ -2,12 +2,12 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\OneTimeSender;
-use App\Models\User;
+use App\Models\ContactTag;
 use App\Models\EmailAccount;
 use App\Models\EmailContact;
-use App\Models\ContactTag;
-use Illuminate\Http\Request;
+use App\Models\OneTimeSender;
+use App\Models\User;
+use Illuminate\Contracts\Support\Renderable;
 
 class HomeController extends Controller
 {
@@ -24,15 +24,17 @@ class HomeController extends Controller
     /**
      * Show the application dashboard.
      *
-     * @return \Illuminate\Contracts\Support\Renderable
+     * @return Renderable
      */
     public function index()
     {
-        $total_time = OneTimeSender::all()->count();
-        $total_sent = OneTimeSender::all()->sum('total_email_address');
-        $total_user = User::all()->count();
+        $total_time = OneTimeSender::count();
+        $campaign_sent = OneTimeSender::sum('total_email_address');
+        $individual_sent = EmailAccount::sum('emails_sent');
+        $total_sent = $campaign_sent + $individual_sent;
+        $total_user = User::count();
         $total_email_accounts = EmailAccount::count();
-        $operations = OneTimeSender::latest()->get()->take(10);
+        $operations = OneTimeSender::latest()->take(10)->get();
 
         // Contact statistics
         $total_contacts = EmailContact::where('user_id', auth()->id())->count();
@@ -52,6 +54,8 @@ class HomeController extends Controller
         return view('home', compact(
             'total_time',
             'total_sent',
+            'campaign_sent',
+            'individual_sent',
             'total_user',
             'total_email_accounts',
             'operations',
@@ -63,7 +67,8 @@ class HomeController extends Controller
         ));
     }
 
-    public function savedTemplates(){
+    public function savedTemplates()
+    {
         return redirect()->route('email-templates.index');
     }
 }

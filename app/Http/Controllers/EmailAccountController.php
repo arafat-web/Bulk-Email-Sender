@@ -4,8 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Models\EmailAccount;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Config;
+use Illuminate\Support\Facades\Mail;
 
 class EmailAccountController extends Controller
 {
@@ -20,8 +20,8 @@ class EmailAccountController extends Controller
     public function index()
     {
         $emailAccounts = EmailAccount::orderBy('is_default', 'desc')
-                                   ->orderBy('created_at', 'desc')
-                                   ->get();
+            ->orderBy('created_at', 'desc')
+            ->get();
 
         return view('email-accounts.index', compact('emailAccounts'));
     }
@@ -39,7 +39,7 @@ class EmailAccountController extends Controller
      */
     public function store(Request $request)
     {
-        $request->validate([
+        $validated = $request->validate([
             'name' => 'required|string|max:255',
             'email' => 'required|email|unique:email_accounts,email',
             'smtp_host' => 'required|string|max:255',
@@ -51,7 +51,7 @@ class EmailAccountController extends Controller
             'notes' => 'nullable|string|max:1000',
         ]);
 
-        $emailAccount = EmailAccount::create($request->all());
+        $emailAccount = EmailAccount::create($validated);
 
         // If this is the first email account, make it default
         if (EmailAccount::count() === 1) {
@@ -59,7 +59,7 @@ class EmailAccountController extends Controller
         }
 
         return redirect()->route('email-accounts.index')
-                        ->with('success', 'Email account created successfully.');
+            ->with('success', 'Email account created successfully.');
     }
 
     /**
@@ -75,9 +75,9 @@ class EmailAccountController extends Controller
      */
     public function update(Request $request, EmailAccount $emailAccount)
     {
-        $request->validate([
+        $validated = $request->validate([
             'name' => 'required|string|max:255',
-            'email' => 'required|email|unique:email_accounts,email,' . $emailAccount->id,
+            'email' => 'required|email|unique:email_accounts,email,'.$emailAccount->id,
             'smtp_host' => 'required|string|max:255',
             'smtp_port' => 'required|integer|min:1|max:65535',
             'smtp_username' => 'required|string|max:255',
@@ -87,17 +87,15 @@ class EmailAccountController extends Controller
             'notes' => 'nullable|string|max:1000',
         ]);
 
-        $data = $request->all();
-
         // Only update password if provided
-        if (empty($data['smtp_password'])) {
-            unset($data['smtp_password']);
+        if (empty($validated['smtp_password'])) {
+            unset($validated['smtp_password']);
         }
 
-        $emailAccount->update($data);
+        $emailAccount->update($validated);
 
         return redirect()->route('email-accounts.index')
-                        ->with('success', 'Email account updated successfully.');
+            ->with('success', 'Email account updated successfully.');
     }
 
     /**
@@ -108,7 +106,7 @@ class EmailAccountController extends Controller
         $emailAccount->setAsDefault();
 
         return redirect()->route('email-accounts.index')
-                        ->with('success', 'Default email account updated successfully.');
+            ->with('success', 'Default email account updated successfully.');
     }
 
     /**
@@ -119,15 +117,15 @@ class EmailAccountController extends Controller
         // Don't allow deactivating the default account
         if ($emailAccount->is_default && $emailAccount->is_active) {
             return redirect()->route('email-accounts.index')
-                            ->with('error', 'Cannot deactivate the default email account.');
+                ->with('error', 'Cannot deactivate the default email account.');
         }
 
-        $emailAccount->update(['is_active' => !$emailAccount->is_active]);
+        $emailAccount->update(['is_active' => ! $emailAccount->is_active]);
 
         $status = $emailAccount->is_active ? 'activated' : 'deactivated';
 
         return redirect()->route('email-accounts.index')
-                        ->with('success', "Email account {$status} successfully.");
+            ->with('success', "Email account {$status} successfully.");
     }
 
     /**
@@ -148,15 +146,15 @@ class EmailAccountController extends Controller
             // Send test email
             Mail::raw('This is a test email from your Bulk Email Sender application.', function ($message) use ($emailAccount) {
                 $message->to($emailAccount->email)
-                        ->subject('Test Email - Bulk Email Sender');
+                    ->subject('Test Email - Bulk Email Sender');
             });
 
             return redirect()->route('email-accounts.index')
-                            ->with('success', 'Test email sent successfully!');
+                ->with('success', 'Test email sent successfully!');
 
         } catch (\Exception $e) {
             return redirect()->route('email-accounts.index')
-                            ->with('error', 'Test email failed: ' . $e->getMessage());
+                ->with('error', 'Test email failed: '.$e->getMessage());
         }
     }
 
@@ -168,7 +166,7 @@ class EmailAccountController extends Controller
         // Don't allow deleting the default account if it's the only one
         if ($emailAccount->is_default && EmailAccount::active()->count() === 1) {
             return redirect()->route('email-accounts.index')
-                            ->with('error', 'Cannot delete the only active email account.');
+                ->with('error', 'Cannot delete the only active email account.');
         }
 
         // If deleting the default account, set another one as default
@@ -182,6 +180,6 @@ class EmailAccountController extends Controller
         $emailAccount->delete();
 
         return redirect()->route('email-accounts.index')
-                        ->with('success', 'Email account deleted successfully.');
+            ->with('success', 'Email account deleted successfully.');
     }
 }
