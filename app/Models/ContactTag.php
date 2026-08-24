@@ -15,7 +15,7 @@ class ContactTag extends Model
         'name',
         'color',
         'description',
-        'user_id'
+        'user_id',
     ];
 
     /**

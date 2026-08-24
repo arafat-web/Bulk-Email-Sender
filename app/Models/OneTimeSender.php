@@ -27,7 +27,7 @@ class OneTimeSender extends Model
 
     public function getStatusBadgeAttribute()
     {
-        return match($this->status) {
+        return match ($this->status) {
             'processing' => '<span class="badge bg-warning">Processing</span>',
             'queued' => '<span class="badge bg-info">Queued</span>',
             'completed' => '<span class="badge bg-success">Completed</span>',

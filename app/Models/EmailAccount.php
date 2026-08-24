@@ -2,9 +2,11 @@
 
 namespace App\Models;
 
+use Illuminate\Contracts\Encryption\DecryptException;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Crypt;
+use Illuminate\Support\Facades\Log;
 
 class EmailAccount extends Model
 {
@@ -23,7 +25,7 @@ class EmailAccount extends Model
         'is_active',
         'last_used_at',
         'emails_sent',
-        'notes'
+        'notes',
     ];
 
     protected $casts = [
@@ -39,10 +41,20 @@ class EmailAccount extends Model
         $this->attributes['smtp_password'] = Crypt::encryptString($value);
     }
 
-    // Decrypt password when getting
+    // Decrypt password when getting - handles legacy plaintext values gracefully
     public function getSmtpPasswordAttribute($value)
     {
-        return $value ? Crypt::decryptString($value) : null;
+        if (empty($value)) {
+            return null;
+        }
+        try {
+            return Crypt::decryptString($value);
+        } catch (DecryptException $e) {
+            // Legacy plaintext password stored before encryption was added
+            Log::warning('EmailAccount legacy plaintext password detected', ['account_id' => $this->id ?? 'unknown']);
+
+            return $value;
+        }
     }
 
     // Scope to get only active accounts

@@ -20,7 +20,7 @@ class EmailContact extends Model
         'notes',
         'status',
         'last_emailed_at',
-        'user_id'
+        'user_id',
     ];
 
     protected $casts = [
@@ -48,7 +48,7 @@ class EmailContact extends Model
      */
     public function getFullNameAttribute(): string
     {
-        return trim($this->first_name . ' ' . $this->last_name) ?: $this->email;
+        return trim($this->first_name.' '.$this->last_name) ?: $this->email;
     }
 
     /**
@@ -70,15 +70,20 @@ class EmailContact extends Model
     }
 
     /**
-     * Scope to search by email or name.
+     * Scope to search by email, name, company, phone, notes or tag name.
      */
     public function scopeSearch($query, $search)
     {
         return $query->where(function ($q) use ($search) {
             $q->where('email', 'like', "%{$search}%")
-              ->orWhere('first_name', 'like', "%{$search}%")
-              ->orWhere('last_name', 'like', "%{$search}%")
-              ->orWhere('company', 'like', "%{$search}%");
+                ->orWhere('first_name', 'like', "%{$search}%")
+                ->orWhere('last_name', 'like', "%{$search}%")
+                ->orWhere('company', 'like', "%{$search}%")
+                ->orWhere('phone', 'like', "%{$search}%")
+                ->orWhere('notes', 'like', "%{$search}%")
+                ->orWhereHas('tags', function ($t) use ($search) {
+                    $t->where('name', 'like', "%{$search}%");
+                });
         });
     }
 }
