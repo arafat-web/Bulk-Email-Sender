@@ -173,8 +173,10 @@
                 </div>
             @endif
         </div>
-        @if($contacts->hasPages())
-            <div class="card-footer bg-transparent">{{ $contacts->withQueryString()->links() }}</div>
+       @if($contacts->hasPages())
+            <div class="card-footer bg-transparent">
+                {{ $contacts->withQueryString()->links('pagination::bootstrap-5') }}
+            </div>
         @endif
     </div>
 </form>
