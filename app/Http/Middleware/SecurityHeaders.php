@@ -19,7 +19,11 @@ class SecurityHeaders
         $response->headers->set('Permissions-Policy', 'camera=(), microphone=(), geolocation=()');
         $response->headers->set('X-XSS-Protection', '0'); // Modern browsers rely on CSP
 
-        if (app()->environment('production')) {
+        // HSTS must only be sent over HTTPS (RFC 6797). Gating on
+        // isSecure() instead of APP_ENV avoids pinning HSTS on local
+        // HTTP and covers staging/prod HTTPS alike. No preload flag by
+        // default to avoid irreversible browser pinning.
+        if ($request->isSecure()) {
             $response->headers->set('Strict-Transport-Security', 'max-age=31536000; includeSubDomains');
         }
 

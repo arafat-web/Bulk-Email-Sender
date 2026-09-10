@@ -168,7 +168,10 @@ return [
     |
     */
 
-    'secure' => env('SESSION_SECURE_COOKIE'),
+    // Auto-secure cookies when APP_URL is https, but allow explicit
+    // SESSION_SECURE_COOKIE override. Defaults to false on local HTTP
+    // so logins don't break on http://localhost.
+    'secure' => env('SESSION_SECURE_COOKIE', str_starts_with((string) env('APP_URL', 'http://localhost'), 'https://')),
 
     /*
     |--------------------------------------------------------------------------
