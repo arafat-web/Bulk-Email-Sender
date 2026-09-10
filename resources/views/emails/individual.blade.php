@@ -57,18 +57,8 @@
 </head>
 <body>
     <div class="email-container">
-        <div class="email-header">
-            <div class="email-logo">📧 BulkMailer</div>
-            <p style="margin: 0; color: #6b7280;">Professional Email Marketing</p>
-        </div>
-
         <div class="email-content">
             {!! $emailBody !!}
-        </div>
-
-        <div class="email-footer">
-            <p>This email was sent using BulkMailer - Professional Email Marketing Solution</p>
-            <p style="margin: 5px 0 0 0;">© {{ date('Y') }} BulkMailer. All rights reserved.</p>
         </div>
     </div>
 </body>
