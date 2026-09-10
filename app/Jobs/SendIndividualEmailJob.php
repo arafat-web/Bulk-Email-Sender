@@ -5,6 +5,7 @@ namespace App\Jobs;
 use App\Mail\IndividualMail;
 use App\Models\EmailAccount;
 use App\Models\EmailContact;
+use App\Models\EmailKeyword;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
@@ -58,6 +59,8 @@ class SendIndividualEmailJob implements ShouldQueue
             // Purge the mail manager to use new config
             app('mail.manager')->purge('smtp');
 
+            $keywords = EmailKeyword::activeMap();
+
             if ($this->isBulk) {
                 // Send bulk as individual messages to avoid exposing recipients to each other
                 $recipients = is_array($this->recipients) ? $this->recipients : [$this->recipients];
@@ -70,7 +73,8 @@ class SendIndividualEmailJob implements ShouldQueue
                         \Log::info('Skipped unsubscribed recipient: '.$recipient);
                         continue;
                     }
-                    Mail::to($recipient)->send(new IndividualMail($this->subject, $this->body, $recipient));
+                    [$subject, $body] = $this->personalize($keywords, $recipient);
+                    Mail::to($recipient)->send(new IndividualMail($subject, $body, $recipient));
                     $sentCount++;
                 }
                 $this->updateContactsLastEmailed($recipients);
@@ -87,7 +91,8 @@ class SendIndividualEmailJob implements ShouldQueue
 
                     return;
                 }
-                Mail::to($recipient)->send(new IndividualMail($this->subject, $this->body, $recipient));
+                [$subject, $body] = $this->personalize($keywords, $recipient);
+                Mail::to($recipient)->send(new IndividualMail($subject, $body, $recipient));
                 $this->updateContactsLastEmailed([$recipient]);
                 $this->emailAccount->increment('emails_sent');
                 $this->emailAccount->update(['last_used_at' => now()]);
@@ -101,6 +106,32 @@ class SendIndividualEmailJob implements ShouldQueue
                 'error' => $e->getMessage(),
             ]);
             throw $e;
+        }
+    }
+
+    /**
+     * Replace admin-defined [keywords] per recipient (contact lookup + defaults).
+     * Never fails the send: falls back to the raw subject/body.
+     */
+    private function personalize(array $keywords, string $recipient): array
+    {
+        try {
+            if (empty($keywords)) {
+                return [$this->subject, $this->body];
+            }
+            $row = EmailContact::where('email', $recipient)->first() ?? ['email' => $recipient];
+
+            return [
+                EmailKeyword::replaceIn($this->subject, $row, $keywords),
+                EmailKeyword::replaceIn($this->body, $row, $keywords),
+            ];
+        } catch (\Throwable $e) {
+            \Log::warning('Keyword personalization failed, sending raw content', [
+                'to' => $recipient,
+                'error' => $e->getMessage(),
+            ]);
+
+            return [$this->subject, $this->body];
         }
     }
 

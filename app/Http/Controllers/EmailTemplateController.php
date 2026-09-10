@@ -28,7 +28,9 @@ class EmailTemplateController extends Controller
      */
     public function create()
     {
-        return view('email-templates.create');
+        $keywords = \App\Models\EmailKeyword::active()->orderBy('key')->get();
+
+        return view('email-templates.create', compact('keywords'));
     }
 
     /**
@@ -87,8 +89,9 @@ class EmailTemplateController extends Controller
     public function edit(EmailTemplate $emailTemplate)
     {
         $template = $emailTemplate;
+        $keywords = \App\Models\EmailKeyword::active()->orderBy('key')->get();
 
-        return view('email-templates.edit', compact('template'));
+        return view('email-templates.edit', compact('template', 'keywords'));
     }
 
     /**

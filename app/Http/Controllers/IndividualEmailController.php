@@ -30,8 +30,9 @@ class IndividualEmailController extends Controller
 
         // Pre-fill emails if provided in query string
         $preSelectedEmails = $request->get('emails', '');
+        $keywords = \App\Models\EmailKeyword::active()->orderBy('key')->get();
 
-        return view('individual-emails.create', compact('emailAccounts', 'templates', 'contacts', 'tags', 'preSelectedEmails'));
+        return view('individual-emails.create', compact('emailAccounts', 'templates', 'contacts', 'tags', 'preSelectedEmails', 'keywords'));
     }
 
     public function send(Request $request)

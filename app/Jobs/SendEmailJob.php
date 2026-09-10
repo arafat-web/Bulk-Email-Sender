@@ -5,6 +5,7 @@ namespace App\Jobs;
 use App\Mail\SendMail;
 use App\Models\EmailAccount;
 use App\Models\EmailContact;
+use App\Models\EmailKeyword;
 use App\Models\OneTimeSender;
 use Exception;
 use Illuminate\Bus\Queueable;
@@ -24,6 +25,8 @@ class SendEmailJob implements ShouldQueue
 
     protected $mailData;
 
+    protected $recipientData;
+
     // Job retry settings
     public $tries = 3;
 
@@ -33,10 +36,11 @@ class SendEmailJob implements ShouldQueue
 
     public $timeout = 120; // 2 minutes timeout
 
-    public function __construct($email, $mailData)
+    public function __construct($email, $mailData, $recipientData = null)
     {
         $this->email = $email;
         $this->mailData = $mailData;
+        $this->recipientData = $recipientData;
     }
 
     /**
@@ -91,8 +95,11 @@ class SendEmailJob implements ShouldQueue
             // Purge the mail manager to ensure fresh configuration
             app('mail.manager')->purge('smtp');
 
+            // Personalize subject/body with admin-defined dynamic keywords (e.g. [company_name], [name])
+            $personalizedMailData = $this->personalizeMailData();
+
             // Send the email
-            Mail::to($this->email)->send(new SendMail($this->mailData, $this->email));
+            Mail::to($this->email)->send(new SendMail($personalizedMailData, $this->email));
 
             // Update contact last_emailed_at if contact exists
             EmailContact::where('email', $this->email)
@@ -109,7 +116,7 @@ class SendEmailJob implements ShouldQueue
             if (config('app.debug')) {
                 Log::info('Email sent successfully', [
                     'to' => $this->email,
-                    'subject' => $this->mailData['subject'] ?? 'No subject',
+                    'subject' => $personalizedMailData['subject'] ?? $this->mailData['subject'] ?? 'No subject',
                     'account' => $emailAccount->name,
                 ]);
             }
@@ -147,6 +154,45 @@ class SendEmailJob implements ShouldQueue
         ]);
 
         $this->updateCampaignStats('failed');
+    }
+
+    /**
+     * Replace admin-defined [keywords] in subject/body using per-recipient data.
+     * Falls back to the EmailContact record, then to keyword default values.
+     */
+    private function personalizeMailData(): array
+    {
+        try {
+            $keywords = EmailKeyword::activeMap();
+            if (empty($keywords)) {
+                return $this->mailData;
+            }
+
+            $row = $this->recipientData;
+            if (empty($row)) {
+                $row = EmailContact::where('email', $this->email)->first();
+            }
+            if (empty($row)) {
+                $row = ['email' => $this->email];
+            }
+
+            $data = $this->mailData;
+            if (isset($data['subject'])) {
+                $data['subject'] = EmailKeyword::replaceIn($data['subject'], $row, $keywords);
+            }
+            if (isset($data['body'])) {
+                $data['body'] = EmailKeyword::replaceIn($data['body'], $row, $keywords);
+            }
+
+            return $data;
+        } catch (\Throwable $e) {
+            Log::warning('Keyword personalization failed, sending raw template', [
+                'to' => $this->email,
+                'error' => $e->getMessage(),
+            ]);
+
+            return $this->mailData;
+        }
     }
 
     /**

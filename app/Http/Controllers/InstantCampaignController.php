@@ -29,7 +29,9 @@ class InstantCampaignController extends Controller
             $selectedTemplate = EmailTemplate::active()->find($request->get('template'));
         }
 
-        return view('instant-campaign.create', compact('templates', 'selectedTemplate'));
+        $keywords = \App\Models\EmailKeyword::active()->orderBy('key')->get();
+
+        return view('instant-campaign.create', compact('templates', 'selectedTemplate', 'keywords'));
     }
 
     public function import(Request $request)
@@ -124,7 +126,7 @@ class InstantCampaignController extends Controller
                 $queueConnection = config('queue.default');
                 $useDelay = $queueConnection !== 'sync';
 
-                TempMailAddress::forUser(auth()->id())->select('id', 'email')->chunkById(500, function ($rows) use ($mailData, $useDelay) {
+                TempMailAddress::forUser(auth()->id())->select('id', 'email', 'first_name', 'last_name', 'company', 'phone', 'notes')->chunkById(500, function ($rows) use ($mailData, $useDelay) {
                     foreach ($rows as $row) {
                         if (! filter_var($row->email, FILTER_VALIDATE_EMAIL)) {
                             Log::warning('Invalid email address skipped: '.$row->email);
@@ -134,7 +136,8 @@ class InstantCampaignController extends Controller
                             Log::info('Skipped unsubscribed recipient: '.$row->email);
                             continue;
                         }
-                        $job = SendEmailJob::dispatch($row->email, $mailData);
+                        // Pass the uploaded row so per-recipient [keywords] resolve from CSV data
+                        $job = SendEmailJob::dispatch($row->email, $mailData, $row->only(['email', 'first_name', 'last_name', 'company', 'phone', 'notes']));
                         if ($useDelay) {
                             $job->onQueue('emails')->delay(rand(1, 5));
                         }

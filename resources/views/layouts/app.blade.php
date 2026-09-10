@@ -512,6 +512,12 @@
                                 <span>Email Accounts</span>
                             </a>
                         </li>
+                        <li class="nav-item">
+                            <a class="nav-link {{ request()->routeIs('keywords.*') ? 'active' : '' }}" href="{{ route('keywords.index') }}">
+                                <i class="bi bi-braces"></i>
+                                <span>Keyword Config</span>
+                            </a>
+                        </li>
                     </ul>
                 </div>
 

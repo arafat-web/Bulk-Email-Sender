@@ -3,6 +3,7 @@
 use App\Http\Controllers\ContactController;
 use App\Http\Controllers\ContactTagController;
 use App\Http\Controllers\EmailAccountController;
+use App\Http\Controllers\EmailKeywordController;
 use App\Http\Controllers\EmailTemplateController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\IndividualEmailController;
@@ -48,6 +49,12 @@ Route::middleware('auth')->group(function () {
     Route::post('/email-templates/{emailTemplate}/toggle-active', [EmailTemplateController::class, 'toggleActive'])->name('email-templates.toggle-active');
     Route::post('/email-templates/{emailTemplate}/duplicate', [EmailTemplateController::class, 'duplicate'])->name('email-templates.duplicate');
     Route::get('/api/email-templates/{emailTemplate}', [EmailTemplateController::class, 'getTemplate'])->name('email-templates.get');
+
+    // Keyword Config — admin-defined dynamic placeholders like [company_name], [name], [phone], [email]
+    Route::resource('keywords', EmailKeywordController::class)->except(['show']);
+    Route::post('/keywords/{keyword}/toggle-active', [EmailKeywordController::class, 'toggleActive'])->name('keywords.toggle-active');
+    Route::post('/keywords/preview', [EmailKeywordController::class, 'preview'])->name('keywords.preview');
+    Route::get('/api/keywords', [EmailKeywordController::class, 'list'])->name('keywords.list');
 
     // Profile Management Routes
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
