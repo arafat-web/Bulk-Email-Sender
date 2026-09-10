@@ -52,6 +52,13 @@ class SendEmailJob implements ShouldQueue
                 return;
             }
 
+            // Skip unsubscribed recipients (global suppression list + contact status)
+            if (\App\Models\EmailUnsubscribe::isUnsubscribed($this->email)) {
+                Log::info('Skipped unsubscribed recipient: '.$this->email);
+
+                return;
+            }
+
             // Get the email account to use
             $emailAccount = null;
 
@@ -85,7 +92,7 @@ class SendEmailJob implements ShouldQueue
             app('mail.manager')->purge('smtp');
 
             // Send the email
-            Mail::to($this->email)->send(new SendMail($this->mailData));
+            Mail::to($this->email)->send(new SendMail($this->mailData, $this->email));
 
             // Update contact last_emailed_at if contact exists
             EmailContact::where('email', $this->email)

@@ -66,7 +66,11 @@ class SendIndividualEmailJob implements ShouldQueue
                     if (! filter_var($recipient, FILTER_VALIDATE_EMAIL)) {
                         continue;
                     }
-                    Mail::to($recipient)->send(new IndividualMail($this->subject, $this->body));
+                    if (\App\Models\EmailUnsubscribe::isUnsubscribed($recipient)) {
+                        \Log::info('Skipped unsubscribed recipient: '.$recipient);
+                        continue;
+                    }
+                    Mail::to($recipient)->send(new IndividualMail($this->subject, $this->body, $recipient));
                     $sentCount++;
                 }
                 $this->updateContactsLastEmailed($recipients);
@@ -78,7 +82,12 @@ class SendIndividualEmailJob implements ShouldQueue
             } else {
                 // Send individual email
                 $recipient = is_array($this->recipients) ? $this->recipients[0] : $this->recipients;
-                Mail::to($recipient)->send(new IndividualMail($this->subject, $this->body));
+                if (\App\Models\EmailUnsubscribe::isUnsubscribed($recipient)) {
+                    \Log::info('Skipped unsubscribed recipient: '.$recipient);
+
+                    return;
+                }
+                Mail::to($recipient)->send(new IndividualMail($this->subject, $this->body, $recipient));
                 $this->updateContactsLastEmailed([$recipient]);
                 $this->emailAccount->increment('emails_sent');
                 $this->emailAccount->update(['last_used_at' => now()]);

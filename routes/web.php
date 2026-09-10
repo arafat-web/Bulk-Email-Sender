@@ -8,6 +8,7 @@ use App\Http\Controllers\HomeController;
 use App\Http\Controllers\IndividualEmailController;
 use App\Http\Controllers\InstantCampaignController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\UnsubscribeController;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 
@@ -69,3 +70,9 @@ Route::middleware('auth')->group(function () {
     // Contact Tag Management Routes
     Route::resource('tags', ContactTagController::class)->except(['show']);
 });
+
+// Public unsubscribe routes (NO auth — recipients click from their inbox).
+// GET shows a confirmation page, POST confirms, /one-click serves Gmail/Yahoo RFC 8058.
+Route::get('/unsubscribe', [UnsubscribeController::class, 'show'])->name('unsubscribe.show');
+Route::post('/unsubscribe', [UnsubscribeController::class, 'store'])->name('unsubscribe.store');
+Route::post('/unsubscribe/one-click', [UnsubscribeController::class, 'oneClick'])->name('unsubscribe.one-click');

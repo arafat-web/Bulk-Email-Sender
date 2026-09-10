@@ -139,6 +139,14 @@ class ContactController extends Controller
             'email', 'first_name', 'last_name', 'phone', 'company', 'notes', 'status',
         ]));
 
+        // Keep the global suppression list in sync with the contact status:
+        // unsubscribing adds the email; re-activating removes it (resubscribe).
+        if ($request->status === 'unsubscribed') {
+            \App\Models\EmailUnsubscribe::unsubscribe($contact->email, 'manual');
+        } elseif ($contact->wasChanged('status')) {
+            \App\Models\EmailUnsubscribe::resubscribe($contact->email);
+        }
+
         $contact->tags()->sync($request->tags ?? []);
 
         return redirect()->route('contacts.index')->with('success', 'Contact updated successfully.');

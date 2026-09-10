@@ -60,6 +60,14 @@
         <div class="email-content">
             {!! $emailBody !!}
         </div>
+        <div class="email-footer">
+            <p style="margin:0 0 8px;">You received this email because you are subscribed to our mailing list.</p>
+            @if(!empty($unsubscribeUrl ?? null))
+                <a href="{{ $unsubscribeUrl }}" style="color:#8b5cf6;text-decoration:underline;">Unsubscribe</a>
+            @else
+                <a href="{{ url('/unsubscribe') }}" style="color:#8b5cf6;text-decoration:underline;">Unsubscribe</a>
+            @endif
+        </div>
     </div>
 </body>
 </html>

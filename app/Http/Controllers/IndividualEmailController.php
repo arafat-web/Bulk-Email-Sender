@@ -69,6 +69,27 @@ class IndividualEmailController extends Controller
         $validEmails = $emailList['valid'];
         $invalidEmails = $emailList['invalid'];
 
+        // Filter out unsubscribed recipients before queuing (global list + contact status)
+        $skippedUnsubscribed = [];
+        $validEmails = array_values(array_filter($validEmails, function ($email) use (&$skippedUnsubscribed) {
+            if (\App\Models\EmailUnsubscribe::isUnsubscribed($email)) {
+                $skippedUnsubscribed[] = $email;
+
+                return false;
+            }
+
+            return true;
+        }));
+
+        if (empty($validEmails)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'All recipients have unsubscribed. No emails were queued.',
+                'errors' => ['recipients' => ['All provided email addresses have unsubscribed.']],
+                'skipped_unsubscribed' => $skippedUnsubscribed,
+            ], 422);
+        }
+
         try {
             // Send emails based on type
             if ($request->send_type === 'individual') {
@@ -88,12 +109,17 @@ class IndividualEmailController extends Controller
                     'total_emails' => count($validEmails),
                     'valid_emails' => count($validEmails),
                     'invalid_emails' => count($invalidEmails),
+                    'skipped_unsubscribed' => count($skippedUnsubscribed),
                     'send_type' => $request->send_type,
                 ],
             ];
 
             if (! empty($invalidEmails)) {
                 $response['invalid_emails'] = $invalidEmails;
+            }
+
+            if (! empty($skippedUnsubscribed)) {
+                $response['skipped_unsubscribed'] = $skippedUnsubscribed;
             }
 
             return response()->json($response);

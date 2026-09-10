@@ -130,6 +130,10 @@ class InstantCampaignController extends Controller
                             Log::warning('Invalid email address skipped: '.$row->email);
                             continue;
                         }
+                        if (\App\Models\EmailUnsubscribe::isUnsubscribed($row->email)) {
+                            Log::info('Skipped unsubscribed recipient: '.$row->email);
+                            continue;
+                        }
                         $job = SendEmailJob::dispatch($row->email, $mailData);
                         if ($useDelay) {
                             $job->onQueue('emails')->delay(rand(1, 5));
