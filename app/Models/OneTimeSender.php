@@ -10,12 +10,17 @@ class OneTimeSender extends Model
     use HasFactory;
 
     protected $fillable = [
+        'user_id',
+        'type',
         'file_name',
         'total_email_address',
         'subject',
+        'body',
         'status',
         'sent_count',
         'failed_count',
+        'skipped_count',
+        'last_error',
         'started_at',
         'completed_at',
     ];
@@ -23,7 +28,44 @@ class OneTimeSender extends Model
     protected $casts = [
         'started_at' => 'datetime',
         'completed_at' => 'datetime',
+        'sent_count' => 'integer',
+        'failed_count' => 'integer',
+        'skipped_count' => 'integer',
+        'total_email_address' => 'integer',
     ];
+
+    public function recipients()
+    {
+        return $this->hasMany(CampaignRecipient::class, 'campaign_id');
+    }
+
+    public function getProcessedCountAttribute(): int
+    {
+        return (int) $this->sent_count + (int) $this->failed_count + (int) $this->skipped_count;
+    }
+
+    public function getPendingCountAttribute(): int
+    {
+        return max(0, (int) $this->total_email_address - $this->processed_count);
+    }
+
+    public function getIsFinishedAttribute(): bool
+    {
+        return in_array($this->status, ['completed', 'failed'], true)
+            || ($this->total_email_address > 0 && $this->processed_count >= (int) $this->total_email_address);
+    }
+
+    public function refreshStatusFromCounters(): void
+    {
+        // Derive queued/completed from counters without extra queries.
+        if ((int) $this->total_email_address > 0
+            && $this->processed_count >= (int) $this->total_email_address
+            && ! in_array($this->status, ['completed', 'failed'], true)) {
+            $this->status = ((int) $this->failed_count === (int) $this->total_email_address) ? 'failed' : 'completed';
+            $this->completed_at = $this->completed_at ?? now();
+            $this->saveQuietly();
+        }
+    }
 
     public function getStatusBadgeAttribute()
     {

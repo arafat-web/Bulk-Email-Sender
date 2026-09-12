@@ -210,7 +210,7 @@ $(document).ready(function() {
         Swal.fire({ title: 'Sending...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
         $.ajax({ url: $(this).attr('action'), method: 'POST', data: fd, processData: false, contentType: false,
             success: function(res) {
-                if (res.success) { Swal.fire({ icon: 'success', title: 'Sent!', text: 'Queued ' + res.summary.total_emails + ' emails.' }).then(() => { $('#individualEmailForm')[0].reset(); setContent(''); }); }
+                if (res.success) { Swal.fire({ icon: 'success', title: 'Queued!', text: 'Queued ' + res.summary.total_emails + ' emails. Watch live progress.', showCancelButton: true, confirmButtonText: 'Track live', cancelButtonText: 'Stay here' }).then((r) => { if (r.isConfirmed && res.tracker_url) { window.location.href = res.tracker_url; } else { $('#individualEmailForm')[0].reset(); setContent(''); } }); }
                 else Swal.fire({ icon: 'error', title: 'Failed', text: res.message });
             },
             error: function(xhr) { Swal.fire({ icon: 'error', title: 'Error', text: (xhr.responseJSON && xhr.responseJSON.message) || 'An error occurred' }); }

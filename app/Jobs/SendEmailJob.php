@@ -3,6 +3,7 @@
 namespace App\Jobs;
 
 use App\Mail\SendMail;
+use App\Models\CampaignRecipient;
 use App\Models\EmailAccount;
 use App\Models\EmailContact;
 use App\Models\EmailKeyword;
@@ -52,6 +53,7 @@ class SendEmailJob implements ShouldQueue
             // Validate email address
             if (! filter_var($this->email, FILTER_VALIDATE_EMAIL)) {
                 Log::warning('Invalid email address skipped in job: '.$this->email);
+                $this->updateCampaignStats('skipped', 'Invalid email address');
 
                 return;
             }
@@ -59,6 +61,7 @@ class SendEmailJob implements ShouldQueue
             // Skip unsubscribed recipients (global suppression list + contact status)
             if (\App\Models\EmailUnsubscribe::isUnsubscribed($this->email)) {
                 Log::info('Skipped unsubscribed recipient: '.$this->email);
+                $this->updateCampaignStats('skipped', 'Unsubscribed');
 
                 return;
             }
@@ -131,9 +134,19 @@ class SendEmailJob implements ShouldQueue
                 'account_id' => $this->mailData['email_account_id'] ?? null,
             ]);
 
-            // Update campaign status if this is the final attempt
-            if ($this->attempts() >= $this->tries) {
-                $this->updateCampaignStats('failed');
+            // Bump per-recipient attempt counter so the tracker shows retries.
+            $this->touchRecipientAttempt($e->getMessage());
+
+            // Count a failure only on the final attempt (retries don't double-count).
+            $isFinalAttempt = false;
+            try {
+                $isFinalAttempt = $this->attempts() >= $this->tries;
+            } catch (\Throwable $t) {
+                $isFinalAttempt = true;
+            }
+            if ($isFinalAttempt) {
+                // failed() hook also fires — guard there via status check.
+                $this->updateCampaignStats('failed', $e->getMessage());
             }
 
             // Re-throw the exception to trigger retry logic
@@ -153,7 +166,47 @@ class SendEmailJob implements ShouldQueue
             'attempts' => $this->attempts(),
         ]);
 
-        $this->updateCampaignStats('failed');
+        // Guard against double counting: handle() already counts the final
+        // attempt failure before re-throwing, so only count here if the
+        // recipient row is not already marked failed.
+        try {
+            $campaignId = $this->mailData['campaign_id'] ?? null;
+            if ($campaignId) {
+                $existing = CampaignRecipient::where('campaign_id', $campaignId)
+                    ->where('email', strtolower(trim($this->email)))
+                    ->first();
+                if (! $existing || $existing->status !== CampaignRecipient::STATUS_FAILED) {
+                    $this->updateCampaignStats('failed', $exception->getMessage());
+                } else {
+                    $this->touchRecipientAttempt($exception->getMessage());
+                }
+            }
+        } catch (\Throwable $t) {
+            $this->updateCampaignStats('failed', $exception->getMessage());
+        }
+    }
+
+    /**
+     * Record an attempt on the recipient row without changing counters.
+     */
+    private function touchRecipientAttempt(?string $error = null): void
+    {
+        try {
+            $campaignId = $this->mailData['campaign_id'] ?? null;
+            if (! $campaignId) {
+                return;
+            }
+            $recipient = CampaignRecipient::firstOrCreate(
+                ['campaign_id' => $campaignId, 'email' => strtolower(trim($this->email))],
+                ['status' => CampaignRecipient::STATUS_QUEUED]
+            );
+            $recipient->increment('attempts');
+            if ($error) {
+                $recipient->update(['error' => substr($error, 0, 1000)]);
+            }
+        } catch (\Throwable $t) {
+            // Tracker must never break sending.
+        }
     }
 
     /**
@@ -196,21 +249,51 @@ class SendEmailJob implements ShouldQueue
     }
 
     /**
-     * Update campaign statistics
+     * Update campaign statistics (realtime counters + per-recipient row).
+     * Uses atomic increments so parallel queue workers stay accurate.
      */
-    private function updateCampaignStats(string $status): void
+    private function updateCampaignStats(string $status, ?string $error = null): void
     {
         try {
-            if (isset($this->mailData['campaign_id'])) {
-                $campaign = OneTimeSender::find($this->mailData['campaign_id']);
-                if ($campaign) {
-                    if ($status === 'failed') {
-                        $campaign->increment('failed_count');
-                    } else {
-                        $campaign->increment('sent_count');
-                    }
-                }
+            $campaignId = $this->mailData['campaign_id'] ?? null;
+            if (! $campaignId) {
+                return;
             }
+
+            $campaign = OneTimeSender::find($campaignId);
+            if (! $campaign) {
+                return;
+            }
+
+            $column = match ($status) {
+                'failed' => 'failed_count',
+                'skipped' => 'skipped_count',
+                default => 'sent_count',
+            };
+            $campaign->increment($column);
+
+            $recipientStatus = match ($status) {
+                'failed' => CampaignRecipient::STATUS_FAILED,
+                'skipped' => CampaignRecipient::STATUS_SKIPPED,
+                default => CampaignRecipient::STATUS_SENT,
+            };
+
+            CampaignRecipient::updateOrCreate(
+                ['campaign_id' => $campaignId, 'email' => strtolower(trim($this->email))],
+                [
+                    'status' => $recipientStatus,
+                    'error' => $error ? substr($error, 0, 1000) : null,
+                    'sent_at' => $recipientStatus === CampaignRecipient::STATUS_SENT ? now() : null,
+                ]
+            );
+
+            if ($error && $recipientStatus !== CampaignRecipient::STATUS_SENT) {
+                $campaign->update(['last_error' => substr($error, 0, 1000)]);
+            }
+
+            // Refresh + auto-complete when every recipient is processed.
+            $campaign->refresh();
+            $campaign->refreshStatusFromCounters();
         } catch (Exception $e) {
             Log::error('Failed to update campaign stats', [
                 'campaign_id' => $this->mailData['campaign_id'] ?? null,

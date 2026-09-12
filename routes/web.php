@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\CampaignTrackerController;
 use App\Http\Controllers\ContactController;
 use App\Http\Controllers\ContactTagController;
 use App\Http\Controllers\EmailAccountController;
@@ -74,6 +75,13 @@ Route::middleware('auth')->group(function () {
     Route::get('/contacts/ids', [ContactController::class, 'ids'])->name('contacts.ids');
     Route::get('/contacts/export', [ContactController::class, 'export'])->name('contacts.export');
     Route::resource('contacts', ContactController::class);
+
+    // Realtime campaign tracker — live counters, per-recipient status, retry.
+    Route::get('/campaigns', [CampaignTrackerController::class, 'index'])->name('campaigns.index');
+    Route::get('/campaigns/{campaign}', [CampaignTrackerController::class, 'show'])->name('campaigns.show');
+    Route::get('/campaigns/{campaign}/live', [CampaignTrackerController::class, 'live'])->name('campaigns.live');
+    Route::get('/campaigns/{campaign}/feed', [CampaignTrackerController::class, 'feed'])->name('campaigns.feed');
+    Route::post('/campaigns/{campaign}/retry-failed', [CampaignTrackerController::class, 'retryFailed'])->name('campaigns.retry-failed');
 
     // Contact Tag Management Routes
     Route::resource('tags', ContactTagController::class)->except(['show']);

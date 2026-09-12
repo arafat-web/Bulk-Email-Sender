@@ -98,10 +98,14 @@ class InstantCampaignController extends Controller
 
                 // Create campaign record
                 $campaign = OneTimeSender::create([
+                    'user_id' => auth()->id(),
+                    'type' => 'instant',
                     'file_name' => $request->file->getClientOriginalName(),
                     'total_email_address' => $emailCount,
                     'subject' => $request->subject,
+                    'body' => $request->body,
                     'status' => 'processing',
+                    'started_at' => now(),
                     'created_at' => now(),
                 ]);
 
@@ -125,6 +129,40 @@ class InstantCampaignController extends Controller
 
                 $queueConnection = config('queue.default');
                 $useDelay = $queueConnection !== 'sync';
+
+                $campaignId = $campaign->id;
+                $now = now()->toDateTimeString();
+                // Pre-create recipient rows so the tracker shows Pending totals
+                // immediately — even before the queue worker picks jobs up.
+                $recipientRows = [];
+                TempMailAddress::forUser(auth()->id())->select('email')->chunkById(500, function ($rows) use (&$recipientRows, $campaignId, $now) {
+                    foreach ($rows as $row) {
+                        $email = strtolower(trim((string) $row->email));
+                        if (! filter_var($email, FILTER_VALIDATE_EMAIL)) {
+                            continue;
+                        }
+                        $recipientRows[$email] = [
+                            'campaign_id' => $campaignId,
+                            'email' => $email,
+                            'status' => 'queued',
+                            'created_at' => $now,
+                            'updated_at' => $now,
+                        ];
+                    }
+                });
+                foreach (array_chunk($recipientRows, 500, true) as $chunk) {
+                    \App\Models\CampaignRecipient::upsert(
+                        array_values($chunk),
+                        ['campaign_id', 'email'],
+                        ['status', 'updated_at']
+                    );
+                }
+                // True total = valid rows we actually queued (invalid ones never become jobs).
+                $queuedTotal = count($recipientRows);
+                $preSkipped = $emailCount - $queuedTotal;
+                if ($queuedTotal !== $emailCount) {
+                    $campaign->update(['total_email_address' => $queuedTotal]);
+                }
 
                 TempMailAddress::forUser(auth()->id())->select('id', 'email', 'first_name', 'last_name', 'company', 'phone', 'notes')->chunkById(500, function ($rows) use ($mailData, $useDelay) {
                     foreach ($rows as $row) {
@@ -156,8 +194,8 @@ class InstantCampaignController extends Controller
                 // Clear temporary data for this user only
                 TempMailAddress::forUser(auth()->id())->delete();
 
-                return back()->with([
-                    'message' => 'Success! Instant campaign launched successfully using "'.$defaultEmailAccount->name.'". '.number_format($emailCount).' emails have been queued for delivery.',
+                return redirect()->route('campaigns.show', $campaign)->with([
+                    'message' => 'Success! Instant campaign launched using "'.$defaultEmailAccount->name.'". '.number_format($queuedTotal ?? $emailCount).' emails queued — watch live progress below.',
                 ]);
 
             } catch (Exception $e) {

@@ -483,6 +483,12 @@
                             </a>
                         </li>
                         <li class="nav-item">
+                            <a class="nav-link {{ request()->routeIs('campaigns.*') ? 'active' : '' }}" href="{{ route('campaigns.index') }}">
+                                <i class="bi bi-activity"></i>
+                                <span>Live Tracker</span>
+                            </a>
+                        </li>
+                        <li class="nav-item">
                             <a class="nav-link {{ request()->routeIs('email-templates.*') ? 'active' : '' }}" href="{{ route('email-templates.index') }}">
                                 <i class="bi bi-file-earmark-text"></i>
                                 <span>Email Templates</span>

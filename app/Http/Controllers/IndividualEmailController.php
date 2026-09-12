@@ -92,20 +92,48 @@ class IndividualEmailController extends Controller
         }
 
         try {
+            // Create a tracker campaign so bulk/individual sends show realtime progress.
+            $tracker = \App\Models\OneTimeSender::create([
+                'user_id' => auth()->id(),
+                'type' => 'individual',
+                'file_name' => 'individual-send ('.count($validEmails).' recipients)',
+                'total_email_address' => count($validEmails),
+                'subject' => $subject,
+                'body' => $body,
+                'status' => 'queued',
+                'started_at' => now(),
+            ]);
+            $now = now()->toDateTimeString();
+            $rows = [];
+            foreach ($validEmails as $email) {
+                $rows[] = [
+                    'campaign_id' => $tracker->id,
+                    'email' => strtolower(trim($email)),
+                    'status' => 'queued',
+                    'created_at' => $now,
+                    'updated_at' => $now,
+                ];
+            }
+            foreach (array_chunk($rows, 500) as $chunk) {
+                \App\Models\CampaignRecipient::upsert($chunk, ['campaign_id', 'email'], ['status', 'updated_at']);
+            }
+
             // Send emails based on type
             if ($request->send_type === 'individual') {
                 // Send individual emails (each recipient gets their own email)
                 foreach ($validEmails as $email) {
-                    SendIndividualEmailJob::dispatch($emailAccount, $email, $subject, $body);
+                    SendIndividualEmailJob::dispatch($emailAccount, $email, $subject, $body, false, $tracker->id);
                 }
             } else {
                 // Send bulk email (all recipients in one email)
-                SendIndividualEmailJob::dispatch($emailAccount, $validEmails, $subject, $body, true);
+                SendIndividualEmailJob::dispatch($emailAccount, $validEmails, $subject, $body, true, $tracker->id);
             }
 
             $response = [
                 'success' => true,
                 'message' => 'Emails queued successfully!',
+                'tracker_url' => route('campaigns.show', $tracker),
+                'campaign_id' => $tracker->id,
                 'summary' => [
                     'total_emails' => count($validEmails),
                     'valid_emails' => count($validEmails),

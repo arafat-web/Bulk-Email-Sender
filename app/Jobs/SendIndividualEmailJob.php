@@ -3,9 +3,12 @@
 namespace App\Jobs;
 
 use App\Mail\IndividualMail;
+use App\Models\CampaignRecipient;
 use App\Models\EmailAccount;
 use App\Models\EmailContact;
 use App\Models\EmailKeyword;
+use App\Models\OneTimeSender;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
@@ -27,16 +30,19 @@ class SendIndividualEmailJob implements ShouldQueue
 
     protected $isBulk;
 
+    protected $campaignId;
+
     /**
      * Create a new job instance.
      */
-    public function __construct(EmailAccount $emailAccount, $recipients, $subject, $body, $isBulk = false)
+    public function __construct(EmailAccount $emailAccount, $recipients, $subject, $body, $isBulk = false, $campaignId = null)
     {
         $this->emailAccount = $emailAccount;
         $this->recipients = $recipients;
         $this->subject = $subject;
         $this->body = $body;
         $this->isBulk = $isBulk;
+        $this->campaignId = $campaignId;
     }
 
     /**
@@ -67,15 +73,18 @@ class SendIndividualEmailJob implements ShouldQueue
                 $sentCount = 0;
                 foreach ($recipients as $recipient) {
                     if (! filter_var($recipient, FILTER_VALIDATE_EMAIL)) {
+                        $this->trackRecipient($recipient, 'skipped', 'Invalid email address');
                         continue;
                     }
                     if (\App\Models\EmailUnsubscribe::isUnsubscribed($recipient)) {
                         \Log::info('Skipped unsubscribed recipient: '.$recipient);
+                        $this->trackRecipient($recipient, 'skipped', 'Unsubscribed');
                         continue;
                     }
                     [$subject, $body] = $this->personalize($keywords, $recipient);
                     Mail::to($recipient)->send(new IndividualMail($subject, $body, $recipient));
                     $sentCount++;
+                    $this->trackRecipient($recipient, 'sent');
                 }
                 $this->updateContactsLastEmailed($recipients);
                 // Increment by actual number of emails sent
@@ -88,11 +97,13 @@ class SendIndividualEmailJob implements ShouldQueue
                 $recipient = is_array($this->recipients) ? $this->recipients[0] : $this->recipients;
                 if (\App\Models\EmailUnsubscribe::isUnsubscribed($recipient)) {
                     \Log::info('Skipped unsubscribed recipient: '.$recipient);
+                    $this->trackRecipient($recipient, 'skipped', 'Unsubscribed');
 
                     return;
                 }
                 [$subject, $body] = $this->personalize($keywords, $recipient);
                 Mail::to($recipient)->send(new IndividualMail($subject, $body, $recipient));
+                $this->trackRecipient($recipient, 'sent');
                 $this->updateContactsLastEmailed([$recipient]);
                 $this->emailAccount->increment('emails_sent');
                 $this->emailAccount->update(['last_used_at' => now()]);
@@ -105,7 +116,53 @@ class SendIndividualEmailJob implements ShouldQueue
                 'smtp_port' => $this->emailAccount->smtp_port,
                 'error' => $e->getMessage(),
             ]);
+            // Mark recipients failed so the tracker shows what went wrong.
+            foreach ((array) $this->recipients as $recipient) {
+                $this->trackRecipient($recipient, 'failed', $e->getMessage());
+            }
             throw $e;
+        }
+    }
+
+    /**
+     * Report one recipient outcome to the realtime tracker (if linked to a campaign).
+     * Never throws — tracking must not break sending.
+     */
+    private function trackRecipient(string $email, string $outcome, ?string $error = null): void
+    {
+        try {
+            if (! $this->campaignId || ! filter_var($email, FILTER_VALIDATE_EMAIL)) {
+                return;
+            }
+            $campaign = OneTimeSender::find($this->campaignId);
+            if (! $campaign) {
+                return;
+            }
+            $column = match ($outcome) {
+                'failed' => 'failed_count',
+                'skipped' => 'skipped_count',
+                default => 'sent_count',
+            };
+            $campaign->increment($column);
+
+            CampaignRecipient::updateOrCreate(
+                ['campaign_id' => $this->campaignId, 'email' => strtolower(trim($email))],
+                [
+                    'status' => $outcome === 'sent' ? CampaignRecipient::STATUS_SENT
+                        : ($outcome === 'failed' ? CampaignRecipient::STATUS_FAILED : CampaignRecipient::STATUS_SKIPPED),
+                    'error' => $error ? substr($error, 0, 1000) : null,
+                    'sent_at' => $outcome === 'sent' ? now() : null,
+                ]
+            );
+
+            if ($error && $outcome !== 'sent') {
+                $campaign->update(['last_error' => substr($error, 0, 1000)]);
+            }
+
+            $campaign->refresh();
+            $campaign->refreshStatusFromCounters();
+        } catch (\Throwable $t) {
+            Log::warning('Tracker update failed: '.$t->getMessage());
         }
     }
 

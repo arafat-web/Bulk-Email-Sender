@@ -94,6 +94,55 @@
     </div>
 </div>
 
+<!-- Live tracker widget -->
+@if(isset($active_campaigns) && $active_campaigns->count() > 0)
+<div class="card mb-4" style="border-color:#16a34a;">
+    <div class="card-header" style="display:flex;align-items:center;justify-content:space-between;background:#f0fdf4;">
+        <h5 class="card-title"><span class="live-dot"></span> Sending now — live</h5>
+        <a href="{{ route('campaigns.index') }}" style="font-size:12px;color:#16a34a;font-weight:600;text-decoration:none;">Open tracker &rarr;</a>
+    </div>
+    <div class="card-body p-0" id="dashLive">
+        @foreach($active_campaigns as $campaign)
+        <a href="{{ route('campaigns.show', $campaign) }}" class="text-decoration-none" data-dash-campaign="{{ $campaign->id }}">
+            <div class="px-3 py-2 d-flex align-items-center justify-content-between" style="border-bottom:1px solid #f1f5f9;">
+                <div style="min-width:0;">
+                    <div style="font-size:13px;font-weight:600;color:#0f172a;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ $campaign->subject ?: '(no subject)' }}</div>
+                    <div style="font-size:11px;color:#64748b;"><span data-dash-sent>{{ number_format($campaign->sent_count) }}</span> sent &middot; <span data-dash-failed>{{ number_format($campaign->failed_count) }}</span> failed &middot; <span data-dash-total>{{ number_format($campaign->total_email_address) }}</span> total</div>
+                </div>
+                <span class="badge bg-success" data-dash-pct>{{ $campaign->progress_percentage }}%</span>
+            </div>
+        </a>
+        @endforeach
+    </div>
+</div>
+@push('scripts')
+<script>
+$(document).ready(function(){
+    function tick(){
+        if(document.hidden) return;
+        $('[data-dash-campaign]').each(function(){
+            var el = $(this), id = el.data('dash-campaign');
+            $.ajax({ url: '/campaigns/' + id + '/live', success: function(res){
+                var c = res.campaign;
+                el.find('[data-dash-sent]').text(Number(c.sent).toLocaleString());
+                el.find('[data-dash-failed]').text(Number(c.failed).toLocaleString());
+                el.find('[data-dash-total]').text(Number(c.total).toLocaleString());
+                el.find('[data-dash-pct]').text(c.progress + '%');
+                if(c.is_finished) setTimeout(function(){ location.reload(); }, 4000);
+            }});
+        });
+    }
+    @if(isset($active_campaigns) && $active_campaigns->count() > 0)
+    setInterval(tick, 3000);
+    @endif
+});
+</script>
+@endpush
+@push('styles')
+<style>.live-dot{display:inline-block;width:9px;height:9px;border-radius:50%;background:#16a34a;margin-right:6px;animation:pulse 1.6s infinite;vertical-align:middle;}@keyframes pulse{0%{box-shadow:0 0 0 0 rgba(22,163,74,.5);}70%{box-shadow:0 0 0 8px rgba(22,163,74,0);}100%{box-shadow:0 0 0 0 rgba(22,163,74,0);}}</style>
+@endpush
+@endif
+
 <!-- Quick actions + Recent operations -->
 <div class="row g-3 mb-4">
     <div class="col-12 col-lg-8">

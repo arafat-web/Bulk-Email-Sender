@@ -36,6 +36,12 @@ class HomeController extends Controller
         $total_email_accounts = EmailAccount::count();
         $operations = OneTimeSender::latest()->take(10)->get();
 
+        // Live tracker: campaigns still sending (for the dashboard widget).
+        $active_campaigns = OneTimeSender::whereIn('status', ['processing', 'queued'])
+            ->latest()
+            ->take(3)
+            ->get();
+
         // Contact statistics
         $total_contacts = EmailContact::where('user_id', auth()->id())->count();
         $active_contacts = EmailContact::where('user_id', auth()->id())->where('status', 'active')->count();
@@ -59,6 +65,7 @@ class HomeController extends Controller
             'total_user',
             'total_email_accounts',
             'operations',
+            'active_campaigns',
             'total_contacts',
             'active_contacts',
             'total_tags',
