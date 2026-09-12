@@ -226,22 +226,41 @@ class SendIndividualEmailJob implements ShouldQueue
             if (! $campaign) {
                 return;
             }
-            $column = match ($outcome) {
-                'failed' => 'failed_count',
-                'skipped' => 'skipped_count',
-                default => 'sent_count',
-            };
-            $campaign->increment($column);
-
-            CampaignRecipient::updateOrCreate(
-                ['campaign_id' => $this->campaignId, 'email' => strtolower(trim($email))],
-                [
-                    'status' => $outcome === 'sent' ? CampaignRecipient::STATUS_SENT
-                        : ($outcome === 'failed' ? CampaignRecipient::STATUS_FAILED : CampaignRecipient::STATUS_SKIPPED),
+            $newStatus = $outcome === 'sent' ? CampaignRecipient::STATUS_SENT
+                : ($outcome === 'failed' ? CampaignRecipient::STATUS_FAILED : CampaignRecipient::STATUS_SKIPPED);
+            $key = strtolower(trim($email));
+            $existing = CampaignRecipient::where('campaign_id', $this->campaignId)->where('email', $key)->first();
+            $previous = $existing?->status;
+            if ($previous === $newStatus) {
+                $existing->update([
                     'error' => $error ? substr($error, 0, 1000) : null,
-                    'sent_at' => $outcome === 'sent' ? now() : null,
-                ]
-            );
+                    'sent_at' => $newStatus === CampaignRecipient::STATUS_SENT ? now() : $existing->sent_at,
+                ]);
+            } else {
+                CampaignRecipient::updateOrCreate(
+                    ['campaign_id' => $this->campaignId, 'email' => $key],
+                    [
+                        'status' => $newStatus,
+                        'error' => $error ? substr($error, 0, 1000) : null,
+                        'sent_at' => $newStatus === CampaignRecipient::STATUS_SENT ? now() : null,
+                    ]
+                );
+                $column = match ($newStatus) {
+                    CampaignRecipient::STATUS_FAILED => 'failed_count',
+                    CampaignRecipient::STATUS_SKIPPED => 'skipped_count',
+                    default => 'sent_count',
+                };
+                $campaign->increment($column);
+                $prevColumn = match ($previous) {
+                    CampaignRecipient::STATUS_FAILED => 'failed_count',
+                    CampaignRecipient::STATUS_SKIPPED => 'skipped_count',
+                    CampaignRecipient::STATUS_SENT => 'sent_count',
+                    default => null,
+                };
+                if ($prevColumn && $prevColumn !== $column) {
+                    $campaign->decrement($prevColumn);
+                }
+            }
 
             if ($error && $outcome !== 'sent') {
                 $campaign->update(['last_error' => substr($error, 0, 1000)]);

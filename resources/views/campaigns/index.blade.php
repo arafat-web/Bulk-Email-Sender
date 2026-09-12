@@ -150,7 +150,7 @@ $(document).ready(function() {
                 if(res.queue && typeof res.queue.failed_jobs !== 'undefined'){
                     $('#queueFailuresCount').text(Number(res.queue.failed_jobs).toLocaleString());
                 }
-                var anyActive = res.campaigns.some(function(c){ return !c.is_finished; });
+                var anyActive = res.campaigns.some(function(c){ return c.status !== 'completed' && c.status !== 'failed'; });
                 $('#trackerDot').toggleClass('paused', !anyActive);
                 if(!anyActive){ stopPolling(); }
             }

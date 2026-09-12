@@ -199,7 +199,10 @@ $(document).ready(function() {
         $('#liveUpdated').text('Updated ' + new Date().toLocaleTimeString());
         lastSig = sig;
 
-        if(c.is_finished){
+        // Only stop polling on explicit terminal status from the server.
+        // Counter-derived is_finished can be stale mid-retry (double counts),
+        // which is why the page used to freeze at 100% while mail kept sending.
+        if(c.status === 'completed' || c.status === 'failed'){
             $('#doneBanner').removeClass('d-none');
             $('#liveDot').addClass('paused');
             stopPolling();
