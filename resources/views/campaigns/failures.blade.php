@@ -8,8 +8,7 @@
     <li class="breadcrumb-item active">Queue Failures</li>
 @endsection
 
-@section('content')
-<div class="d-flex flex-wrap justify-content-between align-items-center mb-4" style="gap:12px;">
+@section('content')<div class="d-flex flex-wrap justify-content-between align-items-center mb-4" style="gap:12px;">
     <div>
         <h1 style="font-size:20px;font-weight:600;margin:0;letter-spacing:-0.3px;">Failed Emails (Queue)</h1>
         <p style="font-size:13px;color:#64748b;margin:2px 0 0;">
@@ -97,7 +96,26 @@
                 </tbody>
             </table>
         </div>
-        <div class="px-3 py-2">{{ $rows->links() }}</div>
+        <div class="px-3 py-3 d-flex flex-wrap justify-content-between align-items-center" style="gap:8px;">
+            <span style="font-size:12px;color:#94a3b8;">Showing {{ $rows->firstItem() ?? 0 }}–{{ $rows->lastItem() ?? 0 }} of {{ number_format($rows->total()) }}</span>
+            <div class="compact-pagination mb-0">{{ $rows->onEachSide(1)->links() }}</div>
+        </div>
     </div>
 </div>
 @endsection
+
+@push('styles')
+<style>
+    /* Compact Bootstrap pagination for this table */
+    .compact-pagination .pagination { margin: 0; gap: 4px; }
+    .compact-pagination .page-link {
+        font-size: 12px; padding: 4px 10px; border-radius: 6px;
+        color: #0f172a; border: 1px solid #e2e8f0; line-height: 1.5;
+    }
+    .compact-pagination .page-item.active .page-link {
+        background: #0f172a; border-color: #0f172a; color: #fff;
+    }
+    .compact-pagination .page-item.disabled .page-link { color: #94a3b8; background: #f8fafc; }
+    .compact-pagination svg { width: 14px; height: 14px; vertical-align: -2px; }
+</style>
+@endpush
