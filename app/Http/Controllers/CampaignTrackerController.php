@@ -15,6 +15,8 @@ class CampaignTrackerController extends Controller
 
     /**
      * Tracker index — list of campaigns with live counters.
+     * Also surfaces queue-level failures (failed_jobs / pending jobs)
+     * so pre-tracker failures orphaned in the queue are visible.
      */
     public function index(Request $request)
     {
@@ -40,6 +42,8 @@ class CampaignTrackerController extends Controller
             $campaign->refreshStatusFromCounters();
         }
 
+        $queueHealth = $this->queueHealth();
+
         if ($request->ajax() || $request->wantsJson()) {
             return response()->json([
                 'campaigns' => $campaigns->map(fn ($c) => $this->serialize($c))->values(),
@@ -48,10 +52,11 @@ class CampaignTrackerController extends Controller
                     'last_page' => $campaigns->lastPage(),
                     'total' => $campaigns->total(),
                 ],
+                'queue' => $queueHealth,
             ]);
         }
 
-        return view('campaigns.index', compact('campaigns'));
+        return view('campaigns.index', compact('campaigns') + ['queueHealth' => $queueHealth]);
     }
 
     /**
@@ -149,6 +154,103 @@ class CampaignTrackerController extends Controller
         return back()->with('message', "Re-queued {$count} failed recipient(s) for delivery.");
     }
 
+    /**
+     * Queue-failures view: reads failed_jobs directly so orphaned failures
+     * (sent before the tracker existed) are visible + retryable.
+     * GET /campaigns/failures
+     */
+    public function failures(Request $request)
+    {
+        $search = trim((string) $request->get('q', ''));
+        $perPage = 50;
+
+        $query = \Illuminate\Support\Facades\DB::table('failed_jobs')->orderByDesc('id');
+        if ($search !== '') {
+            $query->where('payload', 'like', "%{$search}%");
+        }
+        $total = (clone $query)->count();
+        $rows = $query->paginate($perPage);
+        $rows->withQueryString();
+
+        // Parse rows for display (email, campaign, error).
+        $parser = new \App\Console\Commands\SyncTrackerFromFailedJobs;
+        $items = [];
+        foreach ($rows as $row) {
+            $parsed = $parser->parseRow($row);
+            $items[] = [
+                'id' => $row->id,
+                'uuid' => $row->uuid,
+                'email' => $parsed['email'] ?? '(unknown)',
+                'campaign_id' => $parsed['campaign_id'],
+                'subject' => $parsed['subject'],
+                'error' => $parsed['error'],
+                'failed_at' => $row->failed_at,
+                'campaign_url' => $parsed['campaign_id'] ? route('campaigns.show', $parsed['campaign_id']) : null,
+            ];
+        }
+
+        if ($request->ajax() || $request->wantsJson()) {
+            return response()->json([
+                'items' => $items,
+                'pagination' => [
+                    'current_page' => $rows->currentPage(),
+                    'last_page' => $rows->lastPage(),
+                    'total' => $rows->total(),
+                ],
+                'queue' => $this->queueHealth(),
+            ]);
+        }
+
+        $queueHealth = $this->queueHealth();
+
+        return view('campaigns.failures', [
+            'items' => $items,
+            'rows' => $rows,
+            'search' => $search,
+            'total' => $total,
+            'queueHealth' => $queueHealth,
+        ]);
+    }
+
+    /**
+     * Retry ALL failed_jobs (re-dispatch original job payloads).
+     * POST /campaigns/failures/retry-all
+     */
+    public function retryAllFailures()
+    {
+        $count = \Illuminate\Support\Facades\DB::table('failed_jobs')->count();
+        if ($count === 0) {
+            return back()->with('error', 'No failed jobs to retry.');
+        }
+
+        \Illuminate\Support\Facades\Artisan::call('queue:retry', ['id' => 'all']);
+
+        return back()->with('message', "Re-queued {$count} failed job(s). Watch them in Live Tracker.");
+    }
+
+    /**
+     * Forget (delete) ALL failed_jobs.
+     * POST /campaigns/failures/forget-all
+     */
+    public function forgetAllFailures()
+    {
+        $count = \Illuminate\Support\Facades\DB::table('failed_jobs')->count();
+        \Illuminate\Support\Facades\Artisan::call('queue:flush');
+
+        return back()->with('message', "Cleared {$count} failed job(s) from the queue.");
+    }
+
+    /**
+     * Import orphaned failed_jobs into tracker campaigns.
+     * POST /campaigns/failures/sync
+     */
+    public function syncFailures()
+    {
+        \Illuminate\Support\Facades\Artisan::call('tracker:sync-failed');
+
+        return back()->with('message', trim(\Illuminate\Support\Facades\Artisan::output()) ?: 'Failed jobs synced into tracker.');
+    }
+
     // ── helpers ──────────────────────────────────────────────
 
     private function payload(OneTimeSender $campaign, Request $request): array
@@ -236,15 +338,39 @@ class CampaignTrackerController extends Controller
 
     private function pendingJobsCount(): int
     {
+        return $this->queueHealth()['pending_jobs'] ?? 0;
+    }
+
+    /**
+     * Queue-level health: pending jobs, failed jobs, recent failure sample.
+     * This is what makes pre-tracker failures visible in the UI.
+     */
+    private function queueHealth(): array
+    {
         try {
             if (config('queue.default') !== 'database') {
-                return 0;
+                return ['pending_jobs' => 0, 'failed_jobs' => 0, 'recent_errors' => []];
             }
 
-            return \Illuminate\Support\Facades\DB::table('jobs')->count()
-                + \Illuminate\Support\Facades\DB::table('job_batches')->whereNull('finished_at')->count();
+            $db = \Illuminate\Support\Facades\DB::class;
+            $pending = $db::table('jobs')->count();
+            $failed = $db::table('failed_jobs')->count();
+
+            $recent = $db::table('failed_jobs')->orderByDesc('id')->limit(5)->get(['id', 'exception', 'failed_at'])
+                ->map(function ($row) {
+                    $firstLine = trim(strtok($row->exception ?? '', "\n"));
+                    $firstLine = preg_replace('/^[A-Za-z0-9_\\\\]+(Exception|Error):\s*/', '', $firstLine);
+
+                    return [
+                        'id' => $row->id,
+                        'error' => mb_substr($firstLine, 0, 160),
+                        'failed_at' => $row->failed_at,
+                    ];
+                })->toArray();
+
+            return ['pending_jobs' => $pending, 'failed_jobs' => $failed, 'recent_errors' => $recent];
         } catch (\Throwable $e) {
-            return 0;
+            return ['pending_jobs' => 0, 'failed_jobs' => 0, 'recent_errors' => []];
         }
     }
 

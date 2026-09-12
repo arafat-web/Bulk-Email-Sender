@@ -77,6 +77,10 @@ Route::middleware('auth')->group(function () {
     Route::resource('contacts', ContactController::class);
 
     // Realtime campaign tracker — live counters, per-recipient status, retry.
+    Route::get('/campaigns/failures', [CampaignTrackerController::class, 'failures'])->name('campaigns.failures');
+    Route::post('/campaigns/failures/sync', [CampaignTrackerController::class, 'syncFailures'])->name('campaigns.failures.sync');
+    Route::post('/campaigns/failures/retry-all', [CampaignTrackerController::class, 'retryAllFailures'])->name('campaigns.failures.retry-all');
+    Route::post('/campaigns/failures/forget-all', [CampaignTrackerController::class, 'forgetAllFailures'])->name('campaigns.failures.forget-all');
     Route::get('/campaigns', [CampaignTrackerController::class, 'index'])->name('campaigns.index');
     Route::get('/campaigns/{campaign}', [CampaignTrackerController::class, 'show'])->name('campaigns.show');
     Route::get('/campaigns/{campaign}/live', [CampaignTrackerController::class, 'live'])->name('campaigns.live');

@@ -17,9 +17,31 @@
     </div>
     <div class="d-flex gap-2 align-items-center">
         <span id="trackerUpdated" style="font-size:12px;color:#94a3b8;"></span>
+        <a href="{{ route('campaigns.failures') }}" class="btn btn-outline-primary btn-sm" id="queueFailuresBtn">
+            Failed jobs <span class="badge bg-danger" id="queueFailuresCount">{{ number_format($queueHealth['failed_jobs'] ?? 0) }}</span>
+        </a>
         <a href="{{ route('instant.campaign.create') }}" class="btn btn-primary btn-sm"><i class="bi bi-plus-lg me-1"></i>New Campaign</a>
     </div>
 </div>
+
+@if(($queueHealth['failed_jobs'] ?? 0) > 0)
+<div class="alert alert-warning d-flex flex-wrap justify-content-between align-items-center" style="gap:10px;">
+    <div style="font-size:13px;">
+        <strong>{{ number_format($queueHealth['failed_jobs']) }} failed job(s)</strong> sitting in the queue
+        ({{ number_format($queueHealth['pending_jobs'] ?? 0) }} pending).
+        @if(!empty($queueHealth['recent_errors'][0]['error']))
+            <br><code style="font-size:11px;">{{ \Str::limit($queueHealth['recent_errors'][0]['error'], 160) }}</code>
+        @endif
+        <br><span class="text-muted">These were sent before the tracker existed (or orphaned) — that's why the list below is empty.</span>
+    </div>
+    <div class="d-flex gap-2">
+        <a href="{{ route('campaigns.failures') }}" class="btn btn-danger btn-sm">View failed emails</a>
+        <form action="{{ route('campaigns.failures.sync') }}" method="POST" class="d-inline">@csrf
+            <button class="btn btn-outline-primary btn-sm">Sync into tracker</button>
+        </form>
+    </div>
+</div>
+@endif
 
 <div class="card mb-3">
     <div class="card-body" style="padding:14px 18px;">
@@ -125,6 +147,9 @@ $(document).ready(function() {
                     : '<div class="card"><div class="card-body text-center py-4 text-muted">No campaigns match.</div></div>';
                 $('#campaignList').html(html);
                 $('#trackerUpdated').text('Updated ' + new Date().toLocaleTimeString());
+                if(res.queue && typeof res.queue.failed_jobs !== 'undefined'){
+                    $('#queueFailuresCount').text(Number(res.queue.failed_jobs).toLocaleString());
+                }
                 var anyActive = res.campaigns.some(function(c){ return !c.is_finished; });
                 $('#trackerDot').toggleClass('paused', !anyActive);
                 if(!anyActive){ stopPolling(); }
