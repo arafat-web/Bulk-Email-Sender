@@ -72,6 +72,7 @@ Route::middleware('auth')->group(function () {
     Route::post('/contacts/import', [ContactController::class, 'import'])->name('contacts.import');
     Route::post('/contacts/bulk-action', [ContactController::class, 'bulkAction'])->name('contacts.bulk-action');
     Route::get('/contacts/ids', [ContactController::class, 'ids'])->name('contacts.ids');
+    Route::get('/contacts/export', [ContactController::class, 'export'])->name('contacts.export');
     Route::resource('contacts', ContactController::class);
 
     // Contact Tag Management Routes

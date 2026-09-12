@@ -229,6 +229,72 @@ class ContactController extends Controller
     }
 
     /**
+     * Export contacts to CSV. Respects the same search/tag/status filters as
+     * the index page, or exports only the given contact IDs when provided.
+     * Capped at 10,000 rows to stay consistent with bulk actions.
+     */
+    public function export(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'search' => 'nullable|string|max:255',
+            'tag' => 'nullable|exists:contact_tags,id',
+            'status' => 'nullable|in:active,inactive,bounced,unsubscribed',
+            'contacts' => 'nullable|array|max:10000',
+            'contacts.*' => 'integer',
+        ]);
+
+        if ($validator->fails()) {
+            return back()->withErrors($validator);
+        }
+
+        $query = EmailContact::where('user_id', Auth::id())->with('tags');
+
+        if (! empty($request->contacts)) {
+            $query->whereIn('id', $request->contacts);
+        } else {
+            if ($request->filled('search')) {
+                $query->search($request->search);
+            }
+            if ($request->filled('tag')) {
+                $query->withTag($request->tag);
+            }
+            if ($request->filled('status')) {
+                $query->where('status', $request->status);
+            }
+        }
+
+        $query->orderBy('id')->limit(10000);
+
+        $filename = 'contacts-export-'.now()->format('Y-m-d-His').'.csv';
+
+        return response()->streamDownload(function () use ($query) {
+            $handle = fopen('php://output', 'w');
+            // UTF-8 BOM so Excel opens the file correctly.
+            fwrite($handle, "\xEF\xBB\xBF");
+            fputcsv($handle, ['email', 'first_name', 'last_name', 'phone', 'company', 'notes', 'tags', 'status', 'last_emailed_at', 'created_at']);
+
+            $query->chunk(1000, function ($contacts) use ($handle) {
+                foreach ($contacts as $contact) {
+                    fputcsv($handle, [
+                        $contact->email,
+                        $contact->first_name,
+                        $contact->last_name,
+                        $contact->phone,
+                        $contact->company,
+                        $contact->notes,
+                        $contact->tags->pluck('name')->implode(', '),
+                        $contact->status,
+                        $contact->last_emailed_at ? $contact->last_emailed_at->format('Y-m-d H:i:s') : '',
+                        $contact->created_at ? $contact->created_at->format('Y-m-d H:i:s') : '',
+                    ]);
+                }
+            });
+
+            fclose($handle);
+        }, $filename, ['Content-Type' => 'text/csv']);
+    }
+
+    /**
      * Bulk actions for contacts. Supports select-all across pages via bulk_all_filtered flag.
      */
     public function bulkAction(Request $request)
