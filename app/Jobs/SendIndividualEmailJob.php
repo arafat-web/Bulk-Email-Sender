@@ -46,22 +46,36 @@ class SendIndividualEmailJob implements ShouldQueue
 
     /**
      * Throttle SMTP usage so the remote server never sees a burst.
-     * 30 jobs/min per account, excess released back after 60s
-     * instead of failing. Requires cache driver (file/database ok).
+     * Uses the `smtp-account` named limiter (see AppServiceProvider):
+     * 6 jobs/min per account (≈360/hr, under the 400/hr host cap),
+     * excess released back automatically. Requires cache driver (file/database ok).
      */
     public function middleware(): array
     {
-        $key = 'smtp-account-'.($this->emailAccount->id ?? 'default');
-
-        return [(new RateLimited($key))->allow(30)->everyMinute()->releaseAfter(60)];
+        return [new RateLimited('smtp-account')];
     }
 
     /**
-     * Stop retrying after ~2h even if backoff keeps releasing.
+     * Exposes the account id for the `smtp-account` rate limiter.
+     * Kept public because the limiter closure cannot read protected props.
+     */
+    public function getEmailAccountId(): string|int|null
+    {
+        try {
+            return $this->emailAccount->id ?? 'default';
+        } catch (\Throwable $t) {
+            return 'default';
+        }
+    }
+
+    /**
+     * Long window so back-of-queue jobs survive the drain.
+     * 3,400 recipients at 360/hr ≈ 9.5h queue time — a 2h window would
+     * silently expire jobs still waiting behind the rate limiter.
      */
     public function retryUntil(): \DateTime
     {
-        return now()->addHours(2)->toDateTime();
+        return now()->addHours(48)->toDateTime();
     }
 
     /**

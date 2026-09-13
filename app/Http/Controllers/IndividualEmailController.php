@@ -118,15 +118,17 @@ class IndividualEmailController extends Controller
                 \App\Models\CampaignRecipient::upsert($chunk, ['campaign_id', 'email'], ['status', 'updated_at']);
             }
 
-            // Send emails based on type
-            if ($request->send_type === 'individual') {
-                // Send individual emails (each recipient gets their own email)
-                foreach ($validEmails as $email) {
-                    SendIndividualEmailJob::dispatch($emailAccount, $email, $subject, $body, false, $tracker->id);
-                }
-            } else {
-                // Send bulk email (all recipients in one email)
-                SendIndividualEmailJob::dispatch($emailAccount, $validEmails, $subject, $body, true, $tracker->id);
+            // One job per recipient so the `smtp-account` rate limiter governs
+            // every email. A single bulk job with N recipients would bypass the
+            // limiter (it counts jobs, not emails). Staggered delays spread the
+            // load upfront so middleware releases rarely fire — releases increment
+            // attempts, and without staggering back-of-queue jobs would hit
+            // MaxAttemptsExceeded before ever sending.
+            $perMinute = max(1, (int) env('SMTP_RATE_PER_MINUTE', 6));
+            $interval = (int) ceil(60 / $perMinute); // e.g. 6/min => 1 email / 10s
+            foreach ($validEmails as $i => $email) {
+                SendIndividualEmailJob::dispatch($emailAccount, $email, $subject, $body, false, $tracker->id)
+                    ->delay(now()->addSeconds($i * $interval));
             }
 
             $response = [
