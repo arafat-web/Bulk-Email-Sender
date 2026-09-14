@@ -71,7 +71,7 @@ class CampaignPreflight
 
         // 5. Size hint vs drain time at current rate.
         if ($recipientCount && $recipientCount > 0) {
-            $perMinute = max(1, (int) env('SMTP_RATE_PER_MINUTE', 6));
+            $perMinute = max(1, (int) config('email_sender.rate_per_minute', 6));
             $hours = $recipientCount / ($perMinute * 60);
             if ($hours > 48) {
                 $errors[] = number_format($recipientCount).' recipients at '.$perMinute.'/min need ~'.round($hours, 1).'h — beyond the 48h job window. Split the campaign.';

@@ -38,7 +38,7 @@ class AppServiceProvider extends ServiceProvider
                 // Fall back to shared bucket — throttling must never throw.
             }
 
-            return Limit::perMinute((int) env('SMTP_RATE_PER_MINUTE', 6))->by((string) $accountId);
+            return Limit::perMinute((int) config('email_sender.rate_per_minute', 6))->by((string) $accountId);
         });
 
         // App uses Bootstrap 5 markup — render paginator with Bootstrap views

@@ -30,3 +30,7 @@ yarn-error.log
 /.fleet
 /.idea
 /.vscode
+
+.env.bak.*
+php_errorlog
+public/php_errorlog

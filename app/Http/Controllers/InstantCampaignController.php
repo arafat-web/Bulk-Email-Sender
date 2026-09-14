@@ -178,7 +178,7 @@ class InstantCampaignController extends Controller
                     // Stagger upfront so middleware releases rarely fire —
                     // releases increment attempts, risking MaxAttemptsExceeded
                     // for back-of-queue jobs. Matches the smtp-account limiter.
-                    $perMinute = max(1, (int) env('SMTP_RATE_PER_MINUTE', 6));
+                    $perMinute = max(1, (int) config('email_sender.rate_per_minute', 6));
                     $interval = (int) ceil(60 / $perMinute);
                     foreach ($rows as $row) {
                         if (! filter_var($row->email, FILTER_VALIDATE_EMAIL)) {

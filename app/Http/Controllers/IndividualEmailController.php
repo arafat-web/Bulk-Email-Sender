@@ -135,7 +135,7 @@ class IndividualEmailController extends Controller
             // load upfront so middleware releases rarely fire — releases increment
             // attempts, and without staggering back-of-queue jobs would hit
             // MaxAttemptsExceeded before ever sending.
-            $perMinute = max(1, (int) env('SMTP_RATE_PER_MINUTE', 6));
+            $perMinute = max(1, (int) config('email_sender.rate_per_minute', 6));
             $interval = (int) ceil(60 / $perMinute); // e.g. 6/min => 1 email / 10s
             foreach ($validEmails as $i => $email) {
                 SendIndividualEmailJob::dispatch($emailAccount, $email, $subject, $body, false, $tracker->id)
