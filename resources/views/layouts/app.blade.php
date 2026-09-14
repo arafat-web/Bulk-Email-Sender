@@ -486,6 +486,12 @@
                             <a class="nav-link {{ request()->routeIs('campaigns.*') ? 'active' : '' }}" href="{{ route('campaigns.index') }}">
                                 <i class="bi bi-activity"></i>
                                 <span>Live Tracker</span>
+                                @if(!empty($trackerBadgeActive))
+                                    <span class="badge bg-warning ms-auto">{{ $trackerBadgeActive }}</span>
+                                @endif
+                                @if(!empty($trackerBadgeFailed))
+                                    <span class="badge bg-danger {{ !empty($trackerBadgeActive) ? '' : 'ms-auto' }}">{{ $trackerBadgeFailed }}</span>
+                                @endif
                             </a>
                         </li>
                         <li class="nav-item">

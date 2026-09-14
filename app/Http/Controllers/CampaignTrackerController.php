@@ -311,6 +311,13 @@ class CampaignTrackerController extends Controller
         $pending = max(0, $total - $processed);
         $progress = $total > 0 ? round(($processed / $total) * 100, 1) : 0;
 
+        // Throughput (sends/hour over the trailing hour) + ETA from recipient
+        // sent_at timestamps. Null-safe: shows null when nothing sent yet.
+        $throughput = $this->throughput($campaign);
+        $eta = $throughput['per_hour'] > 0 && $pending > 0
+            ? now()->addMinutes(round($pending / $throughput['per_hour'] * 60))->toDateTimeString()
+            : null;
+
         return [
             'id' => $campaign->id,
             'subject' => $campaign->subject,
@@ -324,6 +331,9 @@ class CampaignTrackerController extends Controller
             'pending' => $pending,
             'processed' => $processed,
             'progress' => $progress,
+            'sends_per_hour' => $throughput['per_hour'],
+            'sends_last_hour' => $throughput['last_hour'],
+            'eta_at' => $eta,
             'last_error' => $campaign->last_error,
             'is_finished' => (bool) $campaign->is_finished,
             'status_counts' => $statusCounts,
@@ -334,6 +344,24 @@ class CampaignTrackerController extends Controller
             'live_url' => route('campaigns.live', $campaign),
             'feed_url' => route('campaigns.feed', $campaign),
         ];
+    }
+
+    /**
+     * Sends/hour over the trailing 60 min, from recipient sent_at stamps.
+     * Zero-query fallback when the column/table is unavailable.
+     */
+    private function throughput(OneTimeSender $campaign): array
+    {
+        try {
+            $lastHour = CampaignRecipient::forCampaign($campaign->id)
+                ->where('status', CampaignRecipient::STATUS_SENT)
+                ->where('sent_at', '>=', now()->subHour())
+                ->count();
+
+            return ['last_hour' => (int) $lastHour, 'per_hour' => (int) $lastHour];
+        } catch (\Throwable $e) {
+            return ['last_hour' => 0, 'per_hour' => 0];
+        }
     }
 
     private function pendingJobsCount(): int

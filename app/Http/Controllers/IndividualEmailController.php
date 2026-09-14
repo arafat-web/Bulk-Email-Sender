@@ -91,6 +91,17 @@ class IndividualEmailController extends Controller
             ], 422);
         }
 
+        // Pre-flight: dead SMTP / missing worker / missing limiter blocks the send
+        // with a clear error instead of 3,000 silent queue failures.
+        $blockers = \App\Services\CampaignPreflight::check($emailAccount, count($validEmails));
+        if (! empty($blockers)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Pre-send check failed: '.implode(' ', $blockers),
+                'errors' => ['preflight' => $blockers],
+            ], 422);
+        }
+
         try {
             // Create a tracker campaign so bulk/individual sends show realtime progress.
             $tracker = \App\Models\OneTimeSender::create([

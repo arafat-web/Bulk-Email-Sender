@@ -18,7 +18,9 @@ return [
     |
     */
 
-    'default' => env('LOG_CHANNEL', 'stack'),
+    // daily keeps storage/logs/laravel-YYYY-MM-DD.log (14 days) instead of one
+    // ever-growing laravel.log (which hit 5 GB once).
+    'default' => env('LOG_CHANNEL', 'daily'),
 
     /*
     |--------------------------------------------------------------------------

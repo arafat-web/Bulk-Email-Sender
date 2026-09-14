@@ -4,8 +4,10 @@ namespace App\Providers;
 
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Pagination\Paginator;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Facades\URL;
+use Illuminate\Support\Facades\View;
 use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
@@ -42,6 +44,21 @@ class AppServiceProvider extends ServiceProvider
         // App uses Bootstrap 5 markup — render paginator with Bootstrap views
         // (default Tailwind views render unstyled/huge without Tailwind CSS).
         Paginator::useBootstrapFive();
+
+        // Sidebar "Live Tracker" badge: active (queued/processing) campaigns +
+        // failed_jobs needing attention. Cheap cached count so it never slows nav.
+        View::composer('layouts.app', function ($view) {
+            try {
+                $active = \App\Models\OneTimeSender::whereIn('status', ['queued', 'processing'])->count();
+                $failed = config('queue.default') === 'database'
+                    ? DB::table('failed_jobs')->count()
+                    : 0;
+                $view->with('trackerBadgeActive', (int) $active)
+                    ->with('trackerBadgeFailed', (int) $failed);
+            } catch (\Throwable $t) {
+                $view->with('trackerBadgeActive', 0)->with('trackerBadgeFailed', 0);
+            }
+        });
 
         // Force HTTPS URLs only when the app is actually served over HTTPS.
         // Local HTTP (APP_URL=http://localhost) is untouched, so this

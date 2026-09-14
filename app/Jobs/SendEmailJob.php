@@ -13,6 +13,7 @@ use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
+use Illuminate\Queue\Middleware\RateLimited;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Log;
@@ -36,6 +37,27 @@ class SendEmailJob implements ShouldQueue
     public $backoff = [60, 300, 900]; // 1 min, 5 min, 15 min
 
     public $timeout = 120; // 2 minutes timeout
+
+    /**
+     * Same `smtp-account` limiter as SendIndividualEmailJob: 6/min per
+     * account. Without this, instant campaigns bypass throttling entirely.
+     */
+    public function middleware(): array
+    {
+        return [new RateLimited('smtp-account')];
+    }
+
+    /**
+     * Account id for the `smtp-account` rate limiter.
+     */
+    public function getEmailAccountId(): string|int|null
+    {
+        try {
+            return $this->mailData['email_account_id'] ?? 'default';
+        } catch (\Throwable $t) {
+            return 'default';
+        }
+    }
 
     public function __construct($email, $mailData, $recipientData = null)
     {
@@ -326,10 +348,12 @@ class SendEmailJob implements ShouldQueue
     }
 
     /**
-     * Determine the time at which the job should timeout.
+     * Long window so back-of-queue jobs survive the drain.
+     * 10k recipients at 360/hr ≈ 28h queue time — 30 min expired jobs
+     * still waiting behind the rate limiter.
      */
     public function retryUntil()
     {
-        return now()->addMinutes(30);
+        return now()->addHours(48)->toDateTime();
     }
 }

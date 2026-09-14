@@ -17,7 +17,9 @@
         <p style="font-size:13px;color:#64748b;margin:2px 0 0;">
             Campaign #{{ $campaign->id }} &middot; {{ $campaign->file_name }} &middot;
             <span id="liveStatus">{!! $campaign->status_badge !!}</span> &middot;
-            Queue pending: <strong id="queuePending">–</strong>
+            Queue pending: <strong id="queuePending">–</strong> &middot;
+            <span id="rateLine">–/hr</span>
+            <span id="etaLine"></span>
         </p>
     </div>
     <div class="d-flex gap-2 align-items-center">
@@ -163,6 +165,8 @@ $(document).ready(function() {
         $('#cPending').text(fmt(c.pending)); $('#cSkipped').text(fmt(c.skipped));
         $('#cProgress').text(c.progress); $('#retryCount').text(fmt(c.failed));
         $('#queuePending').text(fmt(res.queue.pending_jobs));
+        $('#rateLine').text(fmt(c.sends_per_hour) + '/hr');
+        $('#etaLine').text(c.eta_at ? ('· ETA ' + c.eta_at) : (c.pending > 0 ? '· ETA —' : ''));
         if(c.total>0){
             $('#barSent').css('width',(c.sent/c.total*100)+'%');
             $('#barFailed').css('width',(c.failed/c.total*100)+'%');

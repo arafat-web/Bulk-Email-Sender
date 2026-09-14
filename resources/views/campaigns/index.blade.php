@@ -131,6 +131,8 @@ $(document).ready(function() {
         + '<div class="counter-box pending"><div class="num" data-k="pending">'+c.pending.toLocaleString()+'</div><div class="lbl">Pending</div></div>'
         + '<div class="counter-box skipped"><div class="num" data-k="skipped">'+c.skipped.toLocaleString()+'</div><div class="lbl">Skipped</div></div>'
         + '</div>'
+        + '<div style="font-size:12px;color:#64748b;" class="mt-2">'+Number(c.sends_per_hour||0).toLocaleString()+'/hr'
+        + (c.eta_at ? ' &middot; ETA '+esc(c.eta_at) : (c.pending>0 ? ' &middot; ETA —' : '')) + '</div>'
         + (c.last_error ? '<div class="alert alert-danger mt-3 mb-0 py-2" style="font-size:12px;">Last error: '+esc(c.last_error)+'</div>' : '')
         + '</div></div>';
     }

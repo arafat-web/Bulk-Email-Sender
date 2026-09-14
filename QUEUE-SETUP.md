@@ -1,5 +1,23 @@
 # Queue Setup Guide
 
+## Automatic draining (scheduler — recommended for shared hosting)
+
+The queue drains via Laravel's scheduler. `app/Console/Kernel.php` registers:
+
+- `queue:work --queue=emails,default --stop-when-empty --max-time=55 --tries=3 --timeout=120 --sleep=3` every minute (drains, then exits; the `smtp-account` limiter governs the 6/min pace)
+- `email:process-campaigns --update-status` every 5 min (flips stale queued/processing campaigns to completed/failed)
+- `queue:failed:purge --older-than=30` daily (prunes `failed_jobs`; tracker history in `campaign_recipients` is kept)
+
+Single cron line required (SiteGround → Site Tools → Cron Jobs, every minute):
+
+```bash
+* * * * * cd /path/to/Bulk-Email-Sender && php artisan schedule:run >> /dev/null 2>&1
+```
+
+Verify with `php artisan schedule:list`. After every deploy run `php artisan queue:restart`.
+
+Local dev alternative: `php artisan queue:work --queue=emails,default --tries=3 --timeout=120` in a terminal.
+
 ## Queue Modes
 
 This application defaults to database queue. Sync mode is kept as a legacy fallback.

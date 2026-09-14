@@ -115,6 +115,40 @@ class OneTimeSender extends Model
         return min(100, round((($this->sent_count + $this->failed_count + ($this->skipped_count ?? 0)) / $this->total_email_address) * 100, 2));
     }
 
+    /**
+     * Sends/hour over the trailing 60 min (for card partials that don't
+     * go through CampaignTrackerController::serialize()).
+     */
+    public function getSendsPerHourAttribute(): int
+    {
+        try {
+            return (int) $this->recipients()
+                ->where('status', CampaignRecipient::STATUS_SENT)
+                ->where('sent_at', '>=', now()->subHour())
+                ->count();
+        } catch (\Throwable $t) {
+            return 0;
+        }
+    }
+
+    /**
+     * ETA timestamp string (or null) derived from trailing-hour throughput.
+     */
+    public function getEtaAtAttribute(): ?string
+    {
+        try {
+            $rate = $this->sends_per_hour;
+            $pending = $this->pending_count;
+            if ($rate <= 0 || $pending <= 0) {
+                return null;
+            }
+
+            return now()->addMinutes((int) round($pending / $rate * 60))->toDateTimeString();
+        } catch (\Throwable $t) {
+            return null;
+        }
+    }
+
     public function scopeCompleted($query)
     {
         return $query->where('status', 'completed');

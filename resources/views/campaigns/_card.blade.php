@@ -23,6 +23,18 @@
                 <a href="{{ route('campaigns.show', $campaign) }}" class="btn btn-outline-primary btn-sm">Live view</a>
             </div>
         </div>
+        @php
+            $rate = (int) ($campaign->sends_per_hour ?? 0);
+            $etaAt = $campaign->eta_at ?? null;
+        @endphp
+        <div style="font-size:12px;color:#64748b;" class="mt-2">
+            {{ number_format($rate) }}/hr
+            @if($etaAt)
+                &middot; ETA {{ $etaAt }}
+            @elseif($pending > 0)
+                &middot; ETA —
+            @endif
+        </div>
         <div class="tracker-progress mt-3">
             <div class="seg-sent" style="width:{{ $pct($sent) }}%"></div><div class="seg-failed" style="width:{{ $pct($failed) }}%"></div><div class="seg-skipped" style="width:{{ $pct($skipped) }}%"></div>
         </div>

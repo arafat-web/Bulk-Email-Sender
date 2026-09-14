@@ -96,6 +96,15 @@ class InstantCampaignController extends Controller
                     return back()->with('error', 'Too many email addresses ('.number_format($emailCount).'). Maximum allowed is 10,000 per campaign.');
                 }
 
+                // Pre-flight: dead SMTP / missing worker / missing limiter blocks the
+                // campaign before 10k jobs are queued into a black hole.
+                $blockers = \App\Services\CampaignPreflight::check($defaultEmailAccount, (int) $emailCount);
+                if (! empty($blockers)) {
+                    DB::rollBack();
+
+                    return back()->with('error', 'Pre-send check failed: '.implode(' ', $blockers));
+                }
+
                 // Create campaign record
                 $campaign = OneTimeSender::create([
                     'user_id' => auth()->id(),
@@ -165,6 +174,12 @@ class InstantCampaignController extends Controller
                 }
 
                 TempMailAddress::forUser(auth()->id())->select('id', 'email', 'first_name', 'last_name', 'company', 'phone', 'notes')->chunkById(500, function ($rows) use ($mailData, $useDelay) {
+                    static $offset = 0;
+                    // Stagger upfront so middleware releases rarely fire —
+                    // releases increment attempts, risking MaxAttemptsExceeded
+                    // for back-of-queue jobs. Matches the smtp-account limiter.
+                    $perMinute = max(1, (int) env('SMTP_RATE_PER_MINUTE', 6));
+                    $interval = (int) ceil(60 / $perMinute);
                     foreach ($rows as $row) {
                         if (! filter_var($row->email, FILTER_VALIDATE_EMAIL)) {
                             Log::warning('Invalid email address skipped: '.$row->email);
@@ -177,8 +192,9 @@ class InstantCampaignController extends Controller
                         // Pass the uploaded row so per-recipient [keywords] resolve from CSV data
                         $job = SendEmailJob::dispatch($row->email, $mailData, $row->only(['email', 'first_name', 'last_name', 'company', 'phone', 'notes']));
                         if ($useDelay) {
-                            $job->onQueue('emails')->delay(rand(1, 5));
+                            $job->onQueue('emails')->delay(now()->addSeconds($offset * $interval));
                         }
+                        $offset++;
                     }
                 });
 
