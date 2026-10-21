@@ -1,3 +1,5 @@
+
+
 <div align="center">
   
 <svg width="120" height="120" viewBox="0 0 120 120">
@@ -72,6 +74,8 @@
    git clone https://github.com/arafat-web/Bulk-Email-Sender.git
    cd Bulk-Email-Sender
    composer install
+   npm install
+   npm run build
    cp .env.example .env
    php artisan key:generate
    ```
