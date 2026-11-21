@@ -1,38 +1,55 @@
 # Queue Setup Guide
 
-## Automatic draining (file-based cron — recommended for shared hosting)
+## 1. cPanel / Shared Hosting Setup (File-Based Cron — Recommended)
 
-Point your cron job **directly at `schedule.php`** — no `schedule:run`
-wrapper, no scheduler daemon needed. `schedule.php` boots Laravel and calls
-the same commands `app/Console/Kernel.php` registers:
+Point your cPanel Cron Job **directly at `schedule.php`** — no `schedule:run` wrapper, no `exec()`/`proc_open()`, and no Supervisor daemon needed. `schedule.php` enforces CLI-only execution (returns `403` over HTTP), boots Laravel in-process, and runs the same jobs as `app/Console/Kernel.php`:
 
-- `queue:work --queue=emails,default --stop-when-empty --max-time=55 --tries=3 --timeout=120 --sleep=3` every minute (drains, then exits; the `smtp-account` limiter governs the 6/min pace)
+- `queue:work --queue=emails,default --stop-when-empty --max-time=55 --tries=3 --timeout=120 --sleep=3` every minute (drains, then exits; the `smtp-account` limiter governs the `SMTP_RATE_PER_MINUTE` pace)
 - `email:process-campaigns --update-status` every 5th minute (flips stale queued/processing campaigns to completed/failed)
 
-A file lock (`storage/framework/schedule.lock`) guarantees only one run at
-a time; a stale lock (>10 min, e.g. killed process) self-heals. The daily
-`queue:failed:purge --older-than=30` prune is intentionally NOT in the file
-(tracker history in `campaign_recipients` is kept) — run it manually once a
-month: `php artisan queue:failed:purge --older-than=30`.
+A file lock (`storage/framework/schedule.lock`) guarantees only one run at a time; a stale lock (>10 min, e.g. killed process) self-heals.
 
-Single cron line required (cPanel → Cron Jobs, every minute):
+### cPanel Cron Command (1-minute — best)
+In **cPanel → Cron Jobs**, add one job running every minute (`* * * * *`):
 
 ```bash
-* * * * * /usr/bin/php /home/USER/public_html/schedule.php >> /dev/null 2>&1
+* * * * * /usr/local/bin/php /home/USER/app/schedule.php >> /dev/null 2>&1
 ```
 
-Replace `/home/USER/public_html` with your real app path (on some hosts the
-PHP binary is `/usr/local/bin/php`). Preview without sending via SSH with
-`php schedule.php --dry-run`. After every deploy run `php artisan queue:restart`.
+> **Note:** On some cPanel hosts the PHP 8.3/8.4 CLI binary is `/opt/cpanel/ea-php83/root/usr/bin/php` or `/opt/cpanel/ea-php84/root/usr/bin/php` instead of `/usr/local/bin/php`.
+> If your cPanel host restricts crons to every 5 minutes (`*/5 * * * *`), set `QUEUE_WORKER_MAX_TIME=280` in `.env` so each tick drains up to ~4m40s.
 
-Local dev alternative: `php artisan queue:work --queue=emails,default --tries=3 --timeout=120` in a terminal.
+### cPanel Checklist
+- **PHP version:** 8.3, 8.4, or 8.5 (`zip`, `xml`, `mbstring`, `fileinfo`, `gd`, `pdo_mysql` enabled in *Select PHP Version*).
+- **Document root:** Point your domain/subdomain root to `public/` (or place the app outside `public_html/`). Never expose `.env` or `storage/` publicly.
+- **No Node.js required:** All UI assets load via CDN.
+- **Dry-run test via SSH / Terminal:** `php schedule.php --dry-run`
+- **After every deploy:** `php artisan migrate --force && php artisan config:cache && php artisan route:cache && php artisan queue:restart`
+
+---
+
+## 2. Dedicated Server / VPS Setup (Supervisor + Cron)
+
+On a VPS or dedicated server, run a persistent worker under Supervisor and let Laravel's scheduler handle campaign finalization and log/job cleanup:
+
+1. **Scheduler cron (1 line in `crontab -e`):**
+   ```bash
+   * * * * * cd /var/www/Bulk-Email-Sender && php artisan schedule:run >> /dev/null 2>&1
+   ```
+2. **Queue worker (Supervisor — recommended):**
+   ```bash
+   php artisan queue:work --queue=emails,default --tries=3 --timeout=120 --sleep=3
+   ```
+   See: https://laravel.com/docs/13.x/queues#supervisor-configuration
+3. **Optional scaling:** Switch `CACHE_DRIVER`, `SESSION_DRIVER`, and `QUEUE_CONNECTION` to `redis` and raise `SMTP_RATE_PER_MINUTE` to match your mail provider's limit.
+
+---
 
 ## Queue Modes
 
 This application defaults to database queue. Sync mode is kept as a legacy fallback.
 
 ### 1. Database Queue Mode (Default - Recommended)
-Emails are queued in the database and processed by a background worker.
 Emails are queued in the database and processed by a background worker.
 
 **Pros:**
@@ -63,7 +80,7 @@ php artisan queue:work --queue=emails,default --tries=3 --timeout=120
 nohup php artisan queue:work --queue=emails,default --tries=3 --timeout=120 > /dev/null 2>&1 &
 
 # Or use supervisor (recommended for production)
-# See: https://laravel.com/docs/10.x/queues#supervisor-configuration
+# See: https://laravel.com/docs/13.x/queues#supervisor-configuration
 ```
 
 ---
