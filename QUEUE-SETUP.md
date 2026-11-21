@@ -1,5 +1,32 @@
 # Queue Setup Guide
 
+## Automatic draining (file-based cron — recommended for shared hosting)
+
+Point your cron job **directly at `schedule.php`** — no `schedule:run`
+wrapper, no scheduler daemon needed. `schedule.php` boots Laravel and calls
+the same commands `app/Console/Kernel.php` registers:
+
+- `queue:work --queue=emails,default --stop-when-empty --max-time=55 --tries=3 --timeout=120 --sleep=3` every minute (drains, then exits; the `smtp-account` limiter governs the 6/min pace)
+- `email:process-campaigns --update-status` every 5th minute (flips stale queued/processing campaigns to completed/failed)
+
+A file lock (`storage/framework/schedule.lock`) guarantees only one run at
+a time; a stale lock (>10 min, e.g. killed process) self-heals. The daily
+`queue:failed:purge --older-than=30` prune is intentionally NOT in the file
+(tracker history in `campaign_recipients` is kept) — run it manually once a
+month: `php artisan queue:failed:purge --older-than=30`.
+
+Single cron line required (cPanel → Cron Jobs, every minute):
+
+```bash
+* * * * * /usr/bin/php /home/USER/public_html/schedule.php >> /dev/null 2>&1
+```
+
+Replace `/home/USER/public_html` with your real app path (on some hosts the
+PHP binary is `/usr/local/bin/php`). Preview without sending via SSH with
+`php schedule.php --dry-run`. After every deploy run `php artisan queue:restart`.
+
+Local dev alternative: `php artisan queue:work --queue=emails,default --tries=3 --timeout=120` in a terminal.
+
 ## Queue Modes
 
 This application defaults to database queue. Sync mode is kept as a legacy fallback.

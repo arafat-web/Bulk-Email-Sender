@@ -72,6 +72,9 @@
             </div>
         </div>
     </div>
+    <div class="col-12 col-lg-4">
+        @include('keywords._picker')
+    </div>
 </div>
 @endsection
 

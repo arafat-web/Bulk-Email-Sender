@@ -7,7 +7,9 @@ use Illuminate\Mail\Mailable;
 use Illuminate\Mail\Mailables\Attachment;
 use Illuminate\Mail\Mailables\Content;
 use Illuminate\Mail\Mailables\Envelope;
+use Illuminate\Mail\Mailables\Headers;
 use Illuminate\Queue\SerializesModels;
+use Illuminate\Support\Facades\URL;
 
 class SendMail extends Mailable
 {
@@ -15,12 +17,15 @@ class SendMail extends Mailable
 
     public $mailData;
 
+    public $recipientEmail;
+
     /**
      * Create a new message instance.
      */
-    public function __construct($mailData)
+    public function __construct($mailData, $recipientEmail = null)
     {
         $this->mailData = $mailData;
+        $this->recipientEmail = $recipientEmail;
     }
 
     /**
@@ -40,7 +45,50 @@ class SendMail extends Mailable
     {
         return new Content(
             view: 'emails.template',
+            with: [
+                'unsubscribeUrl' => $this->unsubscribeUrl(),
+            ],
         );
+    }
+
+    /**
+     * Signed one-click + footer unsubscribe headers (RFC 8058).
+     * Powers the native "Unsubscribe" button in Gmail / Yahoo / Outlook.
+     * List-Unsubscribe points at the POST one-click endpoint; the footer
+     * button links to the GET confirmation page (unsubscribeUrl).
+     */
+    public function headers(): Headers
+    {
+        $url = $this->oneClickUrl();
+
+        if (! $url) {
+            return new Headers;
+        }
+
+        return new Headers(
+            text: [
+                'List-Unsubscribe' => "<{$url}>",
+                'List-Unsubscribe-Post' => 'List-Unsubscribe=One-Click',
+            ],
+        );
+    }
+
+    protected function oneClickUrl(): ?string
+    {
+        if (empty($this->recipientEmail) || ! filter_var($this->recipientEmail, FILTER_VALIDATE_EMAIL)) {
+            return null;
+        }
+
+        return URL::signedRoute('unsubscribe.one-click', ['email' => strtolower(trim($this->recipientEmail))]);
+    }
+
+    protected function unsubscribeUrl(): ?string
+    {
+        if (empty($this->recipientEmail) || ! filter_var($this->recipientEmail, FILTER_VALIDATE_EMAIL)) {
+            return null;
+        }
+
+        return URL::signedRoute('unsubscribe.show', ['email' => strtolower(trim($this->recipientEmail))]);
     }
 
     /**

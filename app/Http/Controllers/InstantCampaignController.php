@@ -29,7 +29,9 @@ class InstantCampaignController extends Controller
             $selectedTemplate = EmailTemplate::active()->find($request->get('template'));
         }
 
-        return view('instant-campaign.create', compact('templates', 'selectedTemplate'));
+        $keywords = \App\Models\EmailKeyword::active()->orderBy('key')->get();
+
+        return view('instant-campaign.create', compact('templates', 'selectedTemplate', 'keywords'));
     }
 
     public function import(Request $request)
@@ -94,12 +96,25 @@ class InstantCampaignController extends Controller
                     return back()->with('error', 'Too many email addresses ('.number_format($emailCount).'). Maximum allowed is 10,000 per campaign.');
                 }
 
+                // Pre-flight: dead SMTP / missing worker / missing limiter blocks the
+                // campaign before 10k jobs are queued into a black hole.
+                $blockers = \App\Services\CampaignPreflight::check($defaultEmailAccount, (int) $emailCount);
+                if (! empty($blockers)) {
+                    DB::rollBack();
+
+                    return back()->with('error', 'Pre-send check failed: '.implode(' ', $blockers));
+                }
+
                 // Create campaign record
                 $campaign = OneTimeSender::create([
+                    'user_id' => auth()->id(),
+                    'type' => 'instant',
                     'file_name' => $request->file->getClientOriginalName(),
                     'total_email_address' => $emailCount,
                     'subject' => $request->subject,
+                    'body' => $request->body,
                     'status' => 'processing',
+                    'started_at' => now(),
                     'created_at' => now(),
                 ]);
 
@@ -124,16 +139,62 @@ class InstantCampaignController extends Controller
                 $queueConnection = config('queue.default');
                 $useDelay = $queueConnection !== 'sync';
 
-                TempMailAddress::forUser(auth()->id())->select('id', 'email')->chunkById(500, function ($rows) use ($mailData, $useDelay) {
+                $campaignId = $campaign->id;
+                $now = now()->toDateTimeString();
+                // Pre-create recipient rows so the tracker shows Pending totals
+                // immediately — even before the queue worker picks jobs up.
+                $recipientRows = [];
+                TempMailAddress::forUser(auth()->id())->select('email')->chunkById(500, function ($rows) use (&$recipientRows, $campaignId, $now) {
+                    foreach ($rows as $row) {
+                        $email = strtolower(trim((string) $row->email));
+                        if (! filter_var($email, FILTER_VALIDATE_EMAIL)) {
+                            continue;
+                        }
+                        $recipientRows[$email] = [
+                            'campaign_id' => $campaignId,
+                            'email' => $email,
+                            'status' => 'queued',
+                            'created_at' => $now,
+                            'updated_at' => $now,
+                        ];
+                    }
+                });
+                foreach (array_chunk($recipientRows, 500, true) as $chunk) {
+                    \App\Models\CampaignRecipient::upsert(
+                        array_values($chunk),
+                        ['campaign_id', 'email'],
+                        ['status', 'updated_at']
+                    );
+                }
+                // True total = valid rows we actually queued (invalid ones never become jobs).
+                $queuedTotal = count($recipientRows);
+                $preSkipped = $emailCount - $queuedTotal;
+                if ($queuedTotal !== $emailCount) {
+                    $campaign->update(['total_email_address' => $queuedTotal]);
+                }
+
+                TempMailAddress::forUser(auth()->id())->select('id', 'email', 'first_name', 'last_name', 'company', 'phone', 'notes')->chunkById(500, function ($rows) use ($mailData, $useDelay) {
+                    static $offset = 0;
+                    // Stagger upfront so middleware releases rarely fire —
+                    // releases increment attempts, risking MaxAttemptsExceeded
+                    // for back-of-queue jobs. Matches the smtp-account limiter.
+                    $perMinute = max(1, (int) config('email_sender.rate_per_minute', 6));
+                    $interval = (int) ceil(60 / $perMinute);
                     foreach ($rows as $row) {
                         if (! filter_var($row->email, FILTER_VALIDATE_EMAIL)) {
                             Log::warning('Invalid email address skipped: '.$row->email);
                             continue;
                         }
-                        $job = SendEmailJob::dispatch($row->email, $mailData);
-                        if ($useDelay) {
-                            $job->onQueue('emails')->delay(rand(1, 5));
+                        if (\App\Models\EmailUnsubscribe::isUnsubscribed($row->email)) {
+                            Log::info('Skipped unsubscribed recipient: '.$row->email);
+                            continue;
                         }
+                        // Pass the uploaded row so per-recipient [keywords] resolve from CSV data
+                        $job = SendEmailJob::dispatch($row->email, $mailData, $row->only(['email', 'first_name', 'last_name', 'company', 'phone', 'notes']));
+                        if ($useDelay) {
+                            $job->onQueue('emails')->delay(now()->addSeconds($offset * $interval));
+                        }
+                        $offset++;
                     }
                 });
 
@@ -149,8 +210,8 @@ class InstantCampaignController extends Controller
                 // Clear temporary data for this user only
                 TempMailAddress::forUser(auth()->id())->delete();
 
-                return back()->with([
-                    'message' => 'Success! Instant campaign launched successfully using "'.$defaultEmailAccount->name.'". '.number_format($emailCount).' emails have been queued for delivery.',
+                return redirect()->route('campaigns.show', $campaign)->with([
+                    'message' => 'Success! Instant campaign launched using "'.$defaultEmailAccount->name.'". '.number_format($queuedTotal ?? $emailCount).' emails queued — watch live progress below.',
                 ]);
 
             } catch (Exception $e) {

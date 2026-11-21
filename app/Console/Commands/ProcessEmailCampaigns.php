@@ -39,17 +39,15 @@ class ProcessEmailCampaigns extends Command
 
     private function updateCampaignStatuses()
     {
-        $campaigns = OneTimeSender::whereIn('status', ['processing', 'queued'])->get();
+        // Flip stale queued/processing campaigns whose counters reached total.
+        // Recount from recipient rows (self-heal drift) before deciding, and
+        // only touch rows updated >10 min ago so the live drain isn't raced.
+        $campaigns = OneTimeSender::whereIn('status', ['processing', 'queued'])
+            ->where('updated_at', '<', now()->subMinutes(10))
+            ->get();
 
         foreach ($campaigns as $campaign) {
-            $progress = $campaign->sent_count + $campaign->failed_count;
-
-            if ($progress >= $campaign->total_email_address) {
-                $campaign->update([
-                    'status' => $campaign->failed_count > 0 ? 'completed' : 'completed',
-                    'completed_at' => now(),
-                ]);
-            }
+            $campaign->refreshStatusFromCounters();
         }
 
         $this->info('Campaign statuses updated.');

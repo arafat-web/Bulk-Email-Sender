@@ -30,8 +30,9 @@ class IndividualEmailController extends Controller
 
         // Pre-fill emails if provided in query string
         $preSelectedEmails = $request->get('emails', '');
+        $keywords = \App\Models\EmailKeyword::active()->orderBy('key')->get();
 
-        return view('individual-emails.create', compact('emailAccounts', 'templates', 'contacts', 'tags', 'preSelectedEmails'));
+        return view('individual-emails.create', compact('emailAccounts', 'templates', 'contacts', 'tags', 'preSelectedEmails', 'keywords'));
     }
 
     public function send(Request $request)
@@ -69,31 +70,98 @@ class IndividualEmailController extends Controller
         $validEmails = $emailList['valid'];
         $invalidEmails = $emailList['invalid'];
 
+        // Filter out unsubscribed recipients before queuing (global list + contact status)
+        $skippedUnsubscribed = [];
+        $validEmails = array_values(array_filter($validEmails, function ($email) use (&$skippedUnsubscribed) {
+            if (\App\Models\EmailUnsubscribe::isUnsubscribed($email)) {
+                $skippedUnsubscribed[] = $email;
+
+                return false;
+            }
+
+            return true;
+        }));
+
+        if (empty($validEmails)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'All recipients have unsubscribed. No emails were queued.',
+                'errors' => ['recipients' => ['All provided email addresses have unsubscribed.']],
+                'skipped_unsubscribed' => $skippedUnsubscribed,
+            ], 422);
+        }
+
+        // Pre-flight: dead SMTP / missing worker / missing limiter blocks the send
+        // with a clear error instead of 3,000 silent queue failures.
+        $blockers = \App\Services\CampaignPreflight::check($emailAccount, count($validEmails));
+        if (! empty($blockers)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Pre-send check failed: '.implode(' ', $blockers),
+                'errors' => ['preflight' => $blockers],
+            ], 422);
+        }
+
         try {
-            // Send emails based on type
-            if ($request->send_type === 'individual') {
-                // Send individual emails (each recipient gets their own email)
-                foreach ($validEmails as $email) {
-                    SendIndividualEmailJob::dispatch($emailAccount, $email, $subject, $body);
-                }
-            } else {
-                // Send bulk email (all recipients in one email)
-                SendIndividualEmailJob::dispatch($emailAccount, $validEmails, $subject, $body, true);
+            // Create a tracker campaign so bulk/individual sends show realtime progress.
+            $tracker = \App\Models\OneTimeSender::create([
+                'user_id' => auth()->id(),
+                'type' => 'individual',
+                'file_name' => 'individual-send ('.count($validEmails).' recipients)',
+                'total_email_address' => count($validEmails),
+                'subject' => $subject,
+                'body' => $body,
+                'status' => 'queued',
+                'started_at' => now(),
+            ]);
+            $now = now()->toDateTimeString();
+            $rows = [];
+            foreach ($validEmails as $email) {
+                $rows[] = [
+                    'campaign_id' => $tracker->id,
+                    'email' => strtolower(trim($email)),
+                    'status' => 'queued',
+                    'created_at' => $now,
+                    'updated_at' => $now,
+                ];
+            }
+            foreach (array_chunk($rows, 500) as $chunk) {
+                \App\Models\CampaignRecipient::upsert($chunk, ['campaign_id', 'email'], ['status', 'updated_at']);
+            }
+
+            // One job per recipient so the `smtp-account` rate limiter governs
+            // every email. A single bulk job with N recipients would bypass the
+            // limiter (it counts jobs, not emails). Staggered delays spread the
+            // load upfront so middleware releases rarely fire — releases increment
+            // attempts, and without staggering back-of-queue jobs would hit
+            // MaxAttemptsExceeded before ever sending.
+            $perMinute = max(1, (int) config('email_sender.rate_per_minute', 6));
+            $interval = (int) ceil(60 / $perMinute); // e.g. 6/min => 1 email / 10s
+            foreach ($validEmails as $i => $email) {
+                SendIndividualEmailJob::dispatch($emailAccount, $email, $subject, $body, false, $tracker->id)
+                    ->delay(now()->addSeconds($i * $interval));
             }
 
             $response = [
                 'success' => true,
                 'message' => 'Emails queued successfully!',
+                'tracker_url' => route('campaigns.show', $tracker),
+                'campaign_id' => $tracker->id,
                 'summary' => [
                     'total_emails' => count($validEmails),
                     'valid_emails' => count($validEmails),
                     'invalid_emails' => count($invalidEmails),
+                    'skipped_unsubscribed' => count($skippedUnsubscribed),
                     'send_type' => $request->send_type,
                 ],
             ];
 
             if (! empty($invalidEmails)) {
                 $response['invalid_emails'] = $invalidEmails;
+            }
+
+            if (! empty($skippedUnsubscribed)) {
+                $response['skipped_unsubscribed'] = $skippedUnsubscribed;
             }
 
             return response()->json($response);

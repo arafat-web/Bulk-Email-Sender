@@ -17,8 +17,8 @@
     <link href="https://cdn.datatables.net/1.13.7/css/dataTables.bootstrap5.min.css" rel="stylesheet">
     <!-- SweetAlert2 -->
     <link href="https://cdn.jsdelivr.net/npm/sweetalert2@11.10.1/dist/sweetalert2.min.css" rel="stylesheet">
-    <!-- TinyMCE Rich Text Editor -->
-    <script src="https://cdn.tiny.cloud/1/nv9zuc0lfdy6f2dqpbokjbvbqqbtsynetmcbhwwrs2c0t7no/tinymce/6/tinymce.min.js" referrerpolicy="origin"></script>
+    <!-- TinyMCE Rich Text Editor (key from TINYMCE_API_KEY) -->
+    <script src="https://cdn.tiny.cloud/1/{{ config('services.tinymce.key') }}/tinymce/6/tinymce.min.js" referrerpolicy="origin"></script>
 
     <style>
         :root {
@@ -483,6 +483,18 @@
                             </a>
                         </li>
                         <li class="nav-item">
+                            <a class="nav-link {{ request()->routeIs('campaigns.*') ? 'active' : '' }}" href="{{ route('campaigns.index') }}">
+                                <i class="bi bi-activity"></i>
+                                <span>Live Tracker</span>
+                                @if(!empty($trackerBadgeActive))
+                                    <span class="badge bg-warning ms-auto">{{ $trackerBadgeActive }}</span>
+                                @endif
+                                @if(!empty($trackerBadgeFailed))
+                                    <span class="badge bg-danger {{ !empty($trackerBadgeActive) ? '' : 'ms-auto' }}">{{ $trackerBadgeFailed }}</span>
+                                @endif
+                            </a>
+                        </li>
+                        <li class="nav-item">
                             <a class="nav-link {{ request()->routeIs('email-templates.*') ? 'active' : '' }}" href="{{ route('email-templates.index') }}">
                                 <i class="bi bi-file-earmark-text"></i>
                                 <span>Email Templates</span>
@@ -510,6 +522,12 @@
                             <a class="nav-link {{ request()->routeIs('email-accounts.*') ? 'active' : '' }}" href="{{ route('email-accounts.index') }}">
                                 <i class="bi bi-envelope-check"></i>
                                 <span>Email Accounts</span>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link {{ request()->routeIs('keywords.*') ? 'active' : '' }}" href="{{ route('keywords.index') }}">
+                                <i class="bi bi-braces"></i>
+                                <span>Keyword Config</span>
                             </a>
                         </li>
                     </ul>

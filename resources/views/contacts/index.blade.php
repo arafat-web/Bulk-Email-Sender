@@ -14,6 +14,15 @@
         <p style="font-size:13px;color:#64748b;margin:2px 0 0;">{{ $contacts->total() }} contacts</p>
     </div>
     <div class="d-flex gap-2">
+        <div class="btn-group">
+            <button type="button" class="btn btn-outline-primary btn-sm dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
+                <i class="bi bi-download me-1"></i>Export CSV
+            </button>
+            <ul class="dropdown-menu" style="font-size:13px;">
+                <li><button type="button" class="dropdown-item" onclick="exportContacts('filtered')">Export filtered ({{ number_format($filteredCount) }})</button></li>
+                <li><button type="button" class="dropdown-item" onclick="exportContacts('selected')">Export selected only</button></li>
+            </ul>
+        </div>
         <a href="{{ route('contacts.create') }}" class="btn btn-primary btn-sm">Add Contact</a>
         <a href="{{ route('contacts.import.form') }}" class="btn btn-outline-primary btn-sm">Import</a>
     </div>
@@ -307,8 +316,8 @@ document.addEventListener('DOMContentLoaded', function() {
         selectAllCheckbox.addEventListener('change', function() {
             // "Select all" header checkbox only toggles this page; use dropdown for all-filtered
             contactCheckboxes.forEach(cb => cb.checked = this.checked);
-            // If unchecking header while "all filtered" was active, clear extra
-            if (!this.checked && extraIds.size > 0) extraIds.clear();
+            // If unchecking header while "all filtered" was active, drop back to page mode
+            if (!this.checked) isAllFiltered = false;
             updateBulkState();
         });
     }
@@ -321,8 +330,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 selectAllCheckbox.indeterminate = checked > 0 && checked < contactCheckboxes.length;
             }
             // If user manually unchecks while all-filtered active, drop to page-only mode
-            if (extraIds.size > 0 && checked < contactCheckboxes.length) {
-                // keep extras but reflect partial; banner stays "all selected" until clear
+            if (isAllFiltered && checked < contactCheckboxes.length) {
+                isAllFiltered = false;
             }
             updateBulkState();
         });
@@ -363,6 +372,29 @@ function submitBulkTagAction(tagId) {
 function submitBulkStatusAction(status) {
     document.getElementById('bulkStatus').value = status;
     document.getElementById('bulkActionForm').submit();
+}
+
+function exportContacts(mode) {
+    const baseUrl = '{{ route('contacts.export') }}';
+
+    if (mode === 'filtered') {
+        if (FILTERED_COUNT === 0) { alert('No contacts match the current filters.'); return; }
+        const params = new URLSearchParams(FILTER_QUERY);
+        window.location.href = baseUrl + (params.toString() ? '?' + params.toString() : '');
+        return;
+    }
+
+    // mode === 'selected'
+    if (isAllFiltered) {
+        const params = new URLSearchParams(FILTER_QUERY);
+        window.location.href = baseUrl + (params.toString() ? '?' + params.toString() : '');
+        return;
+    }
+    const ids = Array.from(document.querySelectorAll('.contact-checkbox:checked')).map(cb => cb.value);
+    if (ids.length === 0) { alert('Please select at least one contact to export.'); return; }
+    const params = new URLSearchParams();
+    ids.forEach(id => params.append('contacts[]', id));
+    window.location.href = baseUrl + '?' + params.toString();
 }
 </script>
 @endpush

@@ -12,6 +12,9 @@ class VerifyCsrfToken extends Middleware
      * @var array<int, string>
      */
     protected $except = [
-        //
+        // RFC 8058 one-click unsubscribe: Gmail/Yahoo POST here without a CSRF token.
+        // Signed URL signature protects against forgery.
+        'unsubscribe',
+        'unsubscribe/*',
     ];
 }

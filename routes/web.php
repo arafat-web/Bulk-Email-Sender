@@ -1,13 +1,16 @@
 <?php
 
+use App\Http\Controllers\CampaignTrackerController;
 use App\Http\Controllers\ContactController;
 use App\Http\Controllers\ContactTagController;
 use App\Http\Controllers\EmailAccountController;
+use App\Http\Controllers\EmailKeywordController;
 use App\Http\Controllers\EmailTemplateController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\IndividualEmailController;
 use App\Http\Controllers\InstantCampaignController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\UnsubscribeController;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 
@@ -48,6 +51,12 @@ Route::middleware('auth')->group(function () {
     Route::post('/email-templates/{emailTemplate}/duplicate', [EmailTemplateController::class, 'duplicate'])->name('email-templates.duplicate');
     Route::get('/api/email-templates/{emailTemplate}', [EmailTemplateController::class, 'getTemplate'])->name('email-templates.get');
 
+    // Keyword Config — admin-defined dynamic placeholders like [company_name], [name], [phone], [email]
+    Route::resource('keywords', EmailKeywordController::class)->except(['show']);
+    Route::post('/keywords/{keyword}/toggle-active', [EmailKeywordController::class, 'toggleActive'])->name('keywords.toggle-active');
+    Route::post('/keywords/preview', [EmailKeywordController::class, 'preview'])->name('keywords.preview');
+    Route::get('/api/keywords', [EmailKeywordController::class, 'list'])->name('keywords.list');
+
     // Profile Management Routes
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::put('/profile', [ProfileController::class, 'update'])->name('profile.update');
@@ -64,8 +73,26 @@ Route::middleware('auth')->group(function () {
     Route::post('/contacts/import', [ContactController::class, 'import'])->name('contacts.import');
     Route::post('/contacts/bulk-action', [ContactController::class, 'bulkAction'])->name('contacts.bulk-action');
     Route::get('/contacts/ids', [ContactController::class, 'ids'])->name('contacts.ids');
+    Route::get('/contacts/export', [ContactController::class, 'export'])->name('contacts.export');
     Route::resource('contacts', ContactController::class);
+
+    // Realtime campaign tracker — live counters, per-recipient status, retry.
+    Route::get('/campaigns/failures', [CampaignTrackerController::class, 'failures'])->name('campaigns.failures');
+    Route::post('/campaigns/failures/sync', [CampaignTrackerController::class, 'syncFailures'])->name('campaigns.failures.sync');
+    Route::post('/campaigns/failures/retry-all', [CampaignTrackerController::class, 'retryAllFailures'])->name('campaigns.failures.retry-all');
+    Route::post('/campaigns/failures/forget-all', [CampaignTrackerController::class, 'forgetAllFailures'])->name('campaigns.failures.forget-all');
+    Route::get('/campaigns', [CampaignTrackerController::class, 'index'])->name('campaigns.index');
+    Route::get('/campaigns/{campaign}', [CampaignTrackerController::class, 'show'])->name('campaigns.show');
+    Route::get('/campaigns/{campaign}/live', [CampaignTrackerController::class, 'live'])->name('campaigns.live');
+    Route::get('/campaigns/{campaign}/feed', [CampaignTrackerController::class, 'feed'])->name('campaigns.feed');
+    Route::post('/campaigns/{campaign}/retry-failed', [CampaignTrackerController::class, 'retryFailed'])->name('campaigns.retry-failed');
 
     // Contact Tag Management Routes
     Route::resource('tags', ContactTagController::class)->except(['show']);
 });
+
+// Public unsubscribe routes (NO auth — recipients click from their inbox).
+// GET shows a confirmation page, POST confirms, /one-click serves Gmail/Yahoo RFC 8058.
+Route::get('/unsubscribe', [UnsubscribeController::class, 'show'])->name('unsubscribe.show');
+Route::post('/unsubscribe', [UnsubscribeController::class, 'store'])->name('unsubscribe.store');
+Route::post('/unsubscribe/one-click', [UnsubscribeController::class, 'oneClick'])->name('unsubscribe.one-click');
