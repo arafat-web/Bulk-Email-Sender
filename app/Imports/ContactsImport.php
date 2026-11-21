@@ -25,7 +25,7 @@ class ContactsImport implements ToCollection, WithHeadingRow
         $this->tags = $tags;
     }
 
-    public function collection(Collection $collection)
+    public function collection(Collection $collection): void
     {
         foreach ($collection as $row) {
             try {

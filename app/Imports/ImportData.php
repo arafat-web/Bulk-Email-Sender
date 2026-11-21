@@ -19,7 +19,7 @@ class ImportData implements ToModel, WithHeadingRow
     /**
      * @return Model|null
      */
-    public function model(array $row)
+    public function model(array $row): Model|array|null
     {
         // Map column names to database fields - support both new and old formats
         $emailField = trim($row['email_address'] ?? $row['email'] ?? '');
