@@ -9,7 +9,9 @@ use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Str;
 use Maatwebsite\Excel\Facades\Excel;
+use Throwable;
 
 class ContactController extends Controller
 {
@@ -188,9 +190,21 @@ class ContactController extends Controller
             return back()->withErrors($validator)->withInput();
         }
 
+        $storedAbsolutePath = null;
+
         try {
+            $uploadedFile = $request->file('file');
+            $extension = strtolower($uploadedFile->getClientOriginalExtension() ?: 'csv');
+            $importDir = storage_path('app/imports');
+            if (! is_dir($importDir)) {
+                @mkdir($importDir, 0775, true);
+            }
+            $tmpFileName = Str::uuid()->toString().'.'.$extension;
+            $uploadedFile->move($importDir, $tmpFileName);
+            $storedAbsolutePath = $importDir.DIRECTORY_SEPARATOR.$tmpFileName;
+
             $import = new ContactsImport(Auth::id(), $request->tags ?? []);
-            Excel::import($import, $request->file('file'));
+            Excel::import($import, 'imports/'.$tmpFileName, 'local');
 
             $imported = $import->getImportedCount();
             $skipped = $import->getSkippedCount();
@@ -201,8 +215,12 @@ class ContactController extends Controller
             }
 
             return redirect()->route('contacts.index')->with('success', $message);
-        } catch (Exception $e) {
+        } catch (Throwable $e) {
             return back()->with('error', 'Import failed: '.$e->getMessage());
+        } finally {
+            if ($storedAbsolutePath && is_file($storedAbsolutePath)) {
+                @unlink($storedAbsolutePath);
+            }
         }
     }
 

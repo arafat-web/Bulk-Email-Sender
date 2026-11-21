@@ -12,7 +12,10 @@ use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Str;
+use Illuminate\Validation\ValidationException;
 use Maatwebsite\Excel\Facades\Excel;
+use Throwable;
 
 class InstantCampaignController extends Controller
 {
@@ -46,14 +49,14 @@ class InstantCampaignController extends Controller
 
             // Validate the request with custom messages
             $request->validate([
-                'file' => 'required|file|mimetypes:application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,text/csv|max:10240',
+                'file' => 'required|file|mimes:xlsx,xls,csv|max:10240',
                 'subject' => 'required|string|max:255',
                 'body' => 'required|string|max:65535',
                 'template_id' => 'nullable|exists:email_templates,id',
             ], [
                 'file.required' => 'Please upload an Excel or CSV file.',
                 'file.file' => 'The uploaded file is not valid.',
-                'file.mimetypes' => 'Please upload a valid Excel (.xlsx, .xls) or CSV (.csv) file.',
+                'file.mimes' => 'Please upload a valid Excel (.xlsx, .xls) or CSV (.csv) file.',
                 'file.max' => 'The file size must not exceed 10MB.',
                 'subject.required' => 'Please enter an email subject.',
                 'subject.max' => 'Subject must not exceed 255 characters.',
@@ -61,6 +64,18 @@ class InstantCampaignController extends Controller
                 'body.max' => 'Email content is too long. Please reduce the content size.',
                 'template_id.exists' => 'Selected template not found.',
             ]);
+
+            $uploadedFile = $request->file('file');
+            $originalFileName = $uploadedFile->getClientOriginalName();
+            $extension = strtolower($uploadedFile->getClientOriginalExtension() ?: 'csv');
+            $importDir = storage_path('app/imports');
+            if (! is_dir($importDir)) {
+                @mkdir($importDir, 0775, true);
+            }
+            $tmpFileName = Str::uuid()->toString().'.'.$extension;
+            $uploadedFile->move($importDir, $tmpFileName);
+            $storedRelativePath = 'imports/'.$tmpFileName;
+            $storedAbsolutePath = $importDir.DIRECTORY_SEPARATOR.$tmpFileName;
 
             // Clear any existing temporary data for this user only (scoped delete, not global truncate)
             TempMailAddress::forUser(auth()->id())->delete();
@@ -78,8 +93,8 @@ class InstantCampaignController extends Controller
             DB::beginTransaction();
 
             try {
-                // Import the Excel file
-                Excel::import(new ImportData(auth()->id()), $request->file('file'));
+                // Import from local disk (avoids UploadedFile::getRealPath() returning false on Windows/cPanel open_basedir)
+                Excel::import(new ImportData(auth()->id()), $storedRelativePath, 'local');
 
                 $emailCount = TempMailAddress::forUser(auth()->id())->count();
 
@@ -109,7 +124,7 @@ class InstantCampaignController extends Controller
                 $campaign = OneTimeSender::create([
                     'user_id' => auth()->id(),
                     'type' => 'instant',
-                    'file_name' => $request->file->getClientOriginalName(),
+                    'file_name' => $originalFileName,
                     'total_email_address' => $emailCount,
                     'subject' => $request->subject,
                     'body' => $request->body,
@@ -144,7 +159,7 @@ class InstantCampaignController extends Controller
                 // Pre-create recipient rows so the tracker shows Pending totals
                 // immediately — even before the queue worker picks jobs up.
                 $recipientRows = [];
-                TempMailAddress::forUser(auth()->id())->select('email')->chunkById(500, function ($rows) use (&$recipientRows, $campaignId, $now) {
+                TempMailAddress::forUser(auth()->id())->select('id', 'email')->chunkById(500, function ($rows) use (&$recipientRows, $campaignId, $now) {
                     foreach ($rows as $row) {
                         $email = strtolower(trim((string) $row->email));
                         if (! filter_var($email, FILTER_VALIDATE_EMAIL)) {
@@ -214,18 +229,29 @@ class InstantCampaignController extends Controller
                     'message' => 'Success! Instant campaign launched using "'.$defaultEmailAccount->name.'". '.number_format($queuedTotal ?? $emailCount).' emails queued — watch live progress below.',
                 ]);
 
-            } catch (Exception $e) {
+            } catch (ValidationException $e) {
+            throw $e;
+        } catch (Throwable $e) {
                 DB::rollBack();
                 Log::error('Failed to process instant campaign', [
                     'error' => $e->getMessage(),
-                    'file' => $request->file->getClientOriginalName(),
+                    'file' => $originalFileName,
                     'user_id' => auth()->id(),
                 ]);
 
                 return back()->with('error', 'Failed to process the campaign. Please check your file format and try again.');
+            } finally {
+                if (isset($storedAbsolutePath) && is_file($storedAbsolutePath)) {
+                    @unlink($storedAbsolutePath);
+                }
             }
 
-        } catch (Exception $e) {
+        } catch (ValidationException $e) {
+            throw $e;
+        } catch (Throwable $e) {
+            if (isset($storedAbsolutePath) && is_file($storedAbsolutePath)) {
+                @unlink($storedAbsolutePath);
+            }
             Log::error('Instant campaign validation failed', [
                 'error' => $e->getMessage(),
                 'user_id' => auth()->id(),

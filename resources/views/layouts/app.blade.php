@@ -17,8 +17,13 @@
     <link href="https://cdn.datatables.net/1.13.7/css/dataTables.bootstrap5.min.css" rel="stylesheet">
     <!-- SweetAlert2 -->
     <link href="https://cdn.jsdelivr.net/npm/sweetalert2@11.10.1/dist/sweetalert2.min.css" rel="stylesheet">
-    <!-- TinyMCE Rich Text Editor (key from TINYMCE_API_KEY) -->
-    <script src="https://cdn.tiny.cloud/1/{{ config('services.tinymce.key') }}/tinymce/6/tinymce.min.js" referrerpolicy="origin"></script>
+    <!-- TinyMCE 6 Rich Text Editor (falls back to free jsDelivr CDN when no API key is configured) -->
+    @php($tinymceKey = config('services.tinymce.key'))
+    @if(!empty($tinymceKey) && $tinymceKey !== 'no-api-key')
+        <script src="https://cdn.tiny.cloud/1/{{ $tinymceKey }}/tinymce/6/tinymce.min.js" referrerpolicy="origin"></script>
+    @else
+        <script src="https://cdn.jsdelivr.net/npm/tinymce@6.8.5/tinymce.min.js" referrerpolicy="origin"></script>
+    @endif
 
     <style>
         :root {
