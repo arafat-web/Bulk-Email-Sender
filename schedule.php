@@ -28,10 +28,24 @@
 
 use Illuminate\Contracts\Console\Kernel;
 
+// Security: block direct HTTP execution if deployed inside public_html/.
+if (PHP_SAPI !== 'cli' && PHP_SAPI !== 'phpdbg') {
+    http_response_code(403);
+    exit('Forbidden');
+}
+
+// Prevent shared-host PHP CLI execution limits from cutting off a drain tick.
+if (function_exists('set_time_limit')) {
+    @set_time_limit(0);
+}
+
 $dryRun = in_array('--dry-run', $argv ?? [], true);
 
 // --- File lock: skip if previous tick still running -------------------------
 $lockPath = __DIR__.'/storage/framework/schedule.lock';
+if (! is_dir(dirname($lockPath))) {
+    @mkdir(dirname($lockPath), 0775, true);
+}
 
 $lock = @fopen($lockPath, 'c+');
 if ($lock === false) {

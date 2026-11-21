@@ -6,4 +6,5 @@ maintenance.php
 routes.php
 routes.scanned.php
 schedule-*
+schedule.lock
 services.json

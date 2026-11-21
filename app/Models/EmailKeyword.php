@@ -55,19 +55,36 @@ class EmailKeyword extends Model
     }
 
     /**
-     * All active keywords, cached for fast per-email replacement.
+     * All active keywords, cached as plain arrays for Laravel 13
+     * `serializable_classes => false` compatibility, then hydrated.
      * Returns key => EmailKeyword map.
      */
     public static function activeMap(): array
     {
-        return Cache::remember('email_keywords.active_map', 300, function () {
-            return static::where('is_active', true)->orderBy('key')->get()->keyBy('key')->all();
+        $rows = Cache::remember('email_keywords.active_map.v2', 300, function () {
+            return static::where('is_active', true)
+                ->orderBy('key')
+                ->get(['id', 'key', 'label', 'source_column', 'default_value', 'description', 'is_active'])
+                ->map(fn (self $kw) => $kw->attributesToArray())
+                ->keyBy('key')
+                ->all();
         });
+
+        $map = [];
+        foreach ($rows as $key => $attrs) {
+            $model = new static;
+            $model->forceFill((array) $attrs);
+            $model->exists = true;
+            $map[$key] = $model;
+        }
+
+        return $map;
     }
 
     public static function flushCache(): void
     {
         Cache::forget('email_keywords.active_map');
+        Cache::forget('email_keywords.active_map.v2');
     }
 
     protected static function booted(): void
