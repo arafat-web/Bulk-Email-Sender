@@ -50,6 +50,7 @@
             <div class="col-md-2">
                 <select name="tag" class="form-select">
                     <option value="">All Tags</option>
+                    <option value="untagged" {{ request('tag') === 'untagged' ? 'selected' : '' }}>Untagged ({{ number_format($untaggedCount) }})</option>
                     @foreach($tags as $tag)
                         <option value="{{ $tag->id }}" {{ request('tag') == $tag->id ? 'selected' : '' }}>{{ $tag->name }}</option>
                     @endforeach

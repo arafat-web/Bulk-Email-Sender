@@ -60,10 +60,14 @@ class EmailContact extends Model
     }
 
     /**
-     * Scope to filter by tag.
+     * Scope to filter by tag (or 'untagged' for contacts without any tag).
      */
     public function scopeWithTag($query, $tagId)
     {
+        if ($tagId === 'untagged') {
+            return $query->whereDoesntHave('tags');
+        }
+
         return $query->whereHas('tags', function ($q) use ($tagId) {
             $q->where('contact_tags.id', $tagId);
         });

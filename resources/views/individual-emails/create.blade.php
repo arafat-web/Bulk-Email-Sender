@@ -62,6 +62,7 @@
                         </div>
                         <select class="form-select form-select-sm mb-2" id="tagFilter" onchange="filterContactsByTag()">
                             <option value="">All Tags</option>
+                            <option value="untagged">Untagged (No Tag)</option>
                             @foreach($tags as $tag)<option value="{{ $tag->id }}">{{ $tag->name }}</option>@endforeach
                         </select>
                         <div class="contact-list" style="max-height:250px;overflow-y:auto;border:1px solid #e2e8f0;border-radius:8px;padding:8px;">
@@ -227,7 +228,15 @@ $(document).ready(function() {
     window.selectAllContacts = function() { $('.contact-item:visible .contact-checkbox').prop('checked', true); uc(); };
     window.clearAllContacts = function() { $('.contact-checkbox').prop('checked', false); uc(); };
     window.filterContactsByTag = function() {
-        var t = $('#tagFilter').val(); $('.contact-item').each(function() { var tags = $(this).data('tags').toString().split(','); if (!t || tags.includes(t)) $(this).show(); else { $(this).hide(); $(this).find('.contact-checkbox').prop('checked', false); } }); uc();
+        var t = $('#tagFilter').val();
+        $('.contact-item').each(function() {
+            var raw = ($(this).data('tags') ?? '').toString().trim();
+            var tags = raw ? raw.split(',') : [];
+            var match = !t || (t === 'untagged' ? tags.length === 0 : tags.includes(t));
+            if (match) $(this).show();
+            else { $(this).hide(); $(this).find('.contact-checkbox').prop('checked', false); }
+        });
+        uc();
     };
     window.filterContactsByTagId = function(tagId) {
         $('#tagFilter').val(tagId); window.filterContactsByTag();

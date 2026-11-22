@@ -41,9 +41,10 @@ class ContactController extends Controller
 
         $contacts = $query->paginate(20);
         $filteredCount = (clone $query)->count();
+        $untaggedCount = EmailContact::where('user_id', Auth::id())->whereDoesntHave('tags')->count();
         $tags = ContactTag::where('user_id', Auth::id())->get();
 
-        return view('contacts.index', compact('contacts', 'tags', 'filteredCount'));
+        return view('contacts.index', compact('contacts', 'tags', 'filteredCount', 'untaggedCount'));
     }
 
     /**
@@ -255,7 +256,11 @@ class ContactController extends Controller
     {
         $validator = Validator::make($request->all(), [
             'search' => 'nullable|string|max:255',
-            'tag' => 'nullable|exists:contact_tags,id',
+            'tag' => ['nullable', function ($attribute, $value, $fail) {
+                if ($value !== 'untagged' && ! ContactTag::where('id', $value)->where('user_id', Auth::id())->exists()) {
+                    $fail('The selected tag is invalid.');
+                }
+            }],
             'status' => 'nullable|in:active,inactive,bounced,unsubscribed',
             'contacts' => 'nullable|array|max:10000',
             'contacts.*' => 'integer',
@@ -323,7 +328,11 @@ class ContactController extends Controller
             'contacts.*' => 'exists:email_contacts,id',
             'bulk_all_filtered' => 'nullable|boolean',
             'bulk_search' => 'nullable|string|max:255',
-            'bulk_tag' => 'nullable|exists:contact_tags,id',
+            'bulk_tag' => ['nullable', function ($attribute, $value, $fail) {
+                if ($value !== 'untagged' && ! ContactTag::where('id', $value)->where('user_id', Auth::id())->exists()) {
+                    $fail('The selected tag filter is invalid.');
+                }
+            }],
             'bulk_status' => 'nullable|in:active,inactive,bounced,unsubscribed',
             'tag_id' => 'nullable|exists:contact_tags,id',
             'status' => 'nullable|in:active,inactive,bounced,unsubscribed',
